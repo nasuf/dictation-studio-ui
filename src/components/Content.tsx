@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Breadcrumb, Layout, Menu, theme, Input } from "antd";
+import { Breadcrumb, Layout, theme, Input } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import AppSider from "./Sider";
 
@@ -9,6 +9,7 @@ const AppContent: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const [selectedPath, setSelectedPath] = useState<string[]>(["Home"]);
 
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
@@ -34,16 +35,16 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isPlaying]);
 
-  const onReady = (event: { target: YouTubePlayer }) => {
+  const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
   };
 
   return (
     <Content style={{ padding: "0 48px" }}>
       <Breadcrumb style={{ margin: "16px 0" }}>
-        <Breadcrumb.Item>Home</Breadcrumb.Item>
-        <Breadcrumb.Item>List</Breadcrumb.Item>
-        <Breadcrumb.Item>App</Breadcrumb.Item>
+        {selectedPath.map((item, index) => (
+          <Breadcrumb.Item key={index}>{item}</Breadcrumb.Item>
+        ))}
       </Breadcrumb>
       <Layout
         style={{
@@ -52,7 +53,7 @@ const AppContent: React.FC = () => {
           borderRadius: borderRadiusLG,
         }}
       >
-        <AppSider />
+        <AppSider onPathChange={setSelectedPath} />
         <Content
           style={{
             padding: "0 24px",
@@ -72,7 +73,7 @@ const AppContent: React.FC = () => {
                 autoplay: 0,
               },
             }}
-            onReady={onReady}
+            onReady={onVideoReady}
           />
           <Input
             style={{ marginTop: "20px", width: "640px" }}

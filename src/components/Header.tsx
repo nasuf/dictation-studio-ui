@@ -21,7 +21,7 @@ const AppHeader: React.FC = () => {
           theme="dark"
           mode="horizontal"
           defaultSelectedKeys={["1"]}
-          items={[{ key: "1", label: "nav 1" }]}
+          items={[{ key: "home", label: "Daily Dictation" }]}
           style={{ background: "transparent" }}
         />
       </div>
