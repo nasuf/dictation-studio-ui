@@ -3,6 +3,7 @@ import Sider from "antd/es/layout/Sider";
 import { BookTwoTone, CustomerServiceTwoTone } from "@ant-design/icons";
 import React from "react";
 import { MenuInfo } from "rc-menu/lib/interface";
+import styles from "@/lib/styles/Sider.module.css";
 
 interface AppSiderProps {
   onPathChange: (path: string[]) => void;
@@ -78,6 +79,7 @@ const AppSider: React.FC<AppSiderProps> = ({ onPathChange }) => {
         style={{ height: "100%" }}
         items={siderItems}
         onSelect={handleMenuSelect}
+        className={styles.siderMenu}
       />
     </Sider>
   );
