@@ -3,6 +3,7 @@ import { Breadcrumb, Layout, theme } from "antd";
 
 import AppSider from "@/components/Sider";
 import Video from "@/components/dictation/Video";
+import { Word } from "@/components/dictation/Word";
 
 const { Content } = Layout;
 
@@ -10,6 +11,7 @@ const AppContent: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   const [selectedPath, setSelectedPath] = useState<string[]>([
     "Home",
     "听写",
@@ -41,7 +43,7 @@ const AppContent: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <Video />
+          {selectedPath.includes("单词听写") ? <Word /> : <Video />}
         </Content>
       </Layout>
     </Content>
