@@ -1,5 +1,5 @@
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
-import { Input, InputRef } from "antd";
+import { Alert, Input, InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
@@ -130,9 +130,14 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         placeholder="输入你听到的内容"
       />
       <p style={{ marginTop: "10px" }}>
-        按 Enter 键提交并验证答案。再次按 Enter 键获取下一个单词。
+        <Alert
+          message="按 Enter
+        键提交并验证答案。再次按 Enter 键获取下一个单词。
+        按 Tab 键或点击卡片重新播放单词发音。"
+          type="info"
+          showIcon
+        />
       </p>
-      <p style={{ marginTop: "10px" }}>按 Tab 键或点击卡片重新播放单词发音。</p>
     </>
   );
 };

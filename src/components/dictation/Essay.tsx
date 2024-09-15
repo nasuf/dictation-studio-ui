@@ -1,8 +1,8 @@
-import { Input } from "antd";
+import { Alert, Input } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
 
-const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
+const Essay: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -51,10 +51,10 @@ const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         placeholder="输入你听到的内容"
       />
       <p style={{ marginTop: "10px" }}>
-        按 Tab 键开始/暂停视频。在句子结束时暂停，然后输入你听到的内容。
+        <Alert message="按 Tab 键开始/暂停视频。" type="info" showIcon />
       </p>
     </>
   );
 };
 
-export default Video;
+export default Essay;
