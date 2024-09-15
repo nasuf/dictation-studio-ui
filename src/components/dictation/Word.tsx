@@ -1,6 +1,6 @@
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
-import { Input } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { Input, InputRef } from "antd";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   interface WordData {
@@ -10,6 +10,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const [wordData, setWordData] = useState<WordData>({ word: "" });
   const [userInput, setUserInput] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
+  const userInputRef = useRef<InputRef>(null);
 
   const fetchRandomWord = () => {
     setUserInput("");
@@ -64,6 +65,12 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
     fetchRandomWord();
   }, []);
 
+  useEffect(() => {
+    if (userInputRef.current) {
+      userInputRef.current.focus();
+    }
+  }, []);
+
   return (
     <>
       <div
@@ -71,6 +78,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         className={
           "flex h-[500px] w-full flex-col gap-4 lg:h-[250px] lg:flex-row"
         }
+        onClick={() => speakWord(wordData.word)}
       >
         <MagicCard
           className="cursor-pointer flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
@@ -87,6 +95,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         </MagicCard>
       </div>
       <Input
+        ref={userInputRef}
         style={{ marginTop: "20px", width: "640px" }}
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
@@ -96,7 +105,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
       <p style={{ marginTop: "10px" }}>
         按 Enter 键提交并验证答案。再次按 Enter 键获取下一个单词。
       </p>
-      <p style={{ marginTop: "10px" }}>按 Tab 键重新播放单词发音。</p>
+      <p style={{ marginTop: "10px" }}>按 Tab 键或点击卡片重新播放单词发音。</p>
     </>
   );
 };
