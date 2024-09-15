@@ -18,6 +18,14 @@ const AppContent: React.FC = () => {
     "文章听写",
   ]);
 
+  const componentStyle = {
+    width: "640px",
+    height: "390px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
   return (
     <Content style={{ padding: "0 48px" }}>
       <Breadcrumb style={{ margin: "16px 0" }}>
@@ -43,7 +51,11 @@ const AppContent: React.FC = () => {
             alignItems: "center",
           }}
         >
-          {selectedPath.includes("单词听写") ? <Word /> : <Video />}
+          {selectedPath.includes("单词听写") ? (
+            <Word style={componentStyle} />
+          ) : (
+            <Video style={componentStyle} />
+          )}
         </Content>
       </Layout>
     </Content>

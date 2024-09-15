@@ -2,7 +2,7 @@ import { Input } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
 
-const Video: React.FC = () => {
+const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,17 +31,19 @@ const Video: React.FC = () => {
   };
   return (
     <>
-      <YouTube
-        videoId="7lOJxI-3oqQ" // 替换为你想要的视频ID
-        opts={{
-          height: "390",
-          width: "640",
-          playerVars: {
-            autoplay: 0,
-          },
-        }}
-        onReady={onVideoReady}
-      />
+      <div style={style}>
+        <YouTube
+          videoId="7lOJxI-3oqQ" // 替换为你想要的视频ID
+          opts={{
+            height: "390",
+            width: "640",
+            playerVars: {
+              autoplay: 0,
+            },
+          }}
+          onReady={onVideoReady}
+        />
+      </div>
       <Input
         style={{ marginTop: "20px", width: "640px" }}
         value={userInput}
