@@ -95,25 +95,29 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
           className="cursor-pointer flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
           gradientColor={"#D9D9D955"}
         >
-          <div
-            style={{
-              filter: isBlurred ? "blur(10px)" : "none",
-              transition: "filter 0.3s ease-in-out",
-            }}
-          >
-            {wordData.word}
-          </div>
-          <div
-            style={{
-              color:
-                isCorrect === true
-                  ? "green"
-                  : isCorrect === null
-                  ? "black"
-                  : "red",
-            }}
-          >
-            {userInput}
+          <div className="flex flex-col justify-between items-center h-full py-8">
+            <div
+              className="flex-grow flex items-center justify-center"
+              style={{
+                filter: isBlurred ? "blur(10px)" : "none",
+                transition: "filter 0.3s ease-in-out",
+              }}
+            >
+              {wordData.word}
+            </div>
+            <div
+              className="mt-4"
+              style={{
+                color:
+                  isCorrect === true
+                    ? "green"
+                    : isCorrect === null
+                    ? "black"
+                    : "red",
+              }}
+            >
+              {userInput}
+            </div>
           </div>
         </MagicCard>
       </div>
