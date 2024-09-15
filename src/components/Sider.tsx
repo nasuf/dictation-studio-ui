@@ -73,8 +73,8 @@ const AppSider: React.FC<AppSiderProps> = ({ onPathChange }) => {
     <Sider style={{ background: colorBgContainer }} width={200}>
       <Menu
         mode="inline"
-        defaultSelectedKeys={["1"]}
-        defaultOpenKeys={["sub1"]}
+        defaultSelectedKeys={["ArticalDictation"]}
+        defaultOpenKeys={["Dictation"]}
         style={{ height: "100%" }}
         items={siderItems}
         onSelect={handleMenuSelect}

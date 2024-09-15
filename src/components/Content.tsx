@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Breadcrumb, Layout, theme } from "antd";
 
 import AppSider from "@/components/Sider";
-import Video from "@/components/content/Video";
+import Video from "@/components/dictation/Video";
 
 const { Content } = Layout;
 
@@ -10,7 +10,11 @@ const AppContent: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const [selectedPath, setSelectedPath] = useState<string[]>(["Home"]);
+  const [selectedPath, setSelectedPath] = useState<string[]>([
+    "Home",
+    "听写",
+    "文章听写",
+  ]);
 
   return (
     <Content style={{ padding: "0 48px" }}>
