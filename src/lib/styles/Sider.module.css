@@ -1,6 +1,6 @@
 .siderMenu :global(.ant-menu-item),
 .siderMenu :global(.ant-menu-submenu-title) {
-  transition: transform 0.3s ease;
+  transition: transform 1s ease;
 }
 
 .siderMenu :global(.ant-menu-item:hover),

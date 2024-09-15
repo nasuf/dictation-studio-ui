@@ -7,10 +7,22 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
     word: string;
     definition?: string;
   }
+
   const [wordData, setWordData] = useState<WordData>({ word: "" });
   const [userInput, setUserInput] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const userInputRef = useRef<InputRef>(null);
+
+  useEffect(() => {
+    fetchRandomWord();
+  }, []);
+
+  useEffect(() => {
+    if (userInputRef.current) {
+      userInputRef.current.focus();
+    }
+  }, []);
 
   const fetchRandomWord = () => {
     setUserInput("");
@@ -27,7 +39,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
           }
         );
         const data = await response.json();
-        setWordData({ word: data.word });
+        setWordData({ word: data.word[0] });
         speakWord(data.word);
       } catch (error) {
         console.error("Error fetching random word:", error);
@@ -44,30 +56,29 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
       event.preventDefault(); // Prevent default tab behavior
       if (isBlurred) {
         setIsBlurred(false);
+        validateAnswer(userInput);
       } else {
+        setIsCorrect(null);
         fetchRandomWord();
       }
     }
+  };
+
+  const validateAnswer = (userInput: string) => {
+    setIsCorrect(
+      String(userInput).toLowerCase() === String(wordData.word).toLowerCase()
+    );
   };
 
   const speakWord = useCallback((word: string) => {
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = "en-US";
-      utterance.rate = 0.8;
+      utterance.rate = 1.0;
       speechSynthesis.speak(utterance);
+      console.log("Speaking word:", word);
     } else {
       console.log("Text-to-speech not supported.");
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRandomWord();
-  }, []);
-
-  useEffect(() => {
-    if (userInputRef.current) {
-      userInputRef.current.focus();
     }
   }, []);
 
@@ -91,6 +102,18 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
             }}
           >
             {wordData.word}
+          </div>
+          <div
+            style={{
+              color:
+                isCorrect === true
+                  ? "green"
+                  : isCorrect === null
+                  ? "black"
+                  : "red",
+            }}
+          >
+            {userInput}
           </div>
         </MagicCard>
       </div>

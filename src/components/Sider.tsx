@@ -1,6 +1,10 @@
 import { Menu, theme } from "antd";
 import Sider from "antd/es/layout/Sider";
-import { BookTwoTone, CustomerServiceTwoTone } from "@ant-design/icons";
+import {
+  BookTwoTone,
+  CustomerServiceTwoTone,
+  NotificationTwoTone,
+} from "@ant-design/icons";
 import React from "react";
 import { MenuInfo } from "rc-menu/lib/interface";
 import styles from "@/lib/styles/Sider.module.css";
@@ -52,6 +56,11 @@ const AppSider: React.FC<AppSiderProps> = ({ onPathChange }) => {
           label: "单词收藏",
         },
       ],
+    },
+    {
+      key: "FM",
+      icon: React.createElement(NotificationTwoTone),
+      label: "FM 广播",
     },
   ];
 

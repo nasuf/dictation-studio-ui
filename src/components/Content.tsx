@@ -4,6 +4,7 @@ import { Breadcrumb, Layout, theme } from "antd";
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
 import Essay from "@/components/dictation/Essay";
+import Radio from "@/components/dictation/Radio";
 
 const { Content } = Layout;
 
@@ -24,6 +25,20 @@ const AppContent: React.FC = () => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  };
+
+  const renderContent = () => {
+    const lastPath = selectedPath[selectedPath.length - 1];
+    switch (lastPath) {
+      case "单词听写":
+        return <Word style={componentStyle} />;
+      case "文章听写":
+        return <Essay style={componentStyle} />;
+      case "FM 广播":
+        return <Radio style={componentStyle} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -52,11 +67,7 @@ const AppContent: React.FC = () => {
             alignItems: "center",
           }}
         >
-          {selectedPath.includes("单词听写") ? (
-            <Word style={componentStyle} />
-          ) : (
-            <Essay style={componentStyle} />
-          )}
+          {renderContent()}
         </Content>
       </Layout>
     </Content>
