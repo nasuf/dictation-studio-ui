@@ -33,7 +33,7 @@ const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
     <>
       <div style={style}>
         <YouTube
-          videoId="7lOJxI-3oqQ" // 替换为你想要的视频ID
+          videoId="7QDGDh9KT_U" // 替换为你想要的视频ID
           opts={{
             height: "390",
             width: "640",

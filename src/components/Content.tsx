@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Breadcrumb, Layout, theme } from "antd";
 
 import AppSider from "@/components/Sider";
-import Video from "@/components/dictation/Video";
 import { Word } from "@/components/dictation/Word";
+import Essay from "@/components/dictation/Essay";
 
 const { Content } = Layout;
 
@@ -35,6 +35,7 @@ const AppContent: React.FC = () => {
       </Breadcrumb>
       <Layout
         style={{
+          height: "80vh",
           padding: "24px 0",
           background: colorBgContainer,
           borderRadius: borderRadiusLG,
@@ -54,7 +55,7 @@ const AppContent: React.FC = () => {
           {selectedPath.includes("单词听写") ? (
             <Word style={componentStyle} />
           ) : (
-            <Video style={componentStyle} />
+            <Essay style={componentStyle} />
           )}
         </Content>
       </Layout>

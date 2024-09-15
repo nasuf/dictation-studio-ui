@@ -7,7 +7,7 @@ import "../global.css";
 
 const App: React.FC = () => {
   return (
-    <Layout>
+    <Layout style={{ minHeight: "100vh" }}>
       <AppHeader />
       <AppContent />
       <AppFooter />
