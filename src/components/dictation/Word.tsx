@@ -3,23 +3,33 @@ import { Input } from "antd";
 import { useEffect, useState } from "react";
 
 export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
-  const [randomWord, setRandomWord] = useState<string>("");
-  useEffect(() => {
-    setRandomWord(getRandomWord());
-  });
+  interface WordData {
+    word: string;
+    definition?: string;
+  }
+  const [wordData, setWordData] = useState<WordData>({ word: "" });
   const [userInput, setUserInput] = useState("");
-  const getRandomWord = () => {
-    const words = [
-      "apple",
-      "banana",
-      "cherry",
-      "date",
-      "elderberry",
-      "fig",
-      "grape",
-    ];
-    return words[Math.floor(Math.random() * words.length)];
+
+  const fetchRandomWord = async () => {
+    try {
+      // Using the Random Word API from API Ninjas
+      const response = await fetch("https://api.api-ninjas.com/v1/randomword", {
+        headers: {
+          "X-Api-Key": "SzOENN9+NEKsUgzzSNsrSw==9hOxftSvUXPrb5di", // Replace with your actual API key
+        },
+      });
+      const data = await response.json();
+      setWordData({ word: data.word });
+    } catch (error) {
+      console.error("Error fetching random word:", error);
+      setWordData({ word: "Error fetching word" });
+    }
   };
+
+  useEffect(() => {
+    fetchRandomWord();
+  }, []);
+
   return (
     <>
       <div
@@ -32,7 +42,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
           className="cursor-pointer flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
           gradientColor={"#D9D9D955"}
         >
-          {randomWord}
+          {wordData.word}
         </MagicCard>
       </div>
       <Input

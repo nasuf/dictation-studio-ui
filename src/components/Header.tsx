@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, Button, Space } from "antd";
 
 const { Header } = Layout;
 
@@ -10,7 +10,6 @@ const AppHeader: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        borderRadius: 8,
         padding: "0 16px",
         marginBottom: 16,
       }}
@@ -20,12 +19,15 @@ const AppHeader: React.FC = () => {
         <Menu
           theme="dark"
           mode="horizontal"
-          defaultSelectedKeys={["1"]}
+          defaultSelectedKeys={["home"]}
           items={[{ key: "home", label: "Daily Dictation" }]}
           style={{ background: "transparent" }}
         />
       </div>
-      <Button type="primary">Login</Button>
+      <Space>
+        <Button type="link">Sign In</Button>
+        <Button type="link">Sign Up</Button>
+      </Space>
     </Header>
   );
 };
