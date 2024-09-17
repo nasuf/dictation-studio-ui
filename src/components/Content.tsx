@@ -5,6 +5,7 @@ import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
 import Essay from "@/components/dictation/Essay";
 import Radio from "@/components/dictation/Radio";
+import { Sentence } from "@/components/dictation/Sentence";
 
 const { Content } = Layout;
 
@@ -34,6 +35,8 @@ const AppContent: React.FC = () => {
         return <Word style={componentStyle} />;
       case "文章听写":
         return <Essay style={componentStyle} />;
+      case "句子听写":
+        return <Sentence style={componentStyle} />;
       case "FM 广播":
         return <Radio style={componentStyle} />;
       default:
