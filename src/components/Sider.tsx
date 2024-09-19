@@ -29,10 +29,6 @@ const AppSider: React.FC<AppSiderProps> = ({ onPathChange }) => {
           label: "文章听写",
         },
         {
-          key: "SentenceDictation",
-          label: "句子听写",
-        },
-        {
           key: "WordDictation",
           label: "单词听写",
         },
@@ -46,10 +42,6 @@ const AppSider: React.FC<AppSiderProps> = ({ onPathChange }) => {
         {
           key: "ArticalCollection",
           label: "文章收藏",
-        },
-        {
-          key: "SentenceCollection",
-          label: "句子收藏",
         },
         {
           key: "WordCollection",

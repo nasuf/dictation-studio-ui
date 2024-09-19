@@ -1,39 +1,89 @@
 import { Alert, Input } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
+import axios from "axios";
+
+interface TranscriptItem {
+  start: number;
+  end: number;
+  transcript: string;
+}
 
 const Essay: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+
+  const videoId = "7QDGDh9KT_U"; // 替换为你想要的视频ID
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+  useEffect(() => {
+    fetchTranscript();
+  }, []);
+
+  const fetchTranscript = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:4001/api/transcript",
+        {
+          url: videoUrl,
+        }
+      );
+      setTranscript(response.data);
+    } catch (error) {
+      console.error("Error fetching transcript:", error);
+    }
+  };
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (!playerRef.current) return;
+      if (!playerRef.current || transcript.length === 0) return;
 
       if (event.key === "Tab") {
-        event.preventDefault(); // 防止 Tab 键的默认行为
-        if (isPlaying) {
-          playerRef.current.pauseVideo();
-          setIsPlaying(false);
-        } else {
-          playerRef.current.playVideo();
-          setIsPlaying(true);
-        }
+        event.preventDefault();
+        playCurrentSentence();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        playNextSentence();
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [isPlaying]);
+  }, [transcript, currentSentenceIndex]);
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
   };
+
+  const playCurrentSentence = () => {
+    if (!playerRef.current || transcript.length === 0) return;
+    const currentSentence = transcript[currentSentenceIndex];
+    playerRef.current.seekTo(currentSentence.start, true);
+    playerRef.current.playVideo();
+    setTimeout(() => {
+      playerRef.current?.pauseVideo();
+    }, (currentSentence.end - currentSentence.start) * 1000);
+  };
+
+  const playNextSentence = () => {
+    if (!playerRef.current || transcript.length === 0) return;
+    const nextIndex = (currentSentenceIndex + 1) % transcript.length;
+    setCurrentSentenceIndex(nextIndex);
+    const nextSentence = transcript[nextIndex];
+    playerRef.current.seekTo(nextSentence.start, true);
+    playerRef.current.playVideo();
+    setTimeout(() => {
+      playerRef.current?.pauseVideo();
+    }, (nextSentence.end - nextSentence.start) * 1000);
+  };
+
   return (
     <>
       <div style={style}>
         <YouTube
-          videoId="7QDGDh9KT_U" // 替换为你想要的视频ID
+          videoId={videoId}
           opts={{
             height: "390",
             width: "640",
@@ -51,7 +101,11 @@ const Essay: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         placeholder="输入你听到的内容"
       />
       <p style={{ marginTop: "10px" }}>
-        <Alert message="按 Tab 键开始/暂停视频。" type="info" showIcon />
+        <Alert
+          message="按 Tab 键重复当前句子，按 Enter 键播放下一句子。"
+          type="info"
+          showIcon
+        />
       </p>
     </>
   );
