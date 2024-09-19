@@ -22,9 +22,9 @@ const AppSider: React.FC = () => {
       label: "听写",
       children: [
         {
-          key: "ArticalDictation",
-          label: "文章听写",
-          path: "/dictation/essay",
+          key: "VideoDictation",
+          label: "视频听写",
+          path: "/dictation/video",
         },
         {
           key: "WordDictation",
@@ -39,9 +39,9 @@ const AppSider: React.FC = () => {
       label: "收藏",
       children: [
         {
-          key: "ArticalCollection",
-          label: "文章收藏",
-          path: "/collection/essay",
+          key: "VideoCollection",
+          label: "视频收藏",
+          path: "/collection/video",
         },
         {
           key: "WordCollection",

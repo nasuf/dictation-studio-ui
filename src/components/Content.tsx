@@ -4,7 +4,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
-import Essay from "@/components/dictation/Essay";
+import Video from "@/components/dictation/Video";
 import Radio from "@/components/dictation/Radio";
 
 const { Content } = Layout;
@@ -69,17 +69,17 @@ const AppContent: React.FC = () => {
         >
           <Routes>
             <Route
-              path="/dictation/essay"
-              element={<Essay style={componentStyle} />}
+              path="/dictation/video"
+              element={<Video style={componentStyle} />}
             />
             <Route
               path="/dictation/word"
               element={<Word style={componentStyle} />}
             />
-            <Route path="/collection/essay" element={<div>文章收藏</div>} />
+            <Route path="/collection/video" element={<div>文章收藏</div>} />
             <Route path="/collection/word" element={<div>单词收藏</div>} />
             <Route path="/radio" element={<Radio style={componentStyle} />} />
-            <Route path="/" element={<Essay style={componentStyle} />} />
+            <Route path="/" element={<Video style={componentStyle} />} />
           </Routes>
         </Content>
       </Layout>

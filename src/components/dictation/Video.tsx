@@ -9,13 +9,13 @@ interface TranscriptItem {
   transcript: string;
 }
 
-const Essay: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
+const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
-  const videoId = "7QDGDh9KT_U"; // 替换为你想要的视频ID
+  const videoId = "7QDGDh9KT_U";
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   useEffect(() => {
@@ -111,4 +111,4 @@ const Essay: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   );
 };
 
-export default Essay;
+export default Video;
