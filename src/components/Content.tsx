@@ -6,6 +6,8 @@ import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
 import Video from "@/components/dictation/Video";
 import Radio from "@/components/dictation/Radio";
+import ChannelList from "@/components/dictation/ChannelList";
+import VideoList from "@/components/dictation/VideoList";
 
 const { Content } = Layout;
 
@@ -68,10 +70,12 @@ const AppContent: React.FC = () => {
           }}
         >
           <Routes>
+            <Route path="/dictation/video" element={<ChannelList />} />
             <Route
-              path="/dictation/video"
-              element={<Video style={componentStyle} />}
+              path="/dictation/video/channel/:channelId"
+              element={<VideoList />}
             />
+            <Route path="/dictation/video/:videoId" element={<Video />} />
             <Route
               path="/dictation/word"
               element={<Word style={componentStyle} />}
@@ -79,7 +83,7 @@ const AppContent: React.FC = () => {
             <Route path="/collection/video" element={<div>文章收藏</div>} />
             <Route path="/collection/word" element={<div>单词收藏</div>} />
             <Route path="/radio" element={<Radio style={componentStyle} />} />
-            <Route path="/" element={<Video style={componentStyle} />} />
+            <Route path="/" element={<ChannelList />} />
           </Routes>
         </Content>
       </Layout>

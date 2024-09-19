@@ -2,6 +2,7 @@ import { Alert, Input } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 interface TranscriptItem {
   start: number;
@@ -9,18 +10,19 @@ interface TranscriptItem {
   transcript: string;
 }
 
-const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
+const Video: React.FC = () => {
+  const { videoId } = useParams<{ videoId: string }>();
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
-  const videoId = "7QDGDh9KT_U";
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   useEffect(() => {
     fetchTranscript();
-  }, []);
+  }, [videoId]);
 
   const fetchTranscript = async () => {
     try {
@@ -81,7 +83,7 @@ const Video: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
 
   return (
     <>
-      <div style={style}>
+      <div>
         <YouTube
           videoId={videoId}
           opts={{
