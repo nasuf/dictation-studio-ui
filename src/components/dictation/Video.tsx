@@ -13,7 +13,6 @@ interface TranscriptItem {
 const Video: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const playerRef = useRef<YouTubePlayer | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);

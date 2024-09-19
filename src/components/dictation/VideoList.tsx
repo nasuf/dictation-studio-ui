@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card } from "antd";
 
 // 这里我们使用硬编码的视频列表，实际应用中你需要从YouTube API获取数据
@@ -17,11 +17,6 @@ const videos = [
 ];
 
 const VideoList: React.FC = () => {
-  const { channelId } = useParams<{ channelId: string }>();
-
-  // 使用 channelId 来获取特定频道的视频
-  // 这里你可能需要根据 channelId 来过滤视频或从 API 获取数据
-
   return (
     <div style={{ padding: "20px" }}>
       <h2>视频列表</h2>

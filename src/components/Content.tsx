@@ -1,6 +1,6 @@
 import React from "react";
 import { Breadcrumb, Layout, theme } from "antd";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Link } from "react-router-dom";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
@@ -47,7 +47,9 @@ const AppContent: React.FC = () => {
     <Content style={{ padding: "0 48px" }}>
       <Breadcrumb style={{ margin: "16px 0" }}>
         {getBreadcrumbItems().map((item, index) => (
-          <Breadcrumb.Item key={index}>{item.title}</Breadcrumb.Item>
+          <Breadcrumb.Item key={index}>
+            <Link to={item.path}>{item.title}</Link>
+          </Breadcrumb.Item>
         ))}
       </Breadcrumb>
       <Layout
