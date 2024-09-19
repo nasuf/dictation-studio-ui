@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { Breadcrumb, Layout, theme } from "antd";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
@@ -13,11 +14,7 @@ const AppContent: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const [selectedPath, setSelectedPath] = useState<string[]>([
-    "Home",
-    "听写",
-    "文章听写",
-  ]);
+  const location = useLocation();
 
   const componentStyle = {
     width: "640px",
@@ -27,25 +24,28 @@ const AppContent: React.FC = () => {
     justifyContent: "center",
   };
 
-  const renderContent = () => {
-    const lastPath = selectedPath[selectedPath.length - 1];
-    switch (lastPath) {
-      case "单词听写":
-        return <Word style={componentStyle} />;
-      case "文章听写":
-        return <Essay style={componentStyle} />;
-      case "FM 广播":
-        return <Radio style={componentStyle} />;
-      default:
-        return null;
-    }
+  const getBreadcrumbItems = () => {
+    const pathSnippets = location.pathname.split("/").filter((i) => i);
+    const breadcrumbItems = [{ title: "Home", path: "/" }];
+
+    pathSnippets.forEach((_, index) => {
+      const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
+      breadcrumbItems.push({
+        title:
+          pathSnippets[index].charAt(0).toUpperCase() +
+          pathSnippets[index].slice(1),
+        path: url,
+      });
+    });
+
+    return breadcrumbItems;
   };
 
   return (
     <Content style={{ padding: "0 48px" }}>
       <Breadcrumb style={{ margin: "16px 0" }}>
-        {selectedPath.map((item, index) => (
-          <Breadcrumb.Item key={index}>{item}</Breadcrumb.Item>
+        {getBreadcrumbItems().map((item, index) => (
+          <Breadcrumb.Item key={index}>{item.title}</Breadcrumb.Item>
         ))}
       </Breadcrumb>
       <Layout
@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
           borderRadius: borderRadiusLG,
         }}
       >
-        <AppSider onPathChange={setSelectedPath} />
+        <AppSider />
         <Content
           style={{
             padding: "0 24px",
@@ -67,7 +67,20 @@ const AppContent: React.FC = () => {
             alignItems: "center",
           }}
         >
-          {renderContent()}
+          <Routes>
+            <Route
+              path="/dictation/essay"
+              element={<Essay style={componentStyle} />}
+            />
+            <Route
+              path="/dictation/word"
+              element={<Word style={componentStyle} />}
+            />
+            <Route path="/collection/essay" element={<div>文章收藏</div>} />
+            <Route path="/collection/word" element={<div>单词收藏</div>} />
+            <Route path="/radio" element={<Radio style={componentStyle} />} />
+            <Route path="/" element={<Essay style={componentStyle} />} />
+          </Routes>
         </Content>
       </Layout>
     </Content>
