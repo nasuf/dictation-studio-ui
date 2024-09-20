@@ -1,50 +1,44 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Avatar } from "antd";
-import { YoutubeOutlined, VideoCameraOutlined } from "@ant-design/icons";
 
 const channels = [
   {
     id: "bbc_ideas",
     name: "BBC Ideas",
-    icon: <YoutubeOutlined style={{ fontSize: 64 }} />,
+    icon: "https://yt3.googleusercontent.com/c2koPSeUB_VQtn1CcB739_CWhf002oMYCuPAHzRKUrQPJoVmAzE_dyMhtiVWDxmOpjFw770yy6c=s160-c-k-c0x00ffffff-no-rj",
   },
   {
     id: "ted",
     name: "TED",
-    icon: <VideoCameraOutlined style={{ fontSize: 64 }} />,
+    icon: "https://yt3.googleusercontent.com/ytc/AIdro_l_fFETDQgTAl5rWb38pxJww-4kszJH_n0G4fKP1BdK-jc=s160-c-k-c0x00ffffff-no-rj",
   },
 ];
 
 const ChannelList: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
-      <h2>选择一个YouTube频道</h2>
-      <div style={{ display: "flex", justifyContent: "space-around" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {channels.map((channel) => (
           <Link
             key={channel.id}
             to={`/dictation/video/${channel.id}`}
-            state={{ channelName: channel.name }}
+            state={{ name: channel.name }}
           >
             <Card
               hoverable
-              style={{ width: 240 }}
+              style={{ width: 240, textAlign: "center" }}
               cover={
                 <Avatar
                   size={200}
-                  icon={channel.icon}
+                  src={channel.icon}
                   style={{
-                    backgroundColor: "#f56a00",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
                     margin: "20px auto",
                   }}
                 />
               }
             >
-              <Card.Meta title={channel.name} style={{ textAlign: "center" }} />
+              <Card.Meta title={channel.name} />
             </Card>
           </Link>
         ))}

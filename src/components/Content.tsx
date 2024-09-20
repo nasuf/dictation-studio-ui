@@ -35,12 +35,8 @@ const AppContent: React.FC = () => {
       let title = snippet.charAt(0).toUpperCase() + snippet.slice(1);
 
       // 处理频道名称
-      if (
-        snippet === "channel" &&
-        location.state &&
-        location.state.channelName
-      ) {
-        title = location.state.channelName;
+      if (snippet === "channel" && location.state && location.state.name) {
+        title = location.state.name;
       }
 
       breadcrumbItems.push({ title, path: url });

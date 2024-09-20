@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { Card } from "antd";
 
 const videos = [
@@ -17,12 +17,18 @@ const videos = [
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams();
+  const location = useLocation();
+  const channelName = location.state?.name;
+
   return (
     <div style={{ padding: "20px" }}>
-      <h2>视频列表</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {videos.map((video) => (
-          <Link key={video.id} to={`/dictation/video/${channelId}/${video.id}`}>
+          <Link
+            key={video.id}
+            to={`/dictation/video/${channelId}/${video.id}`}
+            state={{ name: video.title, channelName: channelName }}
+          >
             <Card
               hoverable
               style={{ width: 300 }}
