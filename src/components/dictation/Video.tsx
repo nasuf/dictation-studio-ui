@@ -90,6 +90,56 @@ const HighlightedText = styled.span<{ backgroundColor: string }>`
   background-color: ${(props) => props.backgroundColor};
 `;
 
+const ProgressCircle: React.FC<{ percentage: number }> = ({ percentage }) => {
+  const radius = 15;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40">
+      <circle
+        cx="20"
+        cy="20"
+        r={radius}
+        fill="transparent"
+        stroke="#e6e6e6"
+        strokeWidth="5"
+      />
+      <circle
+        cx="20"
+        cy="20"
+        r={radius}
+        fill="transparent"
+        stroke="#52c41a"
+        strokeWidth="5"
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        transform="rotate(-90 20 20)"
+      />
+      <text x="20" y="20" textAnchor="middle" dy=".3em" fontSize="12">
+        {`${Math.round(percentage)}%`}
+      </text>
+    </svg>
+  );
+};
+
+const SubtitleRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+const SubtitleContent = styled.div`
+  flex: 1;
+  margin-right: 20px;
+`;
+
+const ProgressCircleWrapper = styled.div`
+  flex-shrink: 0;
+  width: 40px;
+`;
+
 const Video: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const { t } = useTranslation();
@@ -100,6 +150,7 @@ const Video: React.FC = () => {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [revealedSentences, setRevealedSentences] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true); // 新增加载状态
+  const [isVideoReady, setIsVideoReady] = useState(false); // 新增视频准备状态
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
@@ -147,6 +198,7 @@ const Video: React.FC = () => {
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
+    setIsVideoReady(true); // 视频准备就绪
   };
 
   const playCurrentSentence = () => {
@@ -236,7 +288,12 @@ const Video: React.FC = () => {
       }
     });
 
-    return { inputResult, transcriptResult };
+    const correctWords = transcriptResult.filter(
+      (word) => word.highlight === "lightgreen"
+    ).length;
+    const completionPercentage = (correctWords / transcriptWords.length) * 100;
+
+    return { inputResult, transcriptResult, completionPercentage };
   };
 
   return (
@@ -267,7 +324,7 @@ const Video: React.FC = () => {
         />
       </VideoColumn>
       <SubtitlesColumn>
-        {isLoading ? (
+        {isLoading || !isVideoReady ? (
           <LoadingContainer>
             <Spin size="large" tip="Loading subtitles..." />
           </LoadingContainer>
@@ -281,38 +338,57 @@ const Video: React.FC = () => {
                   isBlurred={!revealedSentences.includes(index)}
                   isCurrent={index === currentSentenceIndex}
                 >
-                  {revealedSentences.includes(index) ? (
-                    <>
-                      <p>
-                        {compareInputWithTranscript(
-                          item.userInput || "",
-                          item.transcript
-                        ).transcriptResult.map((word, wordIndex) => (
-                          <HighlightedText
-                            key={wordIndex}
-                            backgroundColor={word.highlight}
-                          >
-                            {word.word}{" "}
-                          </HighlightedText>
-                        ))}
-                      </p>
-                      {item.userInput && (
-                        <p>
-                          Your input:{" "}
-                          {compareInputWithTranscript(
-                            item.userInput,
-                            item.transcript
-                          ).inputResult.map((word, wordIndex) => (
-                            <ComparisonText key={wordIndex} color={word.color}>
-                              {word.word}{" "}
-                            </ComparisonText>
-                          ))}
-                        </p>
+                  <SubtitleRow>
+                    <SubtitleContent>
+                      {revealedSentences.includes(index) ? (
+                        <>
+                          <p>
+                            {compareInputWithTranscript(
+                              item.userInput || "",
+                              item.transcript
+                            ).transcriptResult.map((word, wordIndex) => (
+                              <HighlightedText
+                                key={wordIndex}
+                                backgroundColor={word.highlight}
+                              >
+                                {word.word}{" "}
+                              </HighlightedText>
+                            ))}
+                          </p>
+                          {item.userInput && (
+                            <p>
+                              Your input:{" "}
+                              {compareInputWithTranscript(
+                                item.userInput,
+                                item.transcript
+                              ).inputResult.map((word, wordIndex) => (
+                                <ComparisonText
+                                  key={wordIndex}
+                                  color={word.color}
+                                >
+                                  {word.word}{" "}
+                                </ComparisonText>
+                              ))}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p>{item.transcript}</p>
                       )}
-                    </>
-                  ) : (
-                    <p>{item.transcript}</p>
-                  )}
+                    </SubtitleContent>
+                    {revealedSentences.includes(index) && (
+                      <ProgressCircleWrapper>
+                        <ProgressCircle
+                          percentage={
+                            compareInputWithTranscript(
+                              item.userInput || "",
+                              item.transcript
+                            ).completionPercentage
+                          }
+                        />
+                      </ProgressCircleWrapper>
+                    )}
+                  </SubtitleRow>
                 </BlurredText>
               ))}
             </SubtitlesContainer>
