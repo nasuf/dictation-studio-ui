@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Input, Row, Col, Spin } from "antd";
+import { Alert, Input, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
@@ -80,6 +80,14 @@ const SubtitlesContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100%;
+`;
+
+const ComparisonText = styled.span<{ color: string }>`
+  color: ${(props) => props.color};
+`;
+
+const HighlightedText = styled.span<{ backgroundColor: string }>`
+  background-color: ${(props) => props.backgroundColor};
 `;
 
 const Video: React.FC = () => {
@@ -208,6 +216,29 @@ const Video: React.FC = () => {
     }
   };
 
+  const compareInputWithTranscript = (input: string, transcript: string) => {
+    const inputWords = input.toLowerCase().split(/\s+/);
+    const transcriptWords = transcript.toLowerCase().split(/\s+/);
+
+    const inputResult = inputWords.map((word) => {
+      if (transcriptWords.includes(word)) {
+        return { word, color: "green" };
+      } else {
+        return { word, color: "red" };
+      }
+    });
+
+    const transcriptResult = transcriptWords.map((word) => {
+      if (inputWords.includes(word)) {
+        return { word, highlight: "lightgreen" };
+      } else {
+        return { word, highlight: "lightcoral" }; // 改为红色背景
+      }
+    });
+
+    return { inputResult, transcriptResult };
+  };
+
   return (
     <VideoContainer>
       <VideoColumn>
@@ -250,11 +281,37 @@ const Video: React.FC = () => {
                   isBlurred={!revealedSentences.includes(index)}
                   isCurrent={index === currentSentenceIndex}
                 >
-                  <p>{item.transcript}</p>
-                  {revealedSentences.includes(index) && item.userInput && (
-                    <p style={{ color: "green" }}>
-                      Your input: {item.userInput}
-                    </p>
+                  {revealedSentences.includes(index) ? (
+                    <>
+                      <p>
+                        {compareInputWithTranscript(
+                          item.userInput || "",
+                          item.transcript
+                        ).transcriptResult.map((word, wordIndex) => (
+                          <HighlightedText
+                            key={wordIndex}
+                            backgroundColor={word.highlight}
+                          >
+                            {word.word}{" "}
+                          </HighlightedText>
+                        ))}
+                      </p>
+                      {item.userInput && (
+                        <p>
+                          Your input:{" "}
+                          {compareInputWithTranscript(
+                            item.userInput,
+                            item.transcript
+                          ).inputResult.map((word, wordIndex) => (
+                            <ComparisonText key={wordIndex} color={word.color}>
+                              {word.word}{" "}
+                            </ComparisonText>
+                          ))}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>{item.transcript}</p>
                   )}
                 </BlurredText>
               ))}
