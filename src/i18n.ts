@@ -46,10 +46,9 @@ const jaTranslations = {
   wordCollection: "単語コレクション",
   fm: "FM",
   videoDictationKeyboardInstructions:
-    "Tabキーを押してディクテーションを開始するか、現在の文を繰り返し、Enterキーを押して次の文に進みます",
+    "Tabキーを押してディクテーションを開始するか現在の文を繰り返し、Enterキーを押して次の文に進みます",
   wordDictationKeyboardInstructions:
-    "Enterキーを押して回答を送信し、確認します。もう一度Enterキーを押して次の単語を取得します。Tabキーを押すか、カードをクリックして単語の発音を再生します",
-  inputPlaceHolder: "聞き取った内容を入力してください",
+    "Enterキーを押して回答を送信し、検証します。もう一度Enterキーを押して次の単語を取得します。Tabキーを押すかカードをクリックして単語の発音を再生します。",
 };
 
 const koTranslations = {
@@ -63,9 +62,9 @@ const koTranslations = {
   wordCollection: "단어 컬렉션",
   fm: "FM",
   videoDictationKeyboardInstructions:
-    "Tab 키를 눌러 받아쓰기를 시작하거나 현재 문장을 반복하세요. Enter 키를 눌러 다음 문장으로 넘어가세요",
+    "Tab 키를 눌러 받아쓰기를 시작하거나 현재 문장을 반복하고, Enter 키를 눌러 다음 문장으로 계속합니다",
   wordDictationKeyboardInstructions:
-    "Enter 키를 눌러 답변을 제출하고 확인합니다. 다시 Enter 키를 눌러 다음 단어를 가져옵니다. Tab 키를 누르거나 카드를 클릭하여 단어 발음을 다시 재생합니다",
+    "Enter 키를 눌러 답변을 제출하고 확인합니다. Enter 키를 다시 눌러 다음 단어를 가져옵니다. Tab 키를 누르거나 카드를 클릭하여 단어 발음을 다시 재생합니다.",
   inputPlaceHolder: "들은 내용을 입력하세요",
 };
 
