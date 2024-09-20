@@ -4,7 +4,7 @@ import { Route, Routes, useLocation, Link } from "react-router-dom";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
-import Video from "@/components/dictation/Video";
+import { VideoMain } from "@/components/dictation/video/VideoMain";
 import Radio from "@/components/dictation/Radio";
 import ChannelList from "@/components/dictation/ChannelList";
 import VideoList from "@/components/dictation/VideoList";
@@ -78,7 +78,7 @@ const AppContent: React.FC = () => {
             <Route path="/dictation/video/:channelId" element={<VideoList />} />
             <Route
               path="/dictation/video/:channelId/:videoId"
-              element={<Video />}
+              element={<VideoMain />}
             />
             <Route
               path="/dictation/word"

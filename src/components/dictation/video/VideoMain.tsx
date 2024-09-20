@@ -4,222 +4,26 @@ import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import { ProgressCircle } from "@/components/dictation/video/ProgressCircle";
+import { DualProgressBar } from "@/components/dictation/video/DualProgressBar";
+import {
+  BlurredText,
+  ComparisonText,
+  HighlightedText,
+  LoadingContainer,
+  ProgressCircleWrapper,
+  ScrollingSubtitles,
+  SubtitleContent,
+  SubtitleRow,
+  SubtitlesColumn,
+  SubtitlesContainer,
+  TranscriptItem,
+  VideoColumn,
+  VideoContainer,
+  YouTubeWrapper,
+} from "@/components/dictation/video/StyledComps";
 
-interface TranscriptItem {
-  start: number;
-  end: number;
-  transcript: string;
-  userInput?: string;
-}
-
-const VideoContainer = styled.div`
-  display: flex;
-  gap: 24px;
-  padding: 20px;
-  height: calc(100vh - 64px);
-  align-items: center;
-  justify-content: center;
-`;
-
-const VideoColumn = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 640px;
-  max-height: 80vh;
-`;
-
-const SubtitlesColumn = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 640px;
-  max-height: 80vh; // 添加这行来限制最大高度
-`;
-
-const YouTubeWrapper = styled.div`
-  width: 100%;
-  max-width: 640px;
-  aspect-ratio: 16 / 9;
-  background-color: black;
-  overflow: hidden;
-  position: relative;
-`;
-
-const ScrollingSubtitles = styled.div`
-  height: calc(80vh - 100px);
-  overflow-y: auto;
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const BlurredText = styled.div<{ isBlurred: boolean; isCurrent: boolean }>`
-  filter: ${(props) => (props.isBlurred ? "blur(5px)" : "none")};
-  transition: filter 0.3s ease;
-  font-size: 18px;
-  text-align: center;
-  margin: 20px 0;
-  opacity: ${(props) => (props.isCurrent ? 1 : 0.5)};
-`;
-
-const LoadingContainer = styled.div`
-  height: 500px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-`;
-
-const SubtitlesContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-`;
-
-const ComparisonText = styled.span<{ color: string }>`
-  color: ${(props) => props.color};
-`;
-
-const HighlightedText = styled.span<{ backgroundColor: string }>`
-  background-color: ${(props) => props.backgroundColor};
-`;
-
-const ProgressCircle: React.FC<{ percentage: number }> = ({ percentage }) => {
-  const radius = 15;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-  return (
-    <svg width="40" height="40" viewBox="0 0 40 40">
-      <circle
-        cx="20"
-        cy="20"
-        r={radius}
-        fill="transparent"
-        stroke="#e6e6e6"
-        strokeWidth="5"
-      />
-      <circle
-        cx="20"
-        cy="20"
-        r={radius}
-        fill="transparent"
-        stroke="#52c41a"
-        strokeWidth="5"
-        strokeDasharray={circumference}
-        strokeDashoffset={strokeDashoffset}
-        transform="rotate(-90 20 20)"
-      />
-      <text x="20" y="20" textAnchor="middle" dy=".3em" fontSize="12">
-        {`${Math.round(percentage)}%`}
-      </text>
-    </svg>
-  );
-};
-
-const SubtitleRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-`;
-
-const SubtitleContent = styled.div`
-  flex: 1;
-  margin-right: 20px;
-`;
-
-const ProgressCircleWrapper = styled.div`
-  flex-shrink: 0;
-  width: 40px;
-`;
-
-const getTextColor = (backgroundColor: string) => {
-  const hex = backgroundColor.replace("#", "");
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 128 ? "#000000" : "#FFFFFF";
-};
-
-const ProgressBarBase = styled.div`
-  width: 100%;
-  height: 20px;
-  background: #f0f0f0;
-  margin-bottom: 10px;
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-`;
-
-const ProgressBarFill = styled.div<{ width: number; color: string }>`
-  width: ${(props) => props.width}%;
-  height: 100%;
-  background: ${(props) => props.color};
-  position: absolute;
-  left: 0;
-  top: 0;
-  transition: width 0.5s ease-in-out;
-`;
-
-const ProgressBarText = styled.div<{ color: string }>`
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  color: ${(props) => props.color};
-  font-size: 12px;
-  z-index: 1;
-  width: 100%;
-  text-align: left;
-  padding: 0 5px;
-  box-sizing: border-box;
-  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
-    1px 1px 0 #fff;
-`;
-
-const DualProgressBar: React.FC<{
-  completionPercentage: number;
-  accuracyPercentage: number;
-}> = ({ completionPercentage, accuracyPercentage }) => {
-  const { t } = useTranslation();
-  const completionColor = "#1890ff";
-  const accuracyColor = "#52c41a";
-  const backgroundColor = "#f0f0f0";
-
-  const textColor =
-    completionPercentage > 10
-      ? getTextColor(completionColor)
-      : getTextColor(backgroundColor);
-
-  return (
-    <ProgressBarBase>
-      <ProgressBarFill width={completionPercentage} color={completionColor} />
-      <ProgressBarFill
-        width={accuracyPercentage}
-        color={accuracyColor}
-        style={{ opacity: 0.7 }}
-      />
-      <ProgressBarText color={textColor}>
-        {`${t("completionRate")}: ${Math.round(completionPercentage)}% ${t(
-          "accuracyRate"
-        )}: ${Math.round(accuracyPercentage)}%`}
-      </ProgressBarText>
-    </ProgressBarBase>
-  );
-};
-
-const Video: React.FC = () => {
+export const VideoMain: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const { t } = useTranslation();
   const playerRef = useRef<YouTubePlayer | null>(null);
@@ -517,5 +321,3 @@ const Video: React.FC = () => {
     </VideoContainer>
   );
 };
-
-export default Video;
