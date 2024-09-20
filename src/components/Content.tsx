@@ -30,14 +30,20 @@ const AppContent: React.FC = () => {
     const pathSnippets = location.pathname.split("/").filter((i) => i);
     const breadcrumbItems = [{ title: "Home", path: "/" }];
 
-    pathSnippets.forEach((_, index) => {
+    pathSnippets.forEach((snippet, index) => {
       const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
-      breadcrumbItems.push({
-        title:
-          pathSnippets[index].charAt(0).toUpperCase() +
-          pathSnippets[index].slice(1),
-        path: url,
-      });
+      let title = snippet.charAt(0).toUpperCase() + snippet.slice(1);
+
+      // 处理频道名称
+      if (
+        snippet === "channel" &&
+        location.state &&
+        location.state.channelName
+      ) {
+        title = location.state.channelName;
+      }
+
+      breadcrumbItems.push({ title, path: url });
     });
 
     return breadcrumbItems;
@@ -73,11 +79,11 @@ const AppContent: React.FC = () => {
         >
           <Routes>
             <Route path="/dictation/video" element={<ChannelList />} />
+            <Route path="/dictation/video/:channelId" element={<VideoList />} />
             <Route
-              path="/dictation/video/channel/:channelId"
-              element={<VideoList />}
+              path="/dictation/video/:channelId/:videoId"
+              element={<Video />}
             />
-            <Route path="/dictation/video/:videoId" element={<Video />} />
             <Route
               path="/dictation/word"
               element={<Word style={componentStyle} />}

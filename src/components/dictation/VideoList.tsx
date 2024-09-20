@@ -1,8 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Card } from "antd";
 
-// 这里我们使用硬编码的视频列表，实际应用中你需要从YouTube API获取数据
 const videos = [
   {
     id: "7QDGDh9KT_U",
@@ -17,12 +16,13 @@ const videos = [
 ];
 
 const VideoList: React.FC = () => {
+  const { channelId } = useParams();
   return (
     <div style={{ padding: "20px" }}>
       <h2>视频列表</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {videos.map((video) => (
-          <Link key={video.id} to={`/dictation/video/${video.id}`}>
+          <Link key={video.id} to={`/dictation/video/${channelId}/${video.id}`}>
             <Card
               hoverable
               style={{ width: 300 }}

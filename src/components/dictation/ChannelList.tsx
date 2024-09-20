@@ -5,12 +5,12 @@ import { YoutubeOutlined, VideoCameraOutlined } from "@ant-design/icons";
 
 const channels = [
   {
-    id: "UCYxRlFDqcWM4y7FfpiAN3KQ",
+    id: "bbc_ideas",
     name: "BBC Ideas",
     icon: <YoutubeOutlined style={{ fontSize: 64 }} />,
   },
   {
-    id: "UCAuUUnT6oDeKwE6v1NGQxug",
+    id: "ted",
     name: "TED",
     icon: <VideoCameraOutlined style={{ fontSize: 64 }} />,
   },
@@ -22,7 +22,11 @@ const ChannelList: React.FC = () => {
       <h2>选择一个YouTube频道</h2>
       <div style={{ display: "flex", justifyContent: "space-around" }}>
         {channels.map((channel) => (
-          <Link key={channel.id} to={`/dictation/video/channel/${channel.id}`}>
+          <Link
+            key={channel.id}
+            to={`/dictation/video/${channel.id}`}
+            state={{ channelName: channel.name }}
+          >
             <Card
               hoverable
               style={{ width: 240 }}
