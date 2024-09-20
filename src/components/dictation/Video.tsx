@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Input, Spin } from "antd";
+import { Alert, Input, Row, Col, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
@@ -18,6 +18,8 @@ const VideoContainer = styled.div`
   gap: 24px;
   padding: 20px;
   height: calc(100vh - 64px); // 假设头部高度为64px，根据实际情况调整
+  align-items: center; // 添加这行来实现垂直居中
+  justify-content: center; // 添加这行来实现水平居中
 `;
 
 const VideoColumn = styled.div`
@@ -25,6 +27,7 @@ const VideoColumn = styled.div`
   display: flex;
   flex-direction: column;
   max-width: 640px;
+  max-height: 80vh; // 添加这行来限制最大高度
 `;
 
 const SubtitlesColumn = styled.div`
@@ -32,6 +35,7 @@ const SubtitlesColumn = styled.div`
   display: flex;
   flex-direction: column;
   max-width: 640px;
+  max-height: 80vh; // 添加这行来限制最大高度
 `;
 
 const YouTubeWrapper = styled.div`
@@ -40,7 +44,7 @@ const YouTubeWrapper = styled.div`
 `;
 
 const ScrollingSubtitles = styled.div`
-  height: 500px;
+  height: calc(80vh - 100px); // 调整这个值，100px 是为了给其他元素留出空间
   overflow-y: auto;
   padding: 20px;
   background-color: rgba(255, 255, 255, 0.1);
