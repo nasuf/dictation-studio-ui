@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Input, Row, Col } from "antd";
+import { Alert, Input, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -10,15 +10,33 @@ interface TranscriptItem {
   start: number;
   end: number;
   transcript: string;
-  userInput?: string; // 新增字段，用于存储用户输入
+  userInput?: string;
 }
 
-const BlurredText = styled.div<{ isBlurred: boolean }>`
-  filter: ${(props) => (props.isBlurred ? "blur(5px)" : "none")};
-  transition: filter 0.3s ease;
-  font-size: 18px;
-  text-align: center;
-  margin: 10px 0;
+const VideoContainer = styled.div`
+  display: flex;
+  gap: 24px;
+  padding: 20px;
+  height: calc(100vh - 64px); // 假设头部高度为64px，根据实际情况调整
+`;
+
+const VideoColumn = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 640px;
+`;
+
+const SubtitlesColumn = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 640px;
+`;
+
+const YouTubeWrapper = styled.div`
+  width: 100%;
+  max-width: 640px;
 `;
 
 const ScrollingSubtitles = styled.div`
@@ -28,14 +46,35 @@ const ScrollingSubtitles = styled.div`
   background-color: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const BlurredText = styled.div<{ isBlurred: boolean; isCurrent: boolean }>`
+  filter: ${(props) => (props.isBlurred ? "blur(5px)" : "none")};
+  transition: filter 0.3s ease;
+  font-size: 18px;
+  text-align: center;
+  margin: 10px 0;
+  opacity: ${(props) => (props.isCurrent ? 1 : 0.5)};
+`;
+
+const LoadingContainer = styled.div`
+  height: 500px;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
 `;
 
 const SubtitlesContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   min-height: 100%;
 `;
 
@@ -43,10 +82,12 @@ const Video: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const { t } = useTranslation();
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const subtitlesRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [revealedSentences, setRevealedSentences] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // 新增加载状态
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
@@ -55,6 +96,7 @@ const Video: React.FC = () => {
   }, [videoId]);
 
   const fetchTranscript = async () => {
+    setIsLoading(true); // 开始加载
     try {
       const response = await axios.post(
         "http://localhost:4001/api/transcript",
@@ -63,6 +105,8 @@ const Video: React.FC = () => {
       setTranscript(response.data);
     } catch (error) {
       console.error("Error fetching transcript:", error);
+    } finally {
+      setIsLoading(false); // 加载结束
     }
   };
 
@@ -84,6 +128,10 @@ const Video: React.FC = () => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [transcript, currentSentenceIndex, userInput]);
+
+  useEffect(() => {
+    scrollToCurrentSentence();
+  }, [currentSentenceIndex]);
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
@@ -128,27 +176,50 @@ const Video: React.FC = () => {
       };
       return newTranscript;
     });
-    setUserInput(""); // 清空输入框
+    setUserInput("");
   };
 
   const revealCurrentSentence = () => {
     setRevealedSentences((prev) => [...prev, currentSentenceIndex]);
   };
 
+  const scrollToCurrentSentence = () => {
+    if (subtitlesRef.current) {
+      const sentenceElements =
+        subtitlesRef.current.getElementsByClassName("subtitle-item");
+      if (sentenceElements[currentSentenceIndex]) {
+        const sentenceElement = sentenceElements[
+          currentSentenceIndex
+        ] as HTMLElement;
+        const containerHeight = subtitlesRef.current.clientHeight;
+        const scrollPosition =
+          sentenceElement.offsetTop -
+          containerHeight / 2 +
+          sentenceElement.clientHeight / 2;
+        subtitlesRef.current.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        });
+      }
+    }
+  };
+
   return (
-    <Row gutter={24}>
-      <Col span={12}>
-        <YouTube
-          videoId={videoId}
-          opts={{
-            height: "390",
-            width: "640",
-            playerVars: { autoplay: 0 },
-          }}
-          onReady={onVideoReady}
-        />
+    <VideoContainer>
+      <VideoColumn>
+        <YouTubeWrapper>
+          <YouTube
+            videoId={videoId}
+            opts={{
+              width: "100%",
+              height: "360",
+              playerVars: { autoplay: 0 },
+            }}
+            onReady={onVideoReady}
+          />
+        </YouTubeWrapper>
         <Input
-          style={{ marginTop: "20px", width: "640px" }}
+          style={{ marginTop: "20px", width: "100%" }}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder={t("inputPlaceHolder")}
@@ -159,25 +230,35 @@ const Video: React.FC = () => {
           type="info"
           showIcon
         />
-      </Col>
-      <Col span={12}>
-        <ScrollingSubtitles>
-          <SubtitlesContainer>
-            {transcript.map((item, index) => (
-              <BlurredText
-                key={index}
-                isBlurred={!revealedSentences.includes(index)}
-              >
-                <p>{item.transcript}</p>
-                {revealedSentences.includes(index) && item.userInput && (
-                  <p style={{ color: "green" }}>Your input: {item.userInput}</p>
-                )}
-              </BlurredText>
-            ))}
-          </SubtitlesContainer>
-        </ScrollingSubtitles>
-      </Col>
-    </Row>
+      </VideoColumn>
+      <SubtitlesColumn>
+        {isLoading ? (
+          <LoadingContainer>
+            <Spin size="large" tip="Loading subtitles..." />
+          </LoadingContainer>
+        ) : (
+          <ScrollingSubtitles ref={subtitlesRef}>
+            <SubtitlesContainer>
+              {transcript.map((item, index) => (
+                <BlurredText
+                  key={index}
+                  className="subtitle-item"
+                  isBlurred={!revealedSentences.includes(index)}
+                  isCurrent={index === currentSentenceIndex}
+                >
+                  <p>{item.transcript}</p>
+                  {revealedSentences.includes(index) && item.userInput && (
+                    <p style={{ color: "green" }}>
+                      Your input: {item.userInput}
+                    </p>
+                  )}
+                </BlurredText>
+              ))}
+            </SubtitlesContainer>
+          </ScrollingSubtitles>
+        )}
+      </SubtitlesColumn>
+    </VideoContainer>
   );
 };
 

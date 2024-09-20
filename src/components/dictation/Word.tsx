@@ -129,7 +129,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="输入你听到的内容"
+        placeholder={t("inputPlaceHolder")}
       />
       <p style={{ marginTop: "10px" }}>
         <Alert
