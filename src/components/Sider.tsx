@@ -8,27 +8,28 @@ import {
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import styles from "@/lib/styles/Sider.module.css";
+import { useTranslation } from "react-i18next";
 
 const AppSider: React.FC = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const location = useLocation();
-
+  const { t } = useTranslation();
   const siderItems = [
     {
       key: "Dictation",
       icon: React.createElement(CustomerServiceTwoTone),
-      label: "听写",
+      label: t("dictation"),
       children: [
         {
           key: "VideoDictation",
-          label: "视频听写",
+          label: t("videoDictation"),
           path: "/dictation/video",
         },
         {
           key: "WordDictation",
-          label: "单词听写",
+          label: t("wordDictation"),
           path: "/dictation/word",
         },
       ],
@@ -36,16 +37,16 @@ const AppSider: React.FC = () => {
     {
       key: "Collection",
       icon: React.createElement(BookTwoTone),
-      label: "收藏",
+      label: t("collection"),
       children: [
         {
           key: "VideoCollection",
-          label: "视频收藏",
+          label: t("videoCollection"),
           path: "/collection/video",
         },
         {
           key: "WordCollection",
-          label: "单词收藏",
+          label: t("wordCollection"),
           path: "/collection/word",
         },
       ],
@@ -53,7 +54,7 @@ const AppSider: React.FC = () => {
     {
       key: "FM",
       icon: React.createElement(NotificationTwoTone),
-      label: "FM 广播",
+      label: t("fm"),
       path: "/radio",
     },
   ];

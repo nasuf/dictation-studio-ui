@@ -1,6 +1,7 @@
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
 import { Alert, Input, InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   interface WordData {
@@ -12,6 +13,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   const [userInput, setUserInput] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const { t } = useTranslation();
   const userInputRef = useRef<InputRef>(null);
 
   useEffect(() => {
@@ -131,9 +133,7 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
       />
       <p style={{ marginTop: "10px" }}>
         <Alert
-          message="按 Enter
-        键提交并验证答案。再次按 Enter 键获取下一个单词。
-        按 Tab 键或点击卡片重新播放单词发音。"
+          message={t("wordDictationKeyboardInstructions")}
           type="info"
           showIcon
         />

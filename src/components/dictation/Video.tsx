@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import axios from "axios";
 import { useParams, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface TranscriptItem {
   start: number;
@@ -13,7 +14,8 @@ interface TranscriptItem {
 const Video: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const location = useLocation();
-  const { name: videoTitle, channelName } = location.state || {};
+  const { name: videoTitle } = location.state || {};
+  const { t } = useTranslation();
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
@@ -102,11 +104,11 @@ const Video: React.FC = () => {
         style={{ marginTop: "20px", width: "640px" }}
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
-        placeholder="输入你听到的内容"
+        placeholder={t("enterWhatYouHear")}
       />
       <p style={{ marginTop: "10px" }}>
         <Alert
-          message="按 Tab 键重复当前句子，按 Enter 键播放下一句子。"
+          message={t("videoDictationKeyboardInstructions")}
           type="info"
           showIcon
         />
