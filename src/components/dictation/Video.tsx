@@ -17,9 +17,9 @@ const VideoContainer = styled.div`
   display: flex;
   gap: 24px;
   padding: 20px;
-  height: calc(100vh - 64px); // 假设头部高度为64px，根据实际情况调整
-  align-items: center; // 添加这行来实现垂直居中
-  justify-content: center; // 添加这行来实现水平居中
+  height: calc(100vh - 64px);
+  align-items: center;
+  justify-content: center;
 `;
 
 const VideoColumn = styled.div`
@@ -27,7 +27,7 @@ const VideoColumn = styled.div`
   display: flex;
   flex-direction: column;
   max-width: 640px;
-  max-height: 80vh; // 添加这行来限制最大高度
+  max-height: 80vh;
 `;
 
 const SubtitlesColumn = styled.div`
@@ -41,10 +41,14 @@ const SubtitlesColumn = styled.div`
 const YouTubeWrapper = styled.div`
   width: 100%;
   max-width: 640px;
+  aspect-ratio: 16 / 9;
+  background-color: black;
+  overflow: hidden;
+  position: relative;
 `;
 
 const ScrollingSubtitles = styled.div`
-  height: calc(80vh - 100px); // 调整这个值，100px 是为了给其他元素留出空间
+  height: calc(80vh - 100px);
   overflow-y: auto;
   padding: 20px;
   background-color: rgba(255, 255, 255, 0.1);
@@ -62,7 +66,7 @@ const BlurredText = styled.div<{ isBlurred: boolean; isCurrent: boolean }>`
   transition: filter 0.3s ease;
   font-size: 18px;
   text-align: center;
-  margin: 10px 0;
+  margin: 20px 0;
   opacity: ${(props) => (props.isCurrent ? 1 : 0.5)};
 `;
 
@@ -140,6 +144,81 @@ const ProgressCircleWrapper = styled.div`
   width: 40px;
 `;
 
+const getTextColor = (backgroundColor: string) => {
+  const hex = backgroundColor.replace("#", "");
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? "#000000" : "#FFFFFF";
+};
+
+const ProgressBarBase = styled.div`
+  width: 100%;
+  height: 20px;
+  background: #f0f0f0;
+  margin-bottom: 10px;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+`;
+
+const ProgressBarFill = styled.div<{ width: number; color: string }>`
+  width: ${(props) => props.width}%;
+  height: 100%;
+  background: ${(props) => props.color};
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: width 0.5s ease-in-out;
+`;
+
+const ProgressBarText = styled.div<{ color: string }>`
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  color: ${(props) => props.color};
+  font-size: 12px;
+  z-index: 1;
+  width: 100%;
+  text-align: left;
+  padding: 0 5px;
+  box-sizing: border-box;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
+    1px 1px 0 #fff;
+`;
+
+const DualProgressBar: React.FC<{
+  completionPercentage: number;
+  accuracyPercentage: number;
+}> = ({ completionPercentage, accuracyPercentage }) => {
+  const { t } = useTranslation();
+  const completionColor = "#1890ff";
+  const accuracyColor = "#52c41a";
+  const backgroundColor = "#f0f0f0";
+
+  const textColor =
+    completionPercentage > 10
+      ? getTextColor(completionColor)
+      : getTextColor(backgroundColor);
+
+  return (
+    <ProgressBarBase>
+      <ProgressBarFill width={completionPercentage} color={completionColor} />
+      <ProgressBarFill
+        width={accuracyPercentage}
+        color={accuracyColor}
+        style={{ opacity: 0.7 }}
+      />
+      <ProgressBarText color={textColor}>
+        {`${t("completionRate")}: ${Math.round(completionPercentage)}% ${t(
+          "accuracyRate"
+        )}: ${Math.round(accuracyPercentage)}%`}
+      </ProgressBarText>
+    </ProgressBarBase>
+  );
+};
+
 const Video: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const { t } = useTranslation();
@@ -149,8 +228,10 @@ const Video: React.FC = () => {
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [revealedSentences, setRevealedSentences] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // 新增加载状态
-  const [isVideoReady, setIsVideoReady] = useState(false); // 新增视频准备状态
+  const [isLoading, setIsLoading] = useState(true);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [overallCompletion, setOverallCompletion] = useState(0);
+  const [overallAccuracy, setOverallAccuracy] = useState(0);
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
@@ -159,7 +240,7 @@ const Video: React.FC = () => {
   }, [videoId]);
 
   const fetchTranscript = async () => {
-    setIsLoading(true); // 开始加载
+    setIsLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:4001/api/transcript",
@@ -169,7 +250,7 @@ const Video: React.FC = () => {
     } catch (error) {
       console.error("Error fetching transcript:", error);
     } finally {
-      setIsLoading(false); // 加载结束
+      setIsLoading(false);
     }
   };
 
@@ -198,7 +279,7 @@ const Video: React.FC = () => {
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
-    setIsVideoReady(true); // 视频准备就绪
+    setIsVideoReady(true);
   };
 
   const playCurrentSentence = () => {
@@ -284,7 +365,7 @@ const Video: React.FC = () => {
       if (inputWords.includes(word)) {
         return { word, highlight: "lightgreen" };
       } else {
-        return { word, highlight: "lightcoral" }; // 改为红色背景
+        return { word, highlight: "lightcoral" };
       }
     });
 
@@ -295,6 +376,38 @@ const Video: React.FC = () => {
 
     return { inputResult, transcriptResult, completionPercentage };
   };
+
+  const updateOverallProgress = () => {
+    const totalWords = transcript.reduce(
+      (sum, item) => sum + item.transcript.split(/\s+/).length,
+      0
+    );
+    const completedWords = revealedSentences.reduce(
+      (sum, index) => sum + transcript[index].transcript.split(/\s+/).length,
+      0
+    );
+    const correctWords = revealedSentences.reduce((sum, index) => {
+      const { completionPercentage } = compareInputWithTranscript(
+        transcript[index].userInput || "",
+        transcript[index].transcript
+      );
+      return (
+        sum +
+        (transcript[index].transcript.split(/\s+/).length *
+          completionPercentage) /
+          100
+      );
+    }, 0);
+
+    setOverallCompletion((completedWords / totalWords) * 100);
+    setOverallAccuracy(
+      completedWords > 0 ? (correctWords / completedWords) * 100 : 0
+    );
+  };
+
+  useEffect(() => {
+    updateOverallProgress();
+  }, [revealedSentences, transcript]);
 
   return (
     <VideoContainer>
@@ -329,70 +442,76 @@ const Video: React.FC = () => {
             <Spin size="large" tip="Loading subtitles..." />
           </LoadingContainer>
         ) : (
-          <ScrollingSubtitles ref={subtitlesRef}>
-            <SubtitlesContainer>
-              {transcript.map((item, index) => (
-                <BlurredText
-                  key={index}
-                  className="subtitle-item"
-                  isBlurred={!revealedSentences.includes(index)}
-                  isCurrent={index === currentSentenceIndex}
-                >
-                  <SubtitleRow>
-                    <SubtitleContent>
-                      {revealedSentences.includes(index) ? (
-                        <>
-                          <p>
-                            {compareInputWithTranscript(
-                              item.userInput || "",
-                              item.transcript
-                            ).transcriptResult.map((word, wordIndex) => (
-                              <HighlightedText
-                                key={wordIndex}
-                                backgroundColor={word.highlight}
-                              >
-                                {word.word}{" "}
-                              </HighlightedText>
-                            ))}
-                          </p>
-                          {item.userInput && (
+          <>
+            <DualProgressBar
+              completionPercentage={overallCompletion}
+              accuracyPercentage={overallAccuracy}
+            />
+            <ScrollingSubtitles ref={subtitlesRef}>
+              <SubtitlesContainer>
+                {transcript.map((item, index) => (
+                  <BlurredText
+                    key={index}
+                    className="subtitle-item"
+                    isBlurred={!revealedSentences.includes(index)}
+                    isCurrent={index === currentSentenceIndex}
+                  >
+                    <SubtitleRow>
+                      <SubtitleContent>
+                        {revealedSentences.includes(index) ? (
+                          <>
                             <p>
-                              Your input:{" "}
                               {compareInputWithTranscript(
-                                item.userInput,
+                                item.userInput || "",
                                 item.transcript
-                              ).inputResult.map((word, wordIndex) => (
-                                <ComparisonText
+                              ).transcriptResult.map((word, wordIndex) => (
+                                <HighlightedText
                                   key={wordIndex}
-                                  color={word.color}
+                                  backgroundColor={word.highlight}
                                 >
                                   {word.word}{" "}
-                                </ComparisonText>
+                                </HighlightedText>
                               ))}
                             </p>
-                          )}
-                        </>
-                      ) : (
-                        <p>{item.transcript}</p>
+                            {item.userInput && (
+                              <p>
+                                Your input:{" "}
+                                {compareInputWithTranscript(
+                                  item.userInput,
+                                  item.transcript
+                                ).inputResult.map((word, wordIndex) => (
+                                  <ComparisonText
+                                    key={wordIndex}
+                                    color={word.color}
+                                  >
+                                    {word.word}{" "}
+                                  </ComparisonText>
+                                ))}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p>{item.transcript}</p>
+                        )}
+                      </SubtitleContent>
+                      {revealedSentences.includes(index) && (
+                        <ProgressCircleWrapper>
+                          <ProgressCircle
+                            percentage={
+                              compareInputWithTranscript(
+                                item.userInput || "",
+                                item.transcript
+                              ).completionPercentage
+                            }
+                          />
+                        </ProgressCircleWrapper>
                       )}
-                    </SubtitleContent>
-                    {revealedSentences.includes(index) && (
-                      <ProgressCircleWrapper>
-                        <ProgressCircle
-                          percentage={
-                            compareInputWithTranscript(
-                              item.userInput || "",
-                              item.transcript
-                            ).completionPercentage
-                          }
-                        />
-                      </ProgressCircleWrapper>
-                    )}
-                  </SubtitleRow>
-                </BlurredText>
-              ))}
-            </SubtitlesContainer>
-          </ScrollingSubtitles>
+                    </SubtitleRow>
+                  </BlurredText>
+                ))}
+              </SubtitlesContainer>
+            </ScrollingSubtitles>
+          </>
         )}
       </SubtitlesColumn>
     </VideoContainer>
