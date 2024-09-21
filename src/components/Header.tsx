@@ -35,6 +35,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         localStorage.setItem("jwt_token", response.data.jwt_token);
         setUserInfo(response.data);
         message.success("登录成功");
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       } catch (error) {
         console.error("Login failed:", error);
         message.error("登录失败，请重试");
@@ -57,6 +60,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         setUserInfo(null);
         localStorage.removeItem("jwt_token");
         message.success("已退出登录");
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       } else {
         message.error("退出登录失败，请重试");
       }
