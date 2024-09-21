@@ -7,6 +7,7 @@ import i18n from "./i18n";
 import AppHeader from "@/components/Header";
 import AppContent from "@/components/Content";
 import AppFooter from "@/components/Footer";
+import LoginModal from "@/components/LoginModal";
 import { api } from "@/api/api";
 import "../global.css";
 
@@ -21,6 +22,7 @@ interface UserInfo {
 
 const App: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -40,7 +42,29 @@ const App: React.FC = () => {
     };
 
     checkLoginStatus();
+
+    const handleUnauthorized = () => {
+      setIsLoginModalVisible(true);
+    };
+
+    window.addEventListener("unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("unauthorized", handleUnauthorized);
+    };
   }, []);
+
+  const handleGoogleLogin = async (tokenResponse: any) => {
+    try {
+      const response = await api.verifyGoogleToken(tokenResponse.access_token);
+      localStorage.setItem("jwt_token", response.data.jwt_token);
+      setUserInfo(response.data);
+      setIsLoginModalVisible(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
 
   return (
     <GoogleOAuthProvider clientId="107650640585-tnqr7jl8i7gnqgbil128pj6c6h8l0g36.apps.googleusercontent.com">
@@ -57,6 +81,11 @@ const App: React.FC = () => {
               <AppFooter />
             </Footer>
           </Layout>
+          <LoginModal
+            visible={isLoginModalVisible}
+            onClose={() => setIsLoginModalVisible(false)}
+            onGoogleLogin={handleGoogleLogin}
+          />
         </Router>
       </I18nextProvider>
     </GoogleOAuthProvider>

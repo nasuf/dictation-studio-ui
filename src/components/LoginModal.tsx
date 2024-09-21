@@ -1,12 +1,13 @@
 import React from "react";
-import { Button, Form, Input, Drawer } from "antd";
+import { Button, Form, Input, Drawer, message } from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
 import styled from "styled-components";
+import { useGoogleLogin } from "@react-oauth/google";
 
 interface LoginModalProps {
   visible: boolean;
   onClose: () => void;
-  onGoogleLogin: () => void;
+  onGoogleLogin: (tokenResponse: any) => void;
 }
 
 const StyledDrawer = styled(Drawer)`
@@ -50,6 +51,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
     // Add email/username password login logic here
   };
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: onGoogleLogin,
+    onError: () => {
+      console.log("Login Failed");
+      message.error("Google 登录失败，请重试");
+    },
+  });
+
   return (
     <>
       {visible && <BlurredBackground onClick={onClose} />}
@@ -75,14 +84,18 @@ const LoginModal: React.FC<LoginModalProps> = ({
               <Input.Password placeholder="密码" />
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ width: "100%" }}
+              >
                 登录
               </Button>
             </Form.Item>
           </Form>
           <Button
             icon={<GoogleOutlined />}
-            onClick={onGoogleLogin}
+            onClick={() => googleLogin()}
             style={{ width: "100%", marginTop: "16px" }}
           >
             使用 Google 账号登录

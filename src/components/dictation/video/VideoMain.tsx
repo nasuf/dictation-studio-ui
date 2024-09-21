@@ -233,7 +233,7 @@ export const VideoMain: React.FC = () => {
   }, [revealedSentences, transcript]);
 
   if (isUnauthorized) {
-    return <></>; // 如果未授权，不渲染任何内容
+    return null;
   }
 
   return (
