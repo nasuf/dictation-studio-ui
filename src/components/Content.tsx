@@ -8,6 +8,7 @@ import { VideoMain } from "@/components/dictation/video/VideoMain";
 import Radio from "@/components/dictation/Radio";
 import ChannelList from "@/components/dictation/video/ChannelList";
 import VideoList from "@/components/dictation/video/VideoList";
+import ChannelManagement from "@/components/admin/ChannelManagement";
 
 const { Content } = Layout;
 
@@ -88,6 +89,7 @@ const AppContent: React.FC = () => {
             <Route path="/collection/word" element={<div>单词收藏</div>} />
             <Route path="/radio" element={<Radio style={componentStyle} />} />
             <Route path="/" element={<ChannelList />} />
+            <Route path="/admin/channel-management" element={<ChannelManagement />} />
           </Routes>
         </Content>
       </Layout>

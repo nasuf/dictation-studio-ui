@@ -4,6 +4,7 @@ import {
   BookTwoTone,
   CustomerServiceTwoTone,
   NotificationTwoTone,
+  SettingTwoTone,
 } from "@ant-design/icons";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -56,6 +57,24 @@ const AppSider: React.FC = () => {
       icon: React.createElement(NotificationTwoTone),
       label: t("fm"),
       path: "/radio",
+    },
+    {
+      key: "Admin",
+      icon: React.createElement(SettingTwoTone),
+      label: "Admin",
+      path: "/admin",
+      children: [
+        {
+          key: "Channel Management",
+          label: "Channel Management",
+          path: "/admin/channel-management",
+        },
+        {
+          key: "Video Management",
+          label: "Video Management",
+          path: "/admin/video-management",
+        },
+      ],
     },
   ];
 
