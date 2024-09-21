@@ -78,6 +78,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
     </Menu>
   );
 
+  const getAvatarContent = (name: string) => {
+    if (/^[a-zA-Z]/.test(name)) {
+      // 如果名字以英文字母开头，返回第一个单词的首字母
+      const firstWord = name.split(" ")[0];
+      return firstWord.charAt(0).toUpperCase();
+    } else {
+      // 如果名字不是以英文字母开头，返回最后一个字符
+      return name.charAt(name.length - 1);
+    }
+  };
+
   return (
     <Header
       style={{
@@ -110,7 +121,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
                 : i18n.language === "ja"
                 ? "日本語"
                 : i18n.language === "ko"
-                ? "한国어"
+                ? "한국어"
                 : "Language"}
               <DownOutlined />
             </Space>
@@ -118,7 +129,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         </Dropdown>
         {userInfo ? (
           <Dropdown overlay={userMenu} trigger={["click"]}>
-            <Avatar src={userInfo.picture} icon={<UserOutlined />} />
+            <Avatar
+              style={{ backgroundColor: "#f56a00", verticalAlign: "middle" }}
+            >
+              {getAvatarContent(userInfo.name)}
+            </Avatar>
           </Dropdown>
         ) : (
           <Button onClick={() => login()} loading={isLoading}>
