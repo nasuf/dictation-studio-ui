@@ -18,6 +18,7 @@ const enTranslations = {
   inputPlaceHolder: "Enter what you hear",
   completionRate: "Completion Rate",
   accuracyRate: "Accuracy Rate",
+  yourInput: "Your Input",
 };
 
 const zhTranslations = {
@@ -37,6 +38,7 @@ const zhTranslations = {
   inputPlaceHolder: "输入你听到的内容",
   completionRate: "完成率",
   accuracyRate: "准确率",
+  yourInput: "你的输入",
 };
 
 const jaTranslations = {
@@ -55,6 +57,7 @@ const jaTranslations = {
     "Enterキーを押して回答を送信し、検証します。もう一度Enterキーを押して次の単語を取得します。Tabキーを押すかカードをクリックして単語の発音を再生します。",
   completionRate: "完了率",
   accuracyRate: "正確率",
+  yourInput: "あなたの入力",
 };
 
 const koTranslations = {
@@ -74,6 +77,7 @@ const koTranslations = {
   inputPlaceHolder: "들은 내용을 입력하세요",
   completionRate: "완료율",
   accuracyRate: "정확률",
+  yourInput: "입력",
 };
 
 i18n.use(initReactI18next).init({

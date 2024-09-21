@@ -1,27 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { Card } from "antd";
-import { api } from "../../../api/api";
+import { Card, Spin } from "antd";
+import { api } from "@/api/api";
+import { ScrollingTitle } from "@/components/dictation/video/Widget";
 
 interface Video {
   video_id: string;
   link: string;
-  title?: string; // Add optional title field
+  title: string;
 }
 
 const VideoList: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const channelName = location.state?.channelName;
 
   useEffect(() => {
     const fetchVideos = async () => {
+      setIsLoading(true);
       try {
         const response = await api.getVideoList(channelId!);
         setVideos(response.data.videos);
       } catch (error) {
         console.error("Error fetching videos:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -29,6 +34,21 @@ const VideoList: React.FC = () => {
       fetchVideos();
     }
   }, [channelId]);
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Spin size="large" tip="Loading videos..." />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "20px" }}>
@@ -50,7 +70,13 @@ const VideoList: React.FC = () => {
                 />
               }
             >
-              <Card.Meta title={video.title} />
+              <Card.Meta
+                title={
+                  <ScrollingTitle>
+                    <span className="inner-text">{video.title}</span>
+                  </ScrollingTitle>
+                }
+              />
             </Card>
           </Link>
         ))}

@@ -3,9 +3,7 @@ import { Alert, Input, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { api } from "../../../api/api";
-import { ProgressCircle } from "@/components/dictation/video/ProgressCircle";
-import { DualProgressBar } from "@/components/dictation/video/DualProgressBar";
+import { api } from "@/api/api";
 import {
   BlurredText,
   ComparisonText,
@@ -21,7 +19,9 @@ import {
   VideoColumn,
   VideoContainer,
   YouTubeWrapper,
-} from "@/components/dictation/video/StyledComps";
+  ProgressCircle,
+  DualProgressBar,
+} from "@/components/dictation/video/Widget";
 
 export const VideoMain: React.FC = () => {
   const { videoId, channelId } = useParams<{
@@ -277,7 +277,7 @@ export const VideoMain: React.FC = () => {
                             </p>
                             {item.userInput && (
                               <p>
-                                Your input:{" "}
+                                {t("yourInput")}:{" "}
                                 {compareInputWithTranscript(
                                   item.userInput,
                                   item.transcript
