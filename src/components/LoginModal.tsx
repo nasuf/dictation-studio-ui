@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Button, Form, Input, Drawer, message } from "antd";
-import { GoogleOutlined } from "@ant-design/icons";
+import {
+  GoogleOutlined,
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import { useGoogleLogin } from "@react-oauth/google";
 import { api } from "@/api/api";
@@ -27,6 +31,20 @@ const LoginContent = styled.div`
   height: 100%;
   justify-content: center;
   padding: 0 24px;
+  position: relative;
+  overflow: hidden;
+`;
+
+const SlideContainer = styled.div<{ isRegistering: boolean }>`
+  display: flex;
+  width: 200%;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(${(props) => (props.isRegistering ? "-50%" : "0%")});
+`;
+
+const FormContainer = styled.div`
+  flex: 0 0 50%;
+  padding: 0 12px;
 `;
 
 const BlurredBackground = styled.div`
@@ -45,7 +63,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   onGoogleLogin,
 }) => {
-  const [form] = Form.useForm();
+  const [loginForm] = Form.useForm();
+  const [registerForm] = Form.useForm();
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,7 +75,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         await api.register(values.email, values.password);
         message.success("注册成功，请登录");
         setIsRegistering(false);
-        form.resetFields();
+        registerForm.resetFields();
       } catch (error) {
         console.error("Registration failed:", error);
         message.error("注册失败，请重试");
@@ -79,7 +98,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
   const toggleRegistration = () => {
     setIsRegistering(!isRegistering);
-    form.resetFields();
   };
 
   return (
@@ -93,9 +111,42 @@ const LoginModal: React.FC<LoginModalProps> = ({
         mask={false}
       >
         <LoginContent>
-          <Form form={form} onFinish={onFinish}>
-            {isRegistering ? (
-              <>
+          <SlideContainer isRegistering={isRegistering}>
+            <FormContainer>
+              <Form form={loginForm} onFinish={onFinish}>
+                <Form.Item
+                  name="username"
+                  rules={[{ required: true, message: "请输入用户名或邮箱!" }]}
+                >
+                  <Input placeholder="用户名或邮箱" />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[{ required: true, message: "请输入密码!" }]}
+                >
+                  <Input.Password placeholder="密码" />
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{ width: "100%" }}
+                    loading={isLoading}
+                  >
+                    登录
+                  </Button>
+                </Form.Item>
+              </Form>
+              <Button
+                icon={<GoogleOutlined />}
+                onClick={() => googleLogin()}
+                style={{ width: "100%", marginTop: "16px" }}
+              >
+                使用 Google 账号登录
+              </Button>
+            </FormContainer>
+            <FormContainer>
+              <Form form={registerForm} onFinish={onFinish}>
                 <Form.Item
                   name="email"
                   rules={[
@@ -116,61 +167,47 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 </Form.Item>
                 <Form.Item
                   name="confirmPassword"
-                  dependencies={['password']}
+                  dependencies={["password"]}
                   rules={[
                     { required: true, message: "请确认密码!" },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
-                        if (!value || getFieldValue('password') === value) {
+                        if (!value || getFieldValue("password") === value) {
                           return Promise.resolve();
                         }
-                        return Promise.reject(new Error('两次输入的密码不一致!'));
+                        return Promise.reject(
+                          new Error("两次输入的密码不一致!")
+                        );
                       },
                     }),
                   ]}
                 >
                   <Input.Password placeholder="确认密码" />
                 </Form.Item>
-              </>
-            ) : (
-              <>
-                <Form.Item
-                  name="username"
-                  rules={[{ required: true, message: "请输入用户名或邮箱!" }]}
-                >
-                  <Input placeholder="用户名或邮箱" />
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{ width: "100%" }}
+                    loading={isLoading}
+                  >
+                    注册
+                  </Button>
                 </Form.Item>
-                <Form.Item
-                  name="password"
-                  rules={[{ required: true, message: "请输入密码!" }]}
-                >
-                  <Input.Password placeholder="密码" />
-                </Form.Item>
-              </>
-            )}
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                style={{ width: "100%" }}
-                loading={isLoading}
-              >
-                {isRegistering ? "注册" : "登录"}
-              </Button>
-            </Form.Item>
-          </Form>
-          {!isRegistering && (
-            <Button
-              icon={<GoogleOutlined />}
-              onClick={() => googleLogin()}
-              style={{ width: "100%", marginTop: "16px" }}
-            >
-              使用 Google 账号登录
-            </Button>
-          )}
+              </Form>
+            </FormContainer>
+          </SlideContainer>
           <div style={{ marginTop: 16, textAlign: "center" }}>
             <a onClick={toggleRegistration}>
-              {isRegistering ? "已有账号？立即登录" : "还没有账号？立即注册"}
+              {isRegistering ? (
+                <>
+                  <ArrowLeftOutlined /> 已有账号？立即登录
+                </>
+              ) : (
+                <>
+                  还没有账号？立即注册 <ArrowRightOutlined />
+                </>
+              )}
             </a>
           </div>
         </LoginContent>
