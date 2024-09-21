@@ -50,6 +50,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
     },
   });
 
+  const logout = async () => {
+    try {
+      const response = await api.logout();
+      if (response.status === 200) {
+        setUserInfo(null);
+        localStorage.removeItem("jwt_token");
+        message.success("已退出登录");
+      } else {
+        message.error("退出登录失败，请重试");
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+      message.error("退出登录失败，请重试");
+    }
+  };
+
   const languageMenu = (
     <Menu
       onClick={({ key }) => toggleLanguage(key)}
@@ -65,14 +81,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
   const userMenu = (
     <Menu>
       <Menu.Item key="profile">个人资料</Menu.Item>
-      <Menu.Item
-        key="logout"
-        onClick={() => {
-          setUserInfo(null);
-          localStorage.removeItem("jwt_token");
-          message.success("已退出登录");
-        }}
-      >
+      <Menu.Item key="logout" onClick={logout}>
         退出登录
       </Menu.Item>
     </Menu>
@@ -80,11 +89,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
 
   const getAvatarContent = (name: string) => {
     if (/^[a-zA-Z]/.test(name)) {
-      // 如果名字以英文字母开头，返回第一个单词的首字母
       const firstWord = name.split(" ")[0];
       return firstWord.charAt(0).toUpperCase();
     } else {
-      // 如果名字不是以英文字母开头，返回最后一个字符
       return name.charAt(name.length - 1);
     }
   };
