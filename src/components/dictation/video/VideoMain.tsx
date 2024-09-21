@@ -152,27 +152,77 @@ export const VideoMain: React.FC = () => {
   };
 
   const compareInputWithTranscript = (input: string, transcript: string) => {
-    const inputWords = input.toLowerCase().split(/\s+/);
-    const transcriptWords = transcript.toLowerCase().split(/\s+/);
+    const cleanString = (str: string) => {
+      return str
+        .toLowerCase()
+        .replace(/[^\w\s']|_/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
 
-    const inputResult = inputWords.map((word) => {
-      if (transcriptWords.includes(word)) {
-        return { word, color: "green" };
+    const expandContractions = (str: string) => {
+      const contractions: { [key: string]: string } = {
+        "it's": "it is",
+        "i'm": "i am",
+        "you're": "you are",
+        "he's": "he is",
+        "she's": "she is",
+        "we're": "we are",
+        "they're": "they are",
+        "isn't": "is not",
+        "aren't": "are not",
+        "wasn't": "was not",
+        "weren't": "were not",
+        "haven't": "have not",
+        "hasn't": "has not",
+        "hadn't": "had not",
+        "won't": "will not",
+        "wouldn't": "would not",
+        "don't": "do not",
+        "doesn't": "does not",
+        "didn't": "did not",
+        "can't": "cannot",
+        "couldn't": "could not",
+        "shouldn't": "should not",
+        "mightn't": "might not",
+        "mustn't": "must not",
+      };
+
+      return str.replace(/\w+'?\w*/gi, (word) => {
+        const lowercaseWord = word.toLowerCase();
+        return contractions[lowercaseWord] || word;
+      });
+    };
+
+    const cleanInput = cleanString(expandContractions(input));
+    const cleanTranscript = cleanString(expandContractions(transcript));
+
+    const inputWords = cleanInput.split(/\s+/);
+    const transcriptWords = cleanTranscript.split(/\s+/);
+
+    const originalInputWords = input.split(/\s+/);
+    const originalTranscriptWords = transcript.split(/\s+/);
+
+    const inputResult = originalInputWords.map((word) => {
+      const cleanWord = cleanString(expandContractions(word));
+      if (transcriptWords.includes(cleanWord)) {
+        return { word, color: "green", isCorrect: true };
       } else {
-        return { word, color: "red" };
+        return { word, color: "red", isCorrect: false };
       }
     });
 
-    const transcriptResult = transcriptWords.map((word) => {
-      if (inputWords.includes(word)) {
-        return { word, highlight: "lightgreen" };
+    const transcriptResult = originalTranscriptWords.map((word) => {
+      const cleanWord = cleanString(expandContractions(word));
+      if (inputWords.includes(cleanWord)) {
+        return { word, highlight: "lightgreen", isCorrect: true };
       } else {
-        return { word, highlight: "lightcoral" };
+        return { word, highlight: "lightcoral", isCorrect: false };
       }
     });
 
     const correctWords = transcriptResult.filter(
-      (word) => word.highlight === "lightgreen"
+      (word) => word.isCorrect
     ).length;
     const completionPercentage = (correctWords / transcriptWords.length) * 100;
 
