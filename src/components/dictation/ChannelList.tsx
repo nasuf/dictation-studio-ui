@@ -1,21 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, Avatar } from "antd";
+import { api } from "../../api/api";
 
-const channels = [
-  {
-    id: "bbc_ideas",
-    name: "BBC Ideas",
-    icon: "https://yt3.googleusercontent.com/c2koPSeUB_VQtn1CcB739_CWhf002oMYCuPAHzRKUrQPJoVmAzE_dyMhtiVWDxmOpjFw770yy6c=s160-c-k-c0x00ffffff-no-rj",
-  },
-  {
-    id: "ted",
-    name: "TED",
-    icon: "https://yt3.googleusercontent.com/ytc/AIdro_l_fFETDQgTAl5rWb38pxJww-4kszJH_n0G4fKP1BdK-jc=s160-c-k-c0x00ffffff-no-rj",
-  },
-];
+interface Channel {
+  id: string;
+  name: string;
+  image_url: string;
+}
 
 const ChannelList: React.FC = () => {
+  const [channels, setChannels] = useState<Channel[]>([]);
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const response = await api.getChannels();
+        setChannels(response.data);
+      } catch (error) {
+        console.error("Error fetching channels:", error);
+      }
+    };
+
+    fetchChannels();
+  }, []);
+
   return (
     <div style={{ padding: "20px" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
@@ -31,7 +40,7 @@ const ChannelList: React.FC = () => {
               cover={
                 <Avatar
                   size={200}
-                  src={channel.icon}
+                  src={channel.image_url}
                   style={{
                     margin: "20px auto",
                   }}
