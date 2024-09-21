@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Input, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../../../api/api";
 import { ProgressCircle } from "@/components/dictation/video/ProgressCircle";

@@ -6,8 +6,8 @@ import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
 import { VideoMain } from "@/components/dictation/video/VideoMain";
 import Radio from "@/components/dictation/Radio";
-import ChannelList from "@/components/dictation/ChannelList";
-import VideoList from "@/components/dictation/VideoList";
+import ChannelList from "@/components/dictation/video/ChannelList";
+import VideoList from "@/components/dictation/video/VideoList";
 
 const { Content } = Layout;
 

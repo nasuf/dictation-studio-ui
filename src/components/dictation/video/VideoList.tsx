@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { Card } from "antd";
-import { api } from "../../api/api";
+import { api } from "../../../api/api";
 
 interface Video {
   video_id: string;
   link: string;
+  title?: string; // Add optional title field
 }
 
 const VideoList: React.FC = () => {
@@ -42,9 +43,14 @@ const VideoList: React.FC = () => {
             <Card
               hoverable
               style={{ width: 300 }}
-              cover={<img alt={video.video_id} src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`} />}
+              cover={
+                <img
+                  alt={video.title}
+                  src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
+                />
+              }
             >
-              <Card.Meta title={video.video_id} />
+              <Card.Meta title={video.title} />
             </Card>
           </Link>
         ))}
