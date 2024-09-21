@@ -65,13 +65,13 @@ const AppSider: React.FC = () => {
       path: "/admin",
       children: [
         {
-          key: "Channel Management",
-          label: "Channel Management",
+          key: "ChannelManagement",
+          label: "Channel",
           path: "/admin/channel-management",
         },
         {
-          key: "Video Management",
-          label: "Video Management",
+          key: "VideoManagement",
+          label: "Video",
           path: "/admin/video-management",
         },
       ],

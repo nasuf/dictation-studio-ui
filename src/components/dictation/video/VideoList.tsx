@@ -52,7 +52,6 @@ const VideoList: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>{channelName} Videos</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {videos.map((video) => (
           <Link
