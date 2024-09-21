@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Input, Spin } from "antd";
 import YouTube, { YouTubePlayer } from "react-youtube";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { api } from "../../../api/api";
 import { ProgressCircle } from "@/components/dictation/video/ProgressCircle";
 import { DualProgressBar } from "@/components/dictation/video/DualProgressBar";
 import {
@@ -24,7 +24,10 @@ import {
 } from "@/components/dictation/video/StyledComps";
 
 export const VideoMain: React.FC = () => {
-  const { videoId } = useParams<{ videoId: string }>();
+  const { videoId, channelId } = useParams<{
+    videoId: string;
+    channelId: string;
+  }>();
   const { t } = useTranslation();
   const playerRef = useRef<YouTubePlayer | null>(null);
   const subtitlesRef = useRef<HTMLDivElement>(null);
@@ -37,20 +40,15 @@ export const VideoMain: React.FC = () => {
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
 
-  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
   useEffect(() => {
     fetchTranscript();
-  }, [videoId]);
+  }, [videoId, channelId]);
 
   const fetchTranscript = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:4001/api/transcript",
-        { url: videoUrl }
-      );
-      setTranscript(response.data);
+      const response = await api.getVideoTranscript(channelId!, videoId!);
+      setTranscript(response.data.transcript);
     } catch (error) {
       console.error("Error fetching transcript:", error);
     } finally {

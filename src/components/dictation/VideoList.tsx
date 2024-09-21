@@ -37,17 +37,12 @@ const VideoList: React.FC = () => {
           <Link
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
-            state={{ name: video.video_id, channelName: channelName }}
+            state={{ channelId, channelName, videoId: video.video_id }}
           >
             <Card
               hoverable
               style={{ width: 300 }}
-              cover={
-                <img
-                  alt={video.video_id}
-                  src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
-                />
-              }
+              cover={<img alt={video.video_id} src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`} />}
             >
               <Card.Meta title={video.video_id} />
             </Card>
