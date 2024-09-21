@@ -10,4 +10,6 @@ export const api = {
   getVideoList: (channelId: string) => axios.get(`${API_BASE_URL}/api/video-list/${channelId}`),
   getVideoTranscript: (channelId: string, videoId: string) => 
     axios.get(`${API_BASE_URL}/api/video-transcript/${channelId}/${videoId}`),
+  uploadVideos: (channelId: string, videoLinks: string[]) =>
+    axios.post(`${API_BASE_URL}/api/video-list`, { channel_id: channelId, video_links: videoLinks }),
 };
