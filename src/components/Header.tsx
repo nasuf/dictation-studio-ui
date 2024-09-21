@@ -27,7 +27,7 @@ const StyledAvatar = styled(Avatar)`
 `;
 
 const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 

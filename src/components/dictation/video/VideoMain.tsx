@@ -39,6 +39,7 @@ export const VideoMain: React.FC = () => {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   useEffect(() => {
     fetchTranscript();
@@ -49,8 +50,12 @@ export const VideoMain: React.FC = () => {
     try {
       const response = await api.getVideoTranscript(channelId!, videoId!);
       setTranscript(response.data.transcript);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching transcript:", error);
+      if (error.response && error.response.status === 401) {
+        setIsUnauthorized(true);
+        window.dispatchEvent(new CustomEvent("unauthorized"));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -226,6 +231,10 @@ export const VideoMain: React.FC = () => {
   useEffect(() => {
     updateOverallProgress();
   }, [revealedSentences, transcript]);
+
+  if (isUnauthorized) {
+    return <></>; // 如果未授权，不渲染任何内容
+  }
 
   return (
     <VideoContainer>
