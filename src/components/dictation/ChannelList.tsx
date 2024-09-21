@@ -32,7 +32,7 @@ const ChannelList: React.FC = () => {
           <Link
             key={channel.id}
             to={`/dictation/video/${channel.id}`}
-            state={{ name: channel.name }}
+            state={{ channelId: channel.id, channelName: channel.name }}
           >
             <Card
               hoverable
