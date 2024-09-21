@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Layout, Menu, Space, Dropdown, Button, message, Avatar } from "antd";
+import { Layout, Menu, Space, Dropdown, message, Avatar } from "antd";
 import { GlobalOutlined, DownOutlined, UserOutlined } from "@ant-design/icons";
+import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
 import { useGoogleLogin } from "@react-oauth/google";
 import { api } from "@/api/api";
+import LoginModal from "./LoginModal"; // 新增：导入登录弹窗组件
 
 const { Header } = Layout;
 
@@ -20,14 +22,17 @@ interface AppHeaderProps {
   setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
 }
 
+const StyledAvatar = styled(Avatar)`
+  cursor: pointer;
+`;
+
 const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
   const { t, i18n } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
       try {
         const response = await api.verifyGoogleToken(
           tokenResponse.access_token
@@ -35,6 +40,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         localStorage.setItem("jwt_token", response.data.jwt_token);
         setUserInfo(response.data);
         message.success("登录成功");
+        setIsLoginModalVisible(false);
         setTimeout(() => {
           window.location.reload();
         }, 3000);
@@ -42,8 +48,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         console.error("Login failed:", error);
         message.error("登录失败，请重试");
         localStorage.removeItem("jwt_token");
-      } finally {
-        setIsLoading(false);
       }
     },
     onError: () => {
@@ -142,18 +146,30 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         </Dropdown>
         {userInfo ? (
           <Dropdown overlay={userMenu} trigger={["click"]}>
-            <Avatar
+            <StyledAvatar
               style={{ backgroundColor: "#f56a00", verticalAlign: "middle" }}
             >
               {getAvatarContent(userInfo.name)}
-            </Avatar>
+            </StyledAvatar>
           </Dropdown>
         ) : (
-          <Button onClick={() => login()} loading={isLoading}>
-            Sign in with Google
-          </Button>
+          <a
+            onClick={() => setIsLoginModalVisible(true)}
+            style={{ color: "white" }}
+          >
+            <Space>
+              <UserOutlined />
+              登录
+              <DownOutlined />
+            </Space>
+          </a>
         )}
       </Space>
+      <LoginModal
+        visible={isLoginModalVisible}
+        onClose={() => setIsLoginModalVisible(false)}
+        onGoogleLogin={login}
+      />
     </Header>
   );
 };
