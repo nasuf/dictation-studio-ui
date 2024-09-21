@@ -15,11 +15,15 @@ interface UserInfo {
   user_id: string;
 }
 
-const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+  userInfo: UserInfo | null;
+  setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+}
+
+const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
   const { t, i18n } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoading, setIsLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -29,7 +33,7 @@ const AppHeader: React.FC = () => {
           tokenResponse.access_token
         );
         localStorage.setItem("jwt_token", response.data.jwt_token);
-        setUserInfo(response.data.user);
+        setUserInfo(response.data);
         message.success("登录成功");
       } catch (error) {
         console.error("Login failed:", error);
