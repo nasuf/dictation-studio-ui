@@ -38,6 +38,7 @@ export const api = {
     }),
   verifyGoogleToken: (token: string) =>
     axiosInstance.post("/verify-google-token", { token }),
-  checkLogin: () => axiosInstance.get('/check-login'),
-  logout: () => axiosInstance.post('/logout'),
+  checkLogin: () => axiosInstance.get("/check-login"),
+  logout: () => axiosInstance.post("/logout"),
+  register: (email: string, password: string) => axiosInstance.post("/register", { email, password }),
 };

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form, Input, Drawer, message } from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import { useGoogleLogin } from "@react-oauth/google";
+import { api } from "@/api/api";
 
 interface LoginModalProps {
   visible: boolean;
@@ -45,10 +46,27 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onGoogleLogin,
 }) => {
   const [form] = Form.useForm();
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onFinish = (values: any) => {
-    console.log("Received values of form: ", values);
-    // Add email/username password login logic here
+  const onFinish = async (values: any) => {
+    if (isRegistering) {
+      setIsLoading(true);
+      try {
+        await api.register(values.email, values.password);
+        message.success("注册成功，请登录");
+        setIsRegistering(false);
+        form.resetFields();
+      } catch (error) {
+        console.error("Registration failed:", error);
+        message.error("注册失败，请重试");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      console.log("Login values:", values);
+      // 这里添加登录逻辑
+    }
   };
 
   const googleLogin = useGoogleLogin({
@@ -59,11 +77,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
     },
   });
 
+  const toggleRegistration = () => {
+    setIsRegistering(!isRegistering);
+    form.resetFields();
+  };
+
   return (
     <>
       {visible && <BlurredBackground onClick={onClose} />}
       <StyledDrawer
-        title="登录或注册"
+        title={isRegistering ? "注册" : "登录"}
         placement="right"
         onClose={onClose}
         visible={visible}
@@ -71,37 +94,84 @@ const LoginModal: React.FC<LoginModalProps> = ({
       >
         <LoginContent>
           <Form form={form} onFinish={onFinish}>
-            <Form.Item
-              name="username"
-              rules={[{ required: true, message: "请输入用户名或邮箱!" }]}
-            >
-              <Input placeholder="用户名或邮箱" />
-            </Form.Item>
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: "请输入密码!" }]}
-            >
-              <Input.Password placeholder="密码" />
-            </Form.Item>
+            {isRegistering ? (
+              <>
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: "请输入邮箱地址!" },
+                    { type: "email", message: "请输入有效的邮箱地址!" },
+                  ]}
+                >
+                  <Input placeholder="邮箱地址" />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[
+                    { required: true, message: "请输入密码!" },
+                    { min: 6, message: "密码长度不能少于6个字符!" },
+                  ]}
+                >
+                  <Input.Password placeholder="密码" />
+                </Form.Item>
+                <Form.Item
+                  name="confirmPassword"
+                  dependencies={['password']}
+                  rules={[
+                    { required: true, message: "请确认密码!" },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue('password') === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error('两次输入的密码不一致!'));
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password placeholder="确认密码" />
+                </Form.Item>
+              </>
+            ) : (
+              <>
+                <Form.Item
+                  name="username"
+                  rules={[{ required: true, message: "请输入用户名或邮箱!" }]}
+                >
+                  <Input placeholder="用户名或邮箱" />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[{ required: true, message: "请输入密码!" }]}
+                >
+                  <Input.Password placeholder="密码" />
+                </Form.Item>
+              </>
+            )}
             <Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
                 style={{ width: "100%" }}
+                loading={isLoading}
               >
-                登录
+                {isRegistering ? "注册" : "登录"}
               </Button>
             </Form.Item>
           </Form>
-          <Button
-            icon={<GoogleOutlined />}
-            onClick={() => googleLogin()}
-            style={{ width: "100%", marginTop: "16px" }}
-          >
-            使用 Google 账号登录
-          </Button>
+          {!isRegistering && (
+            <Button
+              icon={<GoogleOutlined />}
+              onClick={() => googleLogin()}
+              style={{ width: "100%", marginTop: "16px" }}
+            >
+              使用 Google 账号登录
+            </Button>
+          )}
           <div style={{ marginTop: 16, textAlign: "center" }}>
-            <a href="#">还没有账号？立即注册</a>
+            <a onClick={toggleRegistration}>
+              {isRegistering ? "已有账号？立即登录" : "还没有账号？立即注册"}
+            </a>
           </div>
         </LoginContent>
       </StyledDrawer>
