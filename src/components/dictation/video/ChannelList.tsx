@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, Avatar } from "antd";
 import { api } from "@/api/api";
+import { HoverCard } from "@/components/dictation/video/Widget";
 
 interface Channel {
   id: string;
@@ -34,7 +35,7 @@ const ChannelList: React.FC = () => {
             to={`/dictation/video/${channel.id}`}
             state={{ channelId: channel.id, channelName: channel.name }}
           >
-            <Card
+            <HoverCard
               hoverable
               style={{ width: 240, textAlign: "center" }}
               cover={
@@ -48,7 +49,7 @@ const ChannelList: React.FC = () => {
               }
             >
               <Card.Meta title={channel.name} />
-            </Card>
+            </HoverCard>
           </Link>
         ))}
       </div>

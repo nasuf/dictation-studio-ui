@@ -1,3 +1,4 @@
+import { Card } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
@@ -131,6 +132,15 @@ export const ScrollingTitle = styled.div`
     100% {
       transform: translate(-100%, 0);
     }
+  }
+`;
+
+export const HoverCard = styled(Card)`
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 `;
 

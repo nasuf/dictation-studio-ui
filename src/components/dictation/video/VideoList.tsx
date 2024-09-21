@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { Card, Spin } from "antd";
 import { api } from "@/api/api";
-import { ScrollingTitle } from "@/components/dictation/video/Widget";
+import { ScrollingTitle, HoverCard } from "@/components/dictation/video/Widget";
 
 interface Video {
   video_id: string;
@@ -59,7 +59,7 @@ const VideoList: React.FC = () => {
             to={`/dictation/video/${channelId}/${video.video_id}`}
             state={{ channelId, channelName, videoId: video.video_id }}
           >
-            <Card
+            <HoverCard
               hoverable
               style={{ width: 300 }}
               cover={
@@ -76,7 +76,7 @@ const VideoList: React.FC = () => {
                   </ScrollingTitle>
                 }
               />
-            </Card>
+            </HoverCard>
           </Link>
         ))}
       </div>
