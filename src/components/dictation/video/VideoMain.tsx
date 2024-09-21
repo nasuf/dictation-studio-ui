@@ -155,47 +155,13 @@ export const VideoMain: React.FC = () => {
     const cleanString = (str: string) => {
       return str
         .toLowerCase()
-        .replace(/[^\w\s']|_/g, "")
+        .replace(/[^\w\s]|_/g, "")
         .replace(/\s+/g, " ")
         .trim();
     };
 
-    const expandContractions = (str: string) => {
-      const contractions: { [key: string]: string } = {
-        "it's": "it is",
-        "i'm": "i am",
-        "you're": "you are",
-        "he's": "he is",
-        "she's": "she is",
-        "we're": "we are",
-        "they're": "they are",
-        "isn't": "is not",
-        "aren't": "are not",
-        "wasn't": "was not",
-        "weren't": "were not",
-        "haven't": "have not",
-        "hasn't": "has not",
-        "hadn't": "had not",
-        "won't": "will not",
-        "wouldn't": "would not",
-        "don't": "do not",
-        "doesn't": "does not",
-        "didn't": "did not",
-        "can't": "cannot",
-        "couldn't": "could not",
-        "shouldn't": "should not",
-        "mightn't": "might not",
-        "mustn't": "must not",
-      };
-
-      return str.replace(/\w+'?\w*/gi, (word) => {
-        const lowercaseWord = word.toLowerCase();
-        return contractions[lowercaseWord] || word;
-      });
-    };
-
-    const cleanInput = cleanString(expandContractions(input));
-    const cleanTranscript = cleanString(expandContractions(transcript));
+    const cleanInput = cleanString(input);
+    const cleanTranscript = cleanString(transcript);
 
     const inputWords = cleanInput.split(/\s+/);
     const transcriptWords = cleanTranscript.split(/\s+/);
@@ -204,7 +170,7 @@ export const VideoMain: React.FC = () => {
     const originalTranscriptWords = transcript.split(/\s+/);
 
     const inputResult = originalInputWords.map((word) => {
-      const cleanWord = cleanString(expandContractions(word));
+      const cleanWord = cleanString(word);
       if (transcriptWords.includes(cleanWord)) {
         return { word, color: "green", isCorrect: true };
       } else {
@@ -213,7 +179,7 @@ export const VideoMain: React.FC = () => {
     });
 
     const transcriptResult = originalTranscriptWords.map((word) => {
-      const cleanWord = cleanString(expandContractions(word));
+      const cleanWord = cleanString(word);
       if (inputWords.includes(cleanWord)) {
         return { word, highlight: "lightgreen", isCorrect: true };
       } else {
