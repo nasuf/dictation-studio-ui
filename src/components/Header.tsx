@@ -13,7 +13,7 @@ const { Header } = Layout;
 
 interface AppHeaderProps {
   userInfo: UserInfo | null;
-  setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+  setUserInfo: (user: UserInfo | null) => void;
   showLoginModal: () => void;
 }
 
