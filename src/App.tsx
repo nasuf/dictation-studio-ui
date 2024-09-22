@@ -16,7 +16,7 @@ const { Header, Content, Footer } = Layout;
 interface UserInfo {
   name: string;
   email: string;
-  picture: string;
+  avatar: string;
   user_id: string;
 }
 
@@ -76,8 +76,8 @@ const App: React.FC = () => {
         <Router>
           <Layout style={{ height: "100vh", overflow: "hidden" }}>
             <Header style={{ padding: 0, overflow: "hidden" }}>
-              <AppHeader 
-                userInfo={userInfo} 
+              <AppHeader
+                userInfo={userInfo}
                 setUserInfo={setUserInfo}
                 showLoginModal={() => setIsLoginModalVisible(true)}
               />

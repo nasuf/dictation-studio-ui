@@ -3,6 +3,7 @@ import { Button, Form, Input, Drawer, message, Avatar, Modal } from "antd";
 import { GoogleOutlined, UserOutlined, EditOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 
 interface LoginModalProps {
@@ -54,96 +55,110 @@ const BottomSection = styled.div`
 const LoginForm: React.FC<{
   onFinish: (values: any) => void;
   isLoading: boolean;
-}> = ({ onFinish, isLoading }) => (
-  <Form onFinish={onFinish}>
-    <Form.Item
-      name="username"
-      rules={[{ required: true, message: "请输入用户名或邮箱!" }]}
-    >
-      <Input placeholder="用户名或邮箱" />
-    </Form.Item>
-    <Form.Item
-      name="password"
-      rules={[{ required: true, message: "请输入密码!" }]}
-    >
-      <Input.Password placeholder="密码" />
-    </Form.Item>
-    <Form.Item>
-      <Button
-        type="primary"
-        htmlType="submit"
-        style={{ width: "100%" }}
-        loading={isLoading}
+}> = ({ onFinish, isLoading }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Form onFinish={onFinish}>
+      <Form.Item
+        name="username"
+        rules={[{ required: true, message: t("请输入用户名或邮箱!") }]}
       >
-        登录
-      </Button>
-    </Form.Item>
-  </Form>
-);
+        <Input placeholder={t("用户名或邮箱")} />
+      </Form.Item>
+      <Form.Item
+        name="password"
+        rules={[{ required: true, message: t("请输入密码!") }]}
+      >
+        <Input.Password placeholder={t("密码")} />
+      </Form.Item>
+      <Form.Item>
+        <Button
+          type="primary"
+          htmlType="submit"
+          style={{ width: "100%" }}
+          loading={isLoading}
+        >
+          {t("登录")}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
 
 const RegisterForm: React.FC<{
   onFinish: (values: any) => void;
   isLoading: boolean;
   avatar: string;
   onAvatarEdit: () => void;
-}> = ({ onFinish, isLoading, avatar, onAvatarEdit }) => (
-  <Form onFinish={onFinish}>
-    <Form.Item>
-      <Avatar
-        size={100}
-        src={avatar}
-        icon={<UserOutlined />}
-        style={{ margin: "0 auto", display: "block" }}
-      />
-      <EditIcon onClick={onAvatarEdit} />
-    </Form.Item>
-    <Form.Item
-      name="email"
-      rules={[
-        { required: true, message: "请输入邮箱地址!" },
-        { type: "email", message: "请输入有效的邮箱地址!" },
-      ]}
-    >
-      <Input placeholder="邮箱地址" />
-    </Form.Item>
-    <Form.Item
-      name="password"
-      rules={[
-        { required: true, message: "请输入密码!" },
-        { min: 6, message: "密码长度不能少于6个字符!" },
-      ]}
-    >
-      <Input.Password placeholder="密码" />
-    </Form.Item>
-    <Form.Item
-      name="confirmPassword"
-      dependencies={["password"]}
-      rules={[
-        { required: true, message: "请确认密码!" },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            if (!value || getFieldValue("password") === value) {
-              return Promise.resolve();
-            }
-            return Promise.reject(new Error("两次输入的密码不一致!"));
-          },
-        }),
-      ]}
-    >
-      <Input.Password placeholder="确认密码" />
-    </Form.Item>
-    <Form.Item>
-      <Button
-        type="primary"
-        htmlType="submit"
-        style={{ width: "100%" }}
-        loading={isLoading}
+}> = ({ onFinish, isLoading, avatar, onAvatarEdit }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Form onFinish={onFinish}>
+      <Form.Item>
+        <Avatar
+          size={100}
+          src={avatar}
+          icon={<UserOutlined />}
+          style={{ margin: "0 auto", display: "block" }}
+        />
+        <EditIcon onClick={onAvatarEdit} />
+      </Form.Item>
+      <Form.Item
+        name="username"
+        rules={[{ required: true, message: t("请输入用户名!") }]}
       >
-        注册
-      </Button>
-    </Form.Item>
-  </Form>
-);
+        <Input placeholder={t("用户名")} />
+      </Form.Item>
+      <Form.Item
+        name="email"
+        rules={[
+          { required: true, message: t("请输入邮箱地址!") },
+          { type: "email", message: t("请输入有效的邮箱地址!") },
+        ]}
+      >
+        <Input placeholder={t("邮箱地址")} />
+      </Form.Item>
+      <Form.Item
+        name="password"
+        rules={[
+          { required: true, message: t("请输入密码!") },
+          { min: 6, message: t("密码长度不能少于6个字符!") },
+        ]}
+      >
+        <Input.Password placeholder={t("密码")} />
+      </Form.Item>
+      <Form.Item
+        name="confirmPassword"
+        dependencies={["password"]}
+        rules={[
+          { required: true, message: t("请确认密码!") },
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue("password") === value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error(t("两次输入的密码不一致!")));
+            },
+          }),
+        ]}
+      >
+        <Input.Password placeholder={t("确认密码")} />
+      </Form.Item>
+      <Form.Item>
+        <Button
+          type="primary"
+          htmlType="submit"
+          style={{ width: "100%" }}
+          loading={isLoading}
+        >
+          {t("注册")}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
 
 const EditIcon = styled(EditOutlined)`
   position: absolute;
@@ -175,9 +190,15 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [avatar, setAvatar] = useState<string>("");
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
-  const maxAvatars = 100;
+  const maxAvatars = 100; // 设置最大头像数量
+  const { t } = useTranslation();
 
   useEffect(() => {
+    // 组件加载时生成一个随机头像
+    setAvatar(
+      `https://api.dicebear.com/6.x/adventurer/svg?seed=${Math.random()}`
+    );
+    // 初始化头像选项
     const initialAvatars = Array.from(
       { length: 8 },
       (_, i) => `https://api.dicebear.com/6.x/adventurer/svg?seed=${i}`
@@ -189,15 +210,34 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setIsLoading(true);
     try {
       if (isRegistering) {
-        await api.register(values.email, values.password, avatar);
-        message.success("注册成功，请登录");
+        const encoder = new TextEncoder();
+        const data = encoder.encode(values.password);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const encryptedPwd = hashArray
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+
+        // 使用当前的 avatar 状态，如果用户没有选择，这将是随机生成的头像
+        await api.register(values.username, values.email, encryptedPwd, avatar);
+        message.success(t("注册成功，请登录"));
         setIsRegistering(false);
       } else {
-        console.log("Login values:", values);
+        // 登录逻辑
+        const loginResult = await api.login(values.username, values.password);
+        if (loginResult.success) {
+          message.success(t("登录成功"));
+          onClose(); // 关闭登录模态框
+          // 这里可以添加登录成功后的其他操作，比如更新用户状态等
+        } else {
+          message.error(t("登录失败，请检查用户名和密码"));
+        }
       }
     } catch (error) {
       console.error("Operation failed:", error);
-      message.error(isRegistering ? "注册失败，请试" : "登录失败，请重试");
+      message.error(
+        isRegistering ? t("注册失败，请重试") : t("登录失败，请重试")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -210,7 +250,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const loadMoreAvatars = () => {
     const remainingAvatars = maxAvatars - avatarOptions.length;
     const newAvatars = Array.from(
-      { length: remainingAvatars },
+      { length: Math.min(8, remainingAvatars) }, // 每次最多加载8个新头像
       (_, i) =>
         `https://api.dicebear.com/6.x/adventurer/svg?seed=${
           avatarOptions.length + i
@@ -228,7 +268,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
     onSuccess: onGoogleLogin,
     onError: () => {
       console.log("Login Failed");
-      message.error("Google 登录失败，请重试");
+      message.error(t("Google 登录失败，请重试"));
     },
   });
 
@@ -236,7 +276,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
     <>
       {visible && <BlurredBackground onClick={onClose} />}
       <StyledDrawer
-        title={isRegistering ? "注册" : "登录"}
+        title={isRegistering ? t("注册") : t("登录")}
         placement="right"
         onClose={onClose}
         visible={visible}
@@ -262,7 +302,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 onClick={() => googleLogin()}
                 style={{ width: "100%", marginBottom: "10px" }}
               >
-                使用 Google 账号登录
+                {t("使用 Google 账号登录")}
               </Button>
             )}
             <Button
@@ -270,23 +310,25 @@ const LoginModal: React.FC<LoginModalProps> = ({
               onClick={() => setIsRegistering(!isRegistering)}
               style={{ width: "100%" }}
             >
-              {isRegistering ? "已有账号？立即登录" : "还没有账号？立即注册"}
+              {isRegistering
+                ? t("已有账号？立即登录")
+                : t("还没有账号？立即注册")}
             </Button>
           </BottomSection>
         </ContentWrapper>
       </StyledDrawer>
       <Modal
-        title="选择头像"
+        title={t("选择头像")}
         visible={isAvatarModalVisible}
         onCancel={() => setIsAvatarModalVisible(false)}
         footer={[
           avatarOptions.length < maxAvatars && (
             <Button key="load-more" onClick={loadMoreAvatars}>
-              加载更多
+              {t("加载更多")}
             </Button>
           ),
           <Button key="cancel" onClick={() => setIsAvatarModalVisible(false)}>
-            取消
+            {t("取消")}
           </Button>,
         ]}
       >

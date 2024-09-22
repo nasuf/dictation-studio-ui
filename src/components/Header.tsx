@@ -13,7 +13,7 @@ const { Header } = Layout;
 interface UserInfo {
   name: string;
   email: string;
-  picture: string;
+  avatar: string;
   user_id: string;
 }
 
@@ -27,7 +27,11 @@ const StyledAvatar = styled(Avatar)`
   cursor: pointer;
 `;
 
-const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo, showLoginModal }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({
+  userInfo,
+  setUserInfo,
+  showLoginModal,
+}) => {
   const { i18n } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
