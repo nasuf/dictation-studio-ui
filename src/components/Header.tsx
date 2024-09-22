@@ -7,13 +7,13 @@ import { useLanguageToggle } from "@/hooks/useLanguageToggle";
 import { useGoogleLogin } from "@react-oauth/google";
 import { api } from "@/api/api";
 import LoginModal from "@/components/LoginModal";
-import { UserInfo } from "@/utils/type";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { clearUser, setUser } from "@/redux/userSlice";
 
 const { Header } = Layout;
 
 interface AppHeaderProps {
-  userInfo: UserInfo | null;
-  setUserInfo: (user: UserInfo | null) => void;
   showLoginModal: () => void;
 }
 
@@ -21,14 +21,12 @@ const StyledAvatar = styled(Avatar)`
   cursor: pointer;
 `;
 
-const AppHeader: React.FC<AppHeaderProps> = ({
-  userInfo,
-  setUserInfo,
-  showLoginModal,
-}) => {
+const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
   const { i18n, t } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+  const dispatch = useDispatch();
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -37,7 +35,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           tokenResponse.access_token
         );
         localStorage.setItem("jwt_token", response.data.jwt_token);
-        setUserInfo(response.data);
+        dispatch(setUser(response.data));
         message.success("登录成功");
         setIsLoginModalVisible(false);
         setTimeout(() => {
@@ -60,7 +58,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     try {
       const response = await api.logout();
       if (response.status === 200) {
-        setUserInfo(null);
+        dispatch(clearUser());
         localStorage.removeItem("jwt_token");
         message.success("已退出登录");
         setTimeout(() => {

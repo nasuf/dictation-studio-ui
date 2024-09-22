@@ -6,6 +6,9 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import { encryptPassword } from "@/utils/encryption";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { clearUser, setUser } from "@/redux/userSlice";
 
 interface LoginModalProps {
   visible: boolean;
@@ -193,6 +196,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
   const maxAvatars = 100; // 设置最大头像数量
   const { t } = useTranslation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // 组件加载时生成一个随机头像
@@ -213,33 +217,48 @@ const LoginModal: React.FC<LoginModalProps> = ({
       const encryptedPassword = await encryptPassword(values.password);
 
       if (isRegistering) {
-        await api.register(
+        const response = await api.register(
           values.username,
           values.email,
           encryptedPassword,
           avatar
         );
-        message.success(t("注册成功，请登录"));
-        setIsRegistering(false);
+        if (response.status === 200) {
+          message.success(t("注册成功，即将自动登录"));
+          setIsRegistering(false);
+          dispatch(setUser(response.data));
+          localStorage.setItem("jwt_token", response.data.jwt_token);
+          onClose();
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        } else {
+          dispatch(clearUser());
+          message.error(t("注册失败，请重试"));
+        }
       } else {
         try {
           const response = await api.login(values.username, encryptedPassword);
           if (response.status === 200) {
             localStorage.setItem("jwt_token", response.data.jwt_token);
+            dispatch(setUser(response.data));
             message.success(t("登录成功"));
             onClose();
             setTimeout(() => {
               window.location.reload();
             }, 3000);
           } else {
+            dispatch(clearUser());
             message.error(t("登录失败，请检查用户名和密码"));
           }
         } catch (error) {
+          dispatch(clearUser());
           console.error("Login error:", error);
           message.error(t("登录失败，请重试"));
         }
       }
     } catch (error) {
+      dispatch(clearUser());
       console.error("Operation failed:", error);
       message.error(
         isRegistering ? t("注册失败，请重试") : t("登录失败，请重试")

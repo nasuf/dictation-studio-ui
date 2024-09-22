@@ -70,11 +70,7 @@ const App: React.FC = () => {
   return (
     <Layout style={{ height: "100vh", overflow: "hidden" }}>
       <Header style={{ padding: 0, overflow: "hidden" }}>
-        <AppHeader
-          userInfo={userInfo}
-          setUserInfo={(user) => dispatch(setUser(user))}
-          showLoginModal={() => setIsLoginModalVisible(true)}
-        />
+        <AppHeader showLoginModal={() => setIsLoginModalVisible(true)} />
       </Header>
       <Content style={{ padding: 0, overflow: "hidden" }}>
         <AppContent />
