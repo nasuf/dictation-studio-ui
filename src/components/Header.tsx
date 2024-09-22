@@ -43,7 +43,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
         setIsLoginModalVisible(false);
         setTimeout(() => {
           window.location.reload();
-        }, 3000);
+        }, 1000);
       } catch (error) {
         console.error("Login failed:", error);
         message.error("登录失败，请重试");
@@ -168,7 +168,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
       <LoginModal
         visible={isLoginModalVisible}
         onClose={() => setIsLoginModalVisible(false)}
-        onGoogleLogin={login}
+        onGoogleLogin={() => login()}
       />
     </Header>
   );

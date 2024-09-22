@@ -175,11 +175,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [avatar, setAvatar] = useState<string>("");
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
-  const [avatarPage, setAvatarPage] = useState(1);
   const maxAvatars = 100;
 
   useEffect(() => {
-    // 初始加载8个头像
     const initialAvatars = Array.from(
       { length: 8 },
       (_, i) => `https://api.dicebear.com/6.x/adventurer/svg?seed=${i}`
@@ -195,7 +193,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
         message.success("注册成功，请登录");
         setIsRegistering(false);
       } else {
-        // 这里添加登录逻辑
         console.log("Login values:", values);
       }
     } catch (error) {
@@ -206,21 +203,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: onGoogleLogin,
-    onError: () => {
-      console.log("Login Failed");
-      message.error("Google 登录失败，请重试");
-    },
-  });
-
   const handleAvatarEdit = () => {
     setIsAvatarModalVisible(true);
-  };
-
-  const handleAvatarSelect = (selectedAvatar: string) => {
-    setAvatar(selectedAvatar);
-    setIsAvatarModalVisible(false);
   };
 
   const loadMoreAvatars = () => {
@@ -233,6 +217,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
         }`
     );
     setAvatarOptions((prevOptions) => [...prevOptions, ...newAvatars]);
+  };
+
+  const handleAvatarSelect = (avatarUrl: string) => {
+    setAvatar(avatarUrl);
+    setIsAvatarModalVisible(false);
   };
 
   return (
@@ -262,7 +251,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             {!isRegistering && (
               <Button
                 icon={<GoogleOutlined />}
-                onClick={() => googleLogin()}
+                onClick={onGoogleLogin}
                 style={{ width: "100%", marginBottom: "10px" }}
               >
                 使用 Google 账号登录

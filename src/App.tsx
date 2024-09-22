@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import { Layout } from "antd";
+import { Layout, message } from "antd";
 import { I18nextProvider } from "react-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import i18n from "./i18n";
@@ -54,16 +54,9 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleGoogleLogin = async (tokenResponse: any) => {
-    try {
-      const response = await api.verifyGoogleToken(tokenResponse.access_token);
-      localStorage.setItem("jwt_token", response.data.jwt_token);
-      setUserInfo(response.data);
-      setIsLoginModalVisible(false);
-      window.location.reload();
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
+  const handleGoogleLogin = (userData: any) => {
+    setUserInfo(userData);
+    setIsLoginModalVisible(false);
   };
 
   return (
