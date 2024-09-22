@@ -54,9 +54,20 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleGoogleLogin = (userData: any) => {
-    setUserInfo(userData);
-    setIsLoginModalVisible(false);
+  const handleGoogleLogin = async (tokenResponse: any) => {
+    try {
+      const response = await api.verifyGoogleToken(tokenResponse.access_token);
+      localStorage.setItem("jwt_token", response.data.jwt_token);
+      setUserInfo(response.data);
+      setIsLoginModalVisible(false);
+      message.success("登录成功");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Login failed:", error);
+      message.error("登录失败，请重试");
+    }
   };
 
   return (
@@ -65,7 +76,11 @@ const App: React.FC = () => {
         <Router>
           <Layout style={{ height: "100vh", overflow: "hidden" }}>
             <Header style={{ padding: 0, overflow: "hidden" }}>
-              <AppHeader userInfo={userInfo} setUserInfo={setUserInfo} />
+              <AppHeader 
+                userInfo={userInfo} 
+                setUserInfo={setUserInfo}
+                showLoginModal={() => setIsLoginModalVisible(true)}
+              />
             </Header>
             <Content style={{ padding: 0, overflow: "hidden" }}>
               <AppContent />

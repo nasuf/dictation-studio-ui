@@ -224,6 +224,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setIsAvatarModalVisible(false);
   };
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: onGoogleLogin,
+    onError: () => {
+      console.log("Login Failed");
+      message.error("Google 登录失败，请重试");
+    },
+  });
+
   return (
     <>
       {visible && <BlurredBackground onClick={onClose} />}
@@ -251,7 +259,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             {!isRegistering && (
               <Button
                 icon={<GoogleOutlined />}
-                onClick={onGoogleLogin}
+                onClick={() => googleLogin()}
                 style={{ width: "100%", marginBottom: "10px" }}
               >
                 使用 Google 账号登录

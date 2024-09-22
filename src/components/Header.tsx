@@ -20,13 +20,14 @@ interface UserInfo {
 interface AppHeaderProps {
   userInfo: UserInfo | null;
   setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+  showLoginModal: () => void;
 }
 
 const StyledAvatar = styled(Avatar)`
   cursor: pointer;
 `;
 
-const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo, showLoginModal }) => {
   const { i18n } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -153,10 +154,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userInfo, setUserInfo }) => {
             </StyledAvatar>
           </Dropdown>
         ) : (
-          <a
-            onClick={() => setIsLoginModalVisible(true)}
-            style={{ color: "white" }}
-          >
+          <a onClick={showLoginModal} style={{ color: "white" }}>
             <Space>
               <UserOutlined />
               登录
