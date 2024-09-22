@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import { Button, Form, Input, Drawer, message } from "antd";
+import React, { useState, useEffect } from "react";
+import { Button, Form, Input, Drawer, message, Avatar, Modal } from "antd";
 import {
   GoogleOutlined,
   ArrowLeftOutlined,
   ArrowRightOutlined,
+  EditOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -58,6 +60,31 @@ const BlurredBackground = styled.div`
   z-index: 1000;
 `;
 
+const AvatarWrapper = styled.div`
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+`;
+
+const EditIcon = styled(EditOutlined)`
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+`;
+
+const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+`;
+
 const LoginModal: React.FC<LoginModalProps> = ({
   visible,
   onClose,
@@ -67,12 +94,43 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [registerForm] = Form.useForm();
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [avatar, setAvatar] = useState<string>("");
+  const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
+  const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
+  const [avatarPage, setAvatarPage] = useState(1);
+  const maxAvatars = 100;
+
+  const loadAllAvatars = () => {
+    const newAvatars = Array.from(
+      { length: maxAvatars },
+      (_, i) => `https://api.dicebear.com/6.x/adventurer/svg?seed=${i}`
+    );
+    setAvatarOptions(newAvatars);
+  };
+
+  useEffect(() => {
+    loadAllAvatars();
+  }, []);
+
+  const getRandomAvatar = () => {
+    if (avatarOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * avatarOptions.length);
+      setAvatar(avatarOptions[randomIndex]);
+    }
+  };
+
+  const toggleRegistration = () => {
+    setIsRegistering(!isRegistering);
+    if (!isRegistering) {
+      getRandomAvatar();
+    }
+  };
 
   const onFinish = async (values: any) => {
     if (isRegistering) {
       setIsLoading(true);
       try {
-        await api.register(values.email, values.password);
+        await api.register(values.email, values.password, avatar);
         message.success("注册成功，请登录");
         setIsRegistering(false);
         registerForm.resetFields();
@@ -95,10 +153,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
       message.error("Google 登录失败，请重试");
     },
   });
-
-  const toggleRegistration = () => {
-    setIsRegistering(!isRegistering);
-  };
 
   return (
     <>
@@ -147,6 +201,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
             </FormContainer>
             <FormContainer>
               <Form form={registerForm} onFinish={onFinish}>
+                <AvatarWrapper>
+                  <Avatar size={100} src={avatar} icon={<UserOutlined />} />
+                  <EditIcon onClick={() => setIsAvatarModalVisible(true)} />
+                </AvatarWrapper>
                 <Form.Item
                   name="email"
                   rules={[
@@ -212,6 +270,31 @@ const LoginModal: React.FC<LoginModalProps> = ({
           </div>
         </LoginContent>
       </StyledDrawer>
+      <Modal
+        title="选择头像"
+        visible={isAvatarModalVisible}
+        onCancel={() => setIsAvatarModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsAvatarModalVisible(false)}>
+            取消
+          </Button>,
+        ]}
+      >
+        <AvatarGrid>
+          {avatarOptions.map((avatarUrl, index) => (
+            <Avatar
+              key={index}
+              size={64}
+              src={avatarUrl}
+              onClick={() => {
+                setAvatar(avatarUrl);
+                setIsAvatarModalVisible(false);
+              }}
+              style={{ cursor: "pointer" }}
+            />
+          ))}
+        </AvatarGrid>
+      </Modal>
     </>
   );
 };

@@ -5,7 +5,7 @@ const API_BASE_URL =
 
 // 创建一个 axios 实例
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: `${API_BASE_URL}/daily-dictation`,
 });
 
 // 添加请求拦截器
@@ -23,22 +23,23 @@ axiosInstance.interceptors.request.use(
 );
 
 export const api = {
-  getChannels: () => axiosInstance.get("/channel"),
+  getChannels: () => axiosInstance.get("/service/channel"),
   uploadChannels: (channels: {
     channels: Array<{ name: string; id: string; image_url: string }>;
-  }) => axiosInstance.post("/channel", channels),
+  }) => axiosInstance.post("/service/channel", channels),
   getVideoList: (channelId: string) =>
-    axiosInstance.get(`/video-list/${channelId}`),
+    axiosInstance.get(`/service/video-list/${channelId}`),
   getVideoTranscript: (channelId: string, videoId: string) =>
-    axiosInstance.get(`/video-transcript/${channelId}/${videoId}`),
+    axiosInstance.get(`/service/video-transcript/${channelId}/${videoId}`),
   uploadVideos: (channelId: string, videoLinks: string[]) =>
-    axiosInstance.post("/video-list", {
+    axiosInstance.post("/service/video-list", {
       channel_id: channelId,
       video_links: videoLinks,
     }),
   verifyGoogleToken: (token: string) =>
-    axiosInstance.post("/verify-google-token", { token }),
-  checkLogin: () => axiosInstance.get("/check-login"),
-  logout: () => axiosInstance.post("/logout"),
-  register: (email: string, password: string) => axiosInstance.post("/register", { email, password }),
+    axiosInstance.post("/auth/verify-google-token", { token }),
+  checkLogin: () => axiosInstance.get("/auth/check-login"),
+  logout: () => axiosInstance.post("/auth/logout"),
+  register: (email: string, password: string, avatar: string) =>
+    axiosInstance.post("/auth/register", { email, password, avatar }),
 };
