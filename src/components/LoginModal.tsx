@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
+import { encryptPassword } from "@/utils/encryption";
 
 interface LoginModalProps {
   visible: boolean;
@@ -209,28 +210,33 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const handleFinish = async (values: any) => {
     setIsLoading(true);
     try {
-      if (isRegistering) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(values.password);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const encryptedPwd = hashArray
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
+      const encryptedPassword = await encryptPassword(values.password);
 
-        // 使用当前的 avatar 状态，如果用户没有选择，这将是随机生成的头像
-        await api.register(values.username, values.email, encryptedPwd, avatar);
+      if (isRegistering) {
+        await api.register(
+          values.username,
+          values.email,
+          encryptedPassword,
+          avatar
+        );
         message.success(t("注册成功，请登录"));
         setIsRegistering(false);
       } else {
-        // 登录逻辑
-        const loginResult = await api.login(values.username, values.password);
-        if (loginResult.success) {
-          message.success(t("登录成功"));
-          onClose(); // 关闭登录模态框
-          // 这里可以添加登录成功后的其他操作，比如更新用户状态等
-        } else {
-          message.error(t("登录失败，请检查用户名和密码"));
+        try {
+          const response = await api.login(values.username, encryptedPassword);
+          if (response.status === 200) {
+            localStorage.setItem("jwt_token", response.data.jwt_token);
+            message.success(t("登录成功"));
+            onClose();
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          } else {
+            message.error(t("登录失败，请检查用户名和密码"));
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+          message.error(t("登录失败，请重试"));
         }
       }
     } catch (error) {

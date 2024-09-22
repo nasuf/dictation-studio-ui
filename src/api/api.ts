@@ -48,28 +48,6 @@ export const api = {
   ) =>
     axiosInstance.post("/auth/register", { username, email, password, avatar }),
 
-  async login(username: string, password: string) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-
-    try {
-      const response = await axiosInstance.post("/auth/login", {
-        username,
-        password: hashHex,
-      });
-      if (response.status === 200) {
-        return { success: true, data: response.data };
-      } else {
-        return { success: false, error: "Login failed" };
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      return { success: false, error: "Login failed" };
-    }
-  },
+  login: (username_or_email: string, password: string) =>
+    axiosInstance.post("/auth/login", { username_or_email, password }),
 };

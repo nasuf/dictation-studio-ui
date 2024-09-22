@@ -6,16 +6,10 @@ import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
 import { useGoogleLogin } from "@react-oauth/google";
 import { api } from "@/api/api";
-import LoginModal from "./LoginModal"; // 新增：导入登录弹窗组件
+import LoginModal from "@/components/LoginModal";
+import { UserInfo } from "@/utils/type";
 
 const { Header } = Layout;
-
-interface UserInfo {
-  name: string;
-  email: string;
-  avatar: string;
-  user_id: string;
-}
 
 interface AppHeaderProps {
   userInfo: UserInfo | null;
@@ -32,7 +26,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   setUserInfo,
   showLoginModal,
 }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
@@ -83,7 +77,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   const languageMenu = (
     <Menu
-      onClick={({ key }) => toggleLanguage(key)}
+      onClick={({ key }) => toggleLanguage(key as string)}
       selectedKeys={[currentLanguage]}
     >
       <Menu.Item key="en">English</Menu.Item>
@@ -95,21 +89,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile">个人资料</Menu.Item>
+      <Menu.Item key="profile">{t("个人资料")}</Menu.Item>
       <Menu.Item key="logout" onClick={logout}>
-        退出登录
+        {t("退出登录")}
       </Menu.Item>
     </Menu>
   );
-
-  const getAvatarContent = (name: string) => {
-    if (/^[a-zA-Z]/.test(name)) {
-      const firstWord = name.split(" ")[0];
-      return firstWord.charAt(0).toUpperCase();
-    } else {
-      return name.charAt(name.length - 1);
-    }
-  };
 
   return (
     <Header
@@ -152,16 +137,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {userInfo ? (
           <Dropdown overlay={userMenu} trigger={["click"]}>
             <StyledAvatar
-              style={{ backgroundColor: "#f56a00", verticalAlign: "middle" }}
-            >
-              {getAvatarContent(userInfo.name)}
-            </StyledAvatar>
+              src={userInfo.avatar}
+              icon={<UserOutlined />}
+              style={{ verticalAlign: "middle" }}
+            />
           </Dropdown>
         ) : (
           <a onClick={showLoginModal} style={{ color: "white" }}>
             <Space>
               <UserOutlined />
-              登录
+              {t("登录")}
               <DownOutlined />
             </Space>
           </a>

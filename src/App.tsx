@@ -10,15 +10,8 @@ import AppFooter from "@/components/Footer";
 import LoginModal from "@/components/LoginModal";
 import { api } from "@/api/api";
 import "../global.css";
-
+import { UserInfo } from "@/utils/type";
 const { Header, Content, Footer } = Layout;
-
-interface UserInfo {
-  name: string;
-  email: string;
-  avatar: string;
-  user_id: string;
-}
 
 const App: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
