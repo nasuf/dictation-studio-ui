@@ -68,6 +68,8 @@
   }
 }
 
+/* 删除或注释掉这些样式 */
+/*
 .ant-drawer-mask {
   backdrop-filter: blur(10px);
 }
@@ -84,3 +86,4 @@
 .ant-drawer-body {
   backdrop-filter: none !important;
 }
+*/
