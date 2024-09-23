@@ -144,7 +144,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
           <a onClick={showLoginModal} style={{ color: "white" }}>
             <Space>
               <UserOutlined />
-              {t("登录")}
+              {t("login")}
               <DownOutlined />
             </Space>
           </a>

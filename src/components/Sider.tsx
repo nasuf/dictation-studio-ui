@@ -10,6 +10,16 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import styles from "@/lib/styles/Sider.module.css";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+
+interface MenuItem {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  path?: string;
+  children?: MenuItem[];
+}
 
 const AppSider: React.FC = () => {
   const {
@@ -17,69 +27,79 @@ const AppSider: React.FC = () => {
   } = theme.useToken();
   const location = useLocation();
   const { t } = useTranslation();
-  const siderItems = [
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
+  const siderItems: MenuItem[] = [
     {
       key: "Dictation",
-      icon: React.createElement(CustomerServiceTwoTone),
+      icon: <CustomerServiceTwoTone />,
       label: t("dictation"),
       children: [
         {
           key: "VideoDictation",
           label: t("videoDictation"),
           path: "/dictation/video",
+          icon: <></>,
         },
         {
           key: "WordDictation",
           label: t("wordDictation"),
           path: "/dictation/word",
+          icon: <></>,
         },
       ],
     },
     {
       key: "Collection",
-      icon: React.createElement(BookTwoTone),
+      icon: <BookTwoTone />,
       label: t("collection"),
       children: [
         {
           key: "VideoCollection",
           label: t("videoCollection"),
           path: "/collection/video",
+          icon: <></>,
         },
         {
           key: "WordCollection",
           label: t("wordCollection"),
           path: "/collection/word",
+          icon: <></>,
         },
       ],
     },
     {
       key: "FM",
-      icon: React.createElement(NotificationTwoTone),
+      icon: <NotificationTwoTone />,
       label: t("fm"),
       path: "/radio",
     },
-    {
+  ];
+
+  if (userInfo && userInfo.role === "admin") {
+    siderItems.push({
       key: "Admin",
-      icon: React.createElement(SettingTwoTone),
+      icon: <SettingTwoTone />,
       label: "Admin",
-      path: "/admin",
       children: [
         {
           key: "ChannelManagement",
           label: "Channel",
           path: "/admin/channel-management",
+          icon: <></>,
         },
         {
           key: "VideoManagement",
           label: "Video",
           path: "/admin/video-management",
+          icon: <></>,
         },
       ],
-    },
-  ];
+    });
+  }
 
-  const renderMenuItems = (items: any) => {
-    return items.map((item: any) => {
+  const renderMenuItems = (items: MenuItem[]) => {
+    return items.map((item) => {
       if (item.children) {
         return (
           <Menu.SubMenu key={item.key} icon={item.icon} title={item.label}>
@@ -89,7 +109,7 @@ const AppSider: React.FC = () => {
       }
       return (
         <Menu.Item key={item.key} icon={item.icon}>
-          <Link to={item.path}>{item.label}</Link>
+          <Link to={item.path || ""}>{item.label}</Link>
         </Menu.Item>
       );
     });

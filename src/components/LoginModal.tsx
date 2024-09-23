@@ -101,9 +101,26 @@ const RegisterForm: React.FC<{
   onAvatarEdit: () => void;
 }> = ({ onFinish, isLoading, avatar, onAvatarEdit }) => {
   const { t } = useTranslation();
+  const [form] = Form.useForm();
+
+  const checkEmail = async (_: any, value: string) => {
+    if (!value) {
+      return Promise.resolve();
+    }
+    try {
+      const response = await api.checkEmail(value);
+      if (response.data.exists) {
+        return Promise.reject(new Error(t("emailAlreadyExists")));
+      }
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return Promise.reject(new Error(t("emailCheckFailed")));
+    }
+  };
 
   return (
-    <Form onFinish={onFinish}>
+    <Form form={form} onFinish={onFinish}>
       <Form.Item>
         <Avatar
           size={100}
@@ -124,6 +141,7 @@ const RegisterForm: React.FC<{
         rules={[
           { required: true, message: t("registerFormEmailPrompt") },
           { type: "email", message: t("registerFormEmailInvalidPrompt") },
+          { validator: checkEmail },
         ]}
       >
         <Input placeholder={t("registerFormEmailPrompt")} />
@@ -201,6 +219,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
   const maxAvatars = 100;
+  const initialAvatarCount = 8;
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -209,7 +228,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       `https://api.dicebear.com/6.x/adventurer/svg?seed=${Math.random()}`
     );
     const initialAvatars = Array.from(
-      { length: 8 },
+      { length: initialAvatarCount },
       (_, i) => `https://api.dicebear.com/6.x/adventurer/svg?seed=${i}`
     );
     setAvatarOptions(initialAvatars);
@@ -279,12 +298,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const loadMoreAvatars = () => {
-    const remainingAvatars = maxAvatars - avatarOptions.length;
     const newAvatars = Array.from(
-      { length: Math.min(8, remainingAvatars) },
+      { length: maxAvatars - initialAvatarCount },
       (_, i) =>
         `https://api.dicebear.com/6.x/adventurer/svg?seed=${
-          avatarOptions.length + i
+          initialAvatarCount + i
         }`
     );
     setAvatarOptions((prevOptions) => [...prevOptions, ...newAvatars]);
@@ -351,7 +369,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         visible={isAvatarModalVisible}
         onCancel={() => setIsAvatarModalVisible(false)}
         footer={[
-          avatarOptions.length < maxAvatars && (
+          avatarOptions.length === initialAvatarCount && (
             <Button key="load-more" onClick={loadMoreAvatars}>
               {t("loadMore")}
             </Button>

@@ -50,4 +50,6 @@ export const api = {
 
   login: (username_or_email: string, password: string) =>
     axiosInstance.post("/auth/login", { username_or_email, password }),
+  checkEmail: (email: string) =>
+    axiosInstance.post("/auth/check-email", { email }),
 };
