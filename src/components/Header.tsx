@@ -19,6 +19,10 @@ interface AppHeaderProps {
 
 const StyledAvatar = styled(Avatar)`
   cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 `;
 
 const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
