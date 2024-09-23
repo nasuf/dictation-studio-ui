@@ -69,10 +69,8 @@ const AppContent: React.FC = () => {
           style={{
             padding: "0 24px",
             minHeight: 280,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
+            width: "100%", // 确保内容区域占满剩余宽度
+            overflow: "auto", // 添加滚动条
           }}
         >
           <Routes>

@@ -3,12 +3,26 @@ import { Link, useParams, useLocation } from "react-router-dom";
 import { Card, Spin } from "antd";
 import { api } from "@/api/api";
 import { ScrollingTitle, HoverCard } from "@/components/dictation/video/Widget";
+import styled from "styled-components";
 
 interface Video {
   video_id: string;
   link: string;
   title: string;
 }
+
+const ScrollableContainer = styled.div`
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+`;
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  align-content: start;
+`;
 
 const VideoList: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -42,7 +56,7 @@ const VideoList: React.FC = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
+          height: "100%",
         }}
       >
         <Spin size="large" tip="Loading videos..." />
@@ -51,8 +65,8 @@ const VideoList: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+    <ScrollableContainer>
+      <CardGrid>
         {videos.map((video) => (
           <Link
             key={video.video_id}
@@ -61,7 +75,7 @@ const VideoList: React.FC = () => {
           >
             <HoverCard
               hoverable
-              style={{ width: 300 }}
+              style={{ width: "100%" }}
               cover={
                 <img
                   alt={video.title}
@@ -79,8 +93,8 @@ const VideoList: React.FC = () => {
             </HoverCard>
           </Link>
         ))}
-      </div>
-    </div>
+      </CardGrid>
+    </ScrollableContainer>
   );
 };
 
