@@ -13,6 +13,9 @@ import {
 } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { api } from "@/api/api";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { Navigate } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -28,6 +31,12 @@ interface Video {
 }
 
 const VideoManagement: React.FC = () => {
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
+  if (!userInfo || userInfo.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
   const [form] = Form.useForm();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);

@@ -88,14 +88,8 @@ const AppContent: React.FC = () => {
             <Route path="/collection/word" element={<div>单词收藏</div>} />
             <Route path="/radio" element={<Radio style={componentStyle} />} />
             <Route path="/" element={<ChannelList />} />
-            <Route
-              path="/admin/channel-management"
-              element={<ChannelManagement />}
-            />
-            <Route
-              path="/admin/video-management"
-              element={<VideoManagement />}
-            />
+            <Route path="/admin/channel" element={<ChannelManagement />} />
+            <Route path="/admin/video" element={<VideoManagement />} />
           </Routes>
         </Content>
       </Layout>

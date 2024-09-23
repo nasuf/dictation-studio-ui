@@ -85,13 +85,13 @@ const AppSider: React.FC = () => {
         {
           key: "ChannelManagement",
           label: "Channel",
-          path: "/admin/channel-management",
+          path: "/admin/channel",
           icon: <></>,
         },
         {
           key: "VideoManagement",
           label: "Video",
-          path: "/admin/video-management",
+          path: "/admin/video",
           icon: <></>,
         },
       ],

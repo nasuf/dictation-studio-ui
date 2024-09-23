@@ -13,6 +13,9 @@ import {
 } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { api } from "@/api/api";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { Navigate } from "react-router-dom";
 
 interface Channel {
   name: string;
@@ -24,6 +27,11 @@ const ChannelManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [channels, setChannels] = useState<Channel[]>([]);
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
+  if (!userInfo || userInfo.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
 
   useEffect(() => {
     fetchChannels();
