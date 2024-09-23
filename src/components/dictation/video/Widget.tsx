@@ -144,6 +144,91 @@ export const HoverCard = styled(Card)`
   }
 `;
 
+export const CenteredContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+`;
+
+export const ContentWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+`;
+
+export const StyledVideoColumn = styled(VideoColumn)`
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: 20px;
+`;
+
+export const StyledSubtitlesColumn = styled(SubtitlesColumn)`
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ScrollableSubtitles = styled(ScrollingSubtitles)`
+  flex: 1;
+  overflow-y: auto;
+`;
+
+export const StyledYouTubeWrapper = styled(YouTubeWrapper)`
+  width: 100%;
+  max-width: 640px;
+  margin-top: 40px;
+`;
+
+export const ScrollableContainer = styled.div`
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+`;
+
+export const ChannelCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  align-content: start;
+`;
+
+export const VideoCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  align-content: start;
+`;
+
+export const CustomCardMeta = styled(Card.Meta)`
+  .ant-card-meta-title {
+    white-space: normal; /* 允许折行 */
+    word-break: break-word; /* 防止长单词溢出 */
+    max-height: 3em; /* 最大高度 */
+    line-height: 1.5em; /* 行高 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 显示最多两行 */
+    -webkit-box-orient: vertical;
+    text-align: center; /* 居中显示 */
+  }
+`;
+
+export const CustomHoverCard = styled(HoverCard)`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 320px; /* 固定卡片高度 */
+`;
+
 const ProgressBarBase = styled.div`
   width: 100%;
   height: 20px;

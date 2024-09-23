@@ -5,68 +5,24 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
-  BlurredText,
-  ComparisonText,
-  HighlightedText,
-  LoadingContainer,
-  ProgressCircleWrapper,
-  ScrollingSubtitles,
-  SubtitleContent,
-  SubtitleRow,
-  SubtitlesColumn,
-  SubtitlesContainer,
   TranscriptItem,
-  VideoColumn,
-  VideoContainer,
-  YouTubeWrapper,
-  ProgressCircle,
+  CenteredContainer,
+  ContentWrapper,
+  StyledVideoColumn,
+  StyledYouTubeWrapper,
+  StyledSubtitlesColumn,
+  LoadingContainer,
   DualProgressBar,
+  ScrollableSubtitles,
+  SubtitlesContainer,
+  BlurredText,
+  SubtitleRow,
+  SubtitleContent,
+  HighlightedText,
+  ComparisonText,
+  ProgressCircleWrapper,
+  ProgressCircle,
 } from "@/components/dictation/video/Widget";
-import styled from "styled-components";
-
-const CenteredContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  height: 100%;
-  width: 100%;
-  padding: 20px;
-`;
-
-const ContentWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1200px;
-  height: 100%;
-`;
-
-const StyledVideoColumn = styled(VideoColumn)`
-  flex: 0 0 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-right: 20px;
-`;
-
-const StyledSubtitlesColumn = styled(SubtitlesColumn)`
-  flex: 1;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ScrollableSubtitles = styled(ScrollingSubtitles)`
-  flex: 1;
-  overflow-y: auto;
-`;
-
-const StyledYouTubeWrapper = styled(YouTubeWrapper)`
-  width: 100%;
-  max-width: 640px;
-  margin-top: 40px;
-`;
 
 export const VideoMain: React.FC = () => {
   const { videoId, channelId } = useParams<{
@@ -222,18 +178,18 @@ export const VideoMain: React.FC = () => {
     const inputResult = originalInputWords.map((word) => {
       const cleanWord = cleanString(word);
       if (transcriptWords.includes(cleanWord)) {
-        return { word, color: "green", isCorrect: true };
+        return { word, color: "#00827F", isCorrect: true };
       } else {
-        return { word, color: "red", isCorrect: false };
+        return { word, color: "#C41E3A", isCorrect: false };
       }
     });
 
     const transcriptResult = originalTranscriptWords.map((word) => {
       const cleanWord = cleanString(word);
       if (inputWords.includes(cleanWord)) {
-        return { word, highlight: "lightgreen", isCorrect: true };
+        return { word, highlight: "#7CEECE", isCorrect: true };
       } else {
-        return { word, highlight: "lightcoral", isCorrect: false };
+        return { word, highlight: "#FFAAA5", isCorrect: false };
       }
     });
 
