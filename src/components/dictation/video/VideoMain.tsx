@@ -22,6 +22,51 @@ import {
   ProgressCircle,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
+import styled from "styled-components";
+
+const CenteredContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+`;
+
+const ContentWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+`;
+
+const StyledVideoColumn = styled(VideoColumn)`
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: 20px;
+`;
+
+const StyledSubtitlesColumn = styled(SubtitlesColumn)`
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+const ScrollableSubtitles = styled(ScrollingSubtitles)`
+  flex: 1;
+  overflow-y: auto;
+`;
+
+const StyledYouTubeWrapper = styled(YouTubeWrapper)`
+  width: 100%;
+  max-width: 640px;
+  margin-top: 40px;
+`;
 
 export const VideoMain: React.FC = () => {
   const { videoId, channelId } = useParams<{
@@ -237,110 +282,112 @@ export const VideoMain: React.FC = () => {
   }
 
   return (
-    <VideoContainer>
-      <VideoColumn>
-        <YouTubeWrapper>
-          <YouTube
-            videoId={videoId}
-            opts={{
-              width: "100%",
-              height: "360",
-              playerVars: { autoplay: 0 },
-            }}
-            onReady={onVideoReady}
-          />
-        </YouTubeWrapper>
-        <Input
-          style={{ marginTop: "20px", width: "100%" }}
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder={t("inputPlaceHolder")}
-        />
-        <Alert
-          style={{ marginTop: "10px" }}
-          message={t("videoDictationKeyboardInstructions")}
-          type="info"
-          showIcon
-        />
-      </VideoColumn>
-      <SubtitlesColumn>
-        {isLoading || !isVideoReady ? (
-          <LoadingContainer>
-            <Spin size="large" tip="Loading subtitles..." />
-          </LoadingContainer>
-        ) : (
-          <>
-            <DualProgressBar
-              completionPercentage={overallCompletion}
-              accuracyPercentage={overallAccuracy}
+    <CenteredContainer>
+      <ContentWrapper>
+        <StyledVideoColumn>
+          <StyledYouTubeWrapper>
+            <YouTube
+              videoId={videoId}
+              opts={{
+                width: "100%",
+                height: "360",
+                playerVars: { autoplay: 0 },
+              }}
+              onReady={onVideoReady}
             />
-            <ScrollingSubtitles ref={subtitlesRef}>
-              <SubtitlesContainer>
-                {transcript.map((item, index) => (
-                  <BlurredText
-                    key={index}
-                    className="subtitle-item"
-                    isBlurred={!revealedSentences.includes(index)}
-                    isCurrent={index === currentSentenceIndex}
-                  >
-                    <SubtitleRow>
-                      <SubtitleContent>
-                        {revealedSentences.includes(index) ? (
-                          <>
-                            <p>
-                              {compareInputWithTranscript(
-                                item.userInput || "",
-                                item.transcript
-                              ).transcriptResult.map((word, wordIndex) => (
-                                <HighlightedText
-                                  key={wordIndex}
-                                  backgroundColor={word.highlight}
-                                >
-                                  {word.word}{" "}
-                                </HighlightedText>
-                              ))}
-                            </p>
-                            {item.userInput && (
+          </StyledYouTubeWrapper>
+          <Input
+            style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder={t("inputPlaceHolder")}
+          />
+          <Alert
+            style={{ marginTop: "10px", width: "100%", maxWidth: "640px" }}
+            message={t("videoDictationKeyboardInstructions")}
+            type="info"
+            showIcon
+          />
+        </StyledVideoColumn>
+        <StyledSubtitlesColumn>
+          {isLoading || !isVideoReady ? (
+            <LoadingContainer>
+              <Spin size="large" tip="Loading subtitles..." />
+            </LoadingContainer>
+          ) : (
+            <>
+              <DualProgressBar
+                completionPercentage={overallCompletion}
+                accuracyPercentage={overallAccuracy}
+              />
+              <ScrollableSubtitles ref={subtitlesRef}>
+                <SubtitlesContainer>
+                  {transcript.map((item, index) => (
+                    <BlurredText
+                      key={index}
+                      className="subtitle-item"
+                      isBlurred={!revealedSentences.includes(index)}
+                      isCurrent={index === currentSentenceIndex}
+                    >
+                      <SubtitleRow>
+                        <SubtitleContent>
+                          {revealedSentences.includes(index) ? (
+                            <>
                               <p>
-                                {t("yourInput")}:{" "}
                                 {compareInputWithTranscript(
-                                  item.userInput,
+                                  item.userInput || "",
                                   item.transcript
-                                ).inputResult.map((word, wordIndex) => (
-                                  <ComparisonText
+                                ).transcriptResult.map((word, wordIndex) => (
+                                  <HighlightedText
                                     key={wordIndex}
-                                    color={word.color}
+                                    backgroundColor={word.highlight}
                                   >
                                     {word.word}{" "}
-                                  </ComparisonText>
+                                  </HighlightedText>
                                 ))}
                               </p>
-                            )}
-                          </>
-                        ) : (
-                          <p>{item.transcript}</p>
+                              {item.userInput && (
+                                <p>
+                                  {t("yourInput")}:{" "}
+                                  {compareInputWithTranscript(
+                                    item.userInput,
+                                    item.transcript
+                                  ).inputResult.map((word, wordIndex) => (
+                                    <ComparisonText
+                                      key={wordIndex}
+                                      color={word.color}
+                                    >
+                                      {word.word}{" "}
+                                    </ComparisonText>
+                                  ))}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <p>{item.transcript}</p>
+                          )}
+                        </SubtitleContent>
+                        {revealedSentences.includes(index) && (
+                          <ProgressCircleWrapper>
+                            <ProgressCircle
+                              percentage={
+                                compareInputWithTranscript(
+                                  item.userInput || "",
+                                  item.transcript
+                                ).completionPercentage
+                              }
+                            />
+                          </ProgressCircleWrapper>
                         )}
-                      </SubtitleContent>
-                      {revealedSentences.includes(index) && (
-                        <ProgressCircleWrapper>
-                          <ProgressCircle
-                            percentage={
-                              compareInputWithTranscript(
-                                item.userInput || "",
-                                item.transcript
-                              ).completionPercentage
-                            }
-                          />
-                        </ProgressCircleWrapper>
-                      )}
-                    </SubtitleRow>
-                  </BlurredText>
-                ))}
-              </SubtitlesContainer>
-            </ScrollingSubtitles>
-          </>
-        )}
-      </SubtitlesColumn>
-    </VideoContainer>
+                      </SubtitleRow>
+                    </BlurredText>
+                  ))}
+                </SubtitlesContainer>
+              </ScrollableSubtitles>
+            </>
+          )}
+        </StyledSubtitlesColumn>
+      </ContentWrapper>
+    </CenteredContainer>
   );
 };
