@@ -22,6 +22,7 @@ import {
   ComparisonText,
   ProgressCircleWrapper,
   ProgressCircle,
+  HideYouTubeControls,
 } from "@/components/dictation/video/Widget";
 
 export const VideoMain: React.FC = () => {
@@ -242,15 +243,26 @@ export const VideoMain: React.FC = () => {
       <ContentWrapper>
         <StyledVideoColumn>
           <StyledYouTubeWrapper>
-            <YouTube
-              videoId={videoId}
-              opts={{
-                width: "100%",
-                height: "360",
-                playerVars: { autoplay: 0 },
-              }}
-              onReady={onVideoReady}
-            />
+            <HideYouTubeControls>
+              <YouTube
+                videoId={videoId}
+                opts={{
+                  width: "100%",
+                  height: "360",
+                  playerVars: {
+                    autoplay: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    controls: 1,
+                    disablekb: 1,
+                    iv_load_policy: 3,
+                    fs: 0,
+                  },
+                }}
+                onReady={onVideoReady}
+              />
+            </HideYouTubeControls>
           </StyledYouTubeWrapper>
           <Input
             style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}

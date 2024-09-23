@@ -229,6 +229,16 @@ export const CustomHoverCard = styled(HoverCard)`
   height: 320px; /* 固定卡片高度 */
 `;
 
+export const HideYouTubeControls = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  iframe {
+    pointer-events: none;
+  }
+`;
+
 const ProgressBarBase = styled.div`
   width: 100%;
   height: 20px;
