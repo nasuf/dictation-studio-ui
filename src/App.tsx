@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { Layout, message } from "antd";
-import { I18nextProvider } from "react-i18next";
+import { I18nextProvider, useTranslation } from "react-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { Provider, useDispatch, useSelector } from "react-redux";
-import { store, RootState } from "./redux/store";
+import { useDispatch } from "react-redux";
 import { setUser, clearUser } from "./redux/userSlice";
-import i18n from "./i18n";
+import i18n from "./utils/i18n";
 import AppHeader from "@/components/Header";
 import AppContent from "@/components/Content";
 import AppFooter from "@/components/Footer";
@@ -19,7 +18,7 @@ const { Header, Content, Footer } = Layout;
 const App: React.FC = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const dispatch = useDispatch();
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -57,13 +56,13 @@ const App: React.FC = () => {
       localStorage.setItem("jwt_token", response.data.jwt_token);
       dispatch(setUser(response.data));
       setIsLoginModalVisible(false);
-      message.success("登录成功");
+      message.success(t("loginSuccessful"));
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error) {
       console.error("Login failed:", error);
-      message.error("登录失败，请重试");
+      message.error(t("loginFailed"));
     }
   };
 

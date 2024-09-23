@@ -36,20 +36,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
         );
         localStorage.setItem("jwt_token", response.data.jwt_token);
         dispatch(setUser(response.data));
-        message.success("登录成功");
+        message.success(t("loginSuccessfulWithGoogle"));
         setIsLoginModalVisible(false);
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       } catch (error) {
         console.error("Login failed:", error);
-        message.error("登录失败，请重试");
+        message.error(t("loginFailedWithGoogle"));
         localStorage.removeItem("jwt_token");
       }
     },
     onError: () => {
       console.log("Login Failed");
-      message.error("Google 登录失败，请重试");
+      message.error(t("loginFailedWithGoogle"));
       localStorage.removeItem("jwt_token");
     },
   });
@@ -60,16 +60,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
       if (response.status === 200) {
         dispatch(clearUser());
         localStorage.removeItem("jwt_token");
-        message.success("已退出登录");
+        message.success(t("logoutSuccessful"));
         setTimeout(() => {
           window.location.reload();
         }, 3000);
       } else {
-        message.error("退出登录失败，请重试");
+        message.error(t("logoutFailed"));
       }
     } catch (error) {
       console.error("Logout failed:", error);
-      message.error("退出登录失败，请重试");
+      message.error(t("logoutFailed"));
     }
   };
 
@@ -87,9 +87,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile">{t("个人资料")}</Menu.Item>
+      <Menu.Item key="profile">{t("userProfile")}</Menu.Item>
       <Menu.Item key="logout" onClick={logout}>
-        {t("退出登录")}
+        {t("logout")}
       </Menu.Item>
     </Menu>
   );
