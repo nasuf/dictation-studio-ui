@@ -239,6 +239,12 @@ export const HideYouTubeControls = styled.div`
   }
 `;
 
+export const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
 const ProgressBarBase = styled.div`
   width: 100%;
   height: 20px;

@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Input, Spin } from "antd";
+import { Alert, Input, Spin, Button, Space } from "antd";
+import {
+  StepBackwardOutlined,
+  StepForwardOutlined,
+  RedoOutlined,
+} from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -23,6 +28,7 @@ import {
   ProgressCircleWrapper,
   ProgressCircle,
   HideYouTubeControls,
+  ButtonContainer,
 } from "@/components/dictation/video/Widget";
 
 export const VideoMain: React.FC = () => {
@@ -114,6 +120,23 @@ export const VideoMain: React.FC = () => {
     playerRef.current.playVideo();
 
     const duration = (nextSentence.end - nextSentence.start) * 1000;
+    setTimeout(() => {
+      if (playerRef.current) {
+        playerRef.current.pauseVideo();
+      }
+    }, duration);
+  };
+
+  const playPreviousSentence = () => {
+    if (!playerRef.current || transcript.length === 0) return;
+    const prevIndex =
+      (currentSentenceIndex - 1 + transcript.length) % transcript.length;
+    setCurrentSentenceIndex(prevIndex);
+    const prevSentence = transcript[prevIndex];
+    playerRef.current.seekTo(prevSentence.start, true);
+    playerRef.current.playVideo();
+
+    const duration = (prevSentence.end - prevSentence.start) * 1000;
     setTimeout(() => {
       if (playerRef.current) {
         playerRef.current.pauseVideo();
@@ -264,6 +287,21 @@ export const VideoMain: React.FC = () => {
               />
             </HideYouTubeControls>
           </StyledYouTubeWrapper>
+          <ButtonContainer>
+            <Space>
+              <Button
+                icon={<StepBackwardOutlined />}
+                onClick={playPreviousSentence}
+                disabled={currentSentenceIndex === 0}
+              />
+              <Button icon={<RedoOutlined />} onClick={playCurrentSentence} />
+              <Button
+                icon={<StepForwardOutlined />}
+                onClick={playNextSentence}
+                disabled={currentSentenceIndex === transcript.length - 1}
+              />
+            </Space>
+          </ButtonContainer>
           <Input
             style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}
             value={userInput}
