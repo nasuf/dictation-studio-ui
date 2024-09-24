@@ -16,3 +16,11 @@ export interface Video {
   link: string;
   title: string;
 }
+
+export interface ProgressData {
+  channelId: string;
+  videoId: string;
+  userInput: { [key: number]: string };
+  currentTime: number;
+  overallCompletion: number;
+}

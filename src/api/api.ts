@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ProgressData } from "@/utils/type";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -52,4 +53,7 @@ export const api = {
     axiosInstance.post("/auth/login", { username_or_email, password }),
   checkEmail: (email: string) =>
     axiosInstance.post("/auth/check-email", { email }),
+
+  saveProgress: (progressData: ProgressData) =>
+    axiosInstance.post("/user/progress", progressData),
 };

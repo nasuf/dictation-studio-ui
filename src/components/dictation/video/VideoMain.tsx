@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, Input, Spin, Button, Space } from "antd";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { Alert, Input, Spin, Button, Space, message } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -30,8 +37,16 @@ import {
   HideYouTubeControls,
   ButtonContainer,
 } from "@/components/dictation/video/Widget";
+import { ProgressData } from "@/utils/type";
 
-export const VideoMain: React.FC = () => {
+export interface VideoMainRef {
+  saveProgress: () => Promise<void>;
+}
+
+const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
+  props,
+  ref
+) => {
   const { videoId, channelId } = useParams<{
     videoId: string;
     channelId: string;
@@ -247,7 +262,7 @@ export const VideoMain: React.FC = () => {
       );
     }, 0);
 
-    setOverallCompletion((completedWords / totalWords) * 100);
+    setOverallCompletion(Math.floor((completedWords / totalWords) * 100));
     setOverallAccuracy(
       completedWords > 0 ? (correctWords / completedWords) * 100 : 0
     );
@@ -256,6 +271,35 @@ export const VideoMain: React.FC = () => {
   useEffect(() => {
     updateOverallProgress();
   }, [revealedSentences, transcript]);
+
+  const saveProgress = useCallback(async () => {
+    const userInputJson: { [key: number]: string } = {};
+    transcript.forEach((item, index) => {
+      if (item.userInput && item.userInput.trim() !== "") {
+        userInputJson[index] = item.userInput.trim();
+      }
+    });
+
+    const progressData: ProgressData = {
+      channelId: channelId!,
+      videoId: videoId!,
+      userInput: userInputJson,
+      currentTime: new Date().getTime(),
+      overallCompletion,
+    };
+
+    try {
+      await api.saveProgress(progressData);
+      message.success(t("progressSaved"));
+    } catch (error) {
+      console.error("Error saving progress:", error);
+      message.error(t("progressSaveFailed"));
+    }
+  }, [channelId, videoId, transcript, overallCompletion, t]);
+
+  useImperativeHandle(ref, () => ({
+    saveProgress,
+  }));
 
   if (isUnauthorized) {
     return null;
@@ -397,3 +441,5 @@ export const VideoMain: React.FC = () => {
     </CenteredContainer>
   );
 };
+
+export default forwardRef(VideoMain);

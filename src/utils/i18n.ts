@@ -50,6 +50,9 @@ const enTranslations = {
   login: "Login",
   emailAlreadyExists: "Email already exists",
   emailCheckFailed: "Email check failed",
+  progressSaved: "Progress saved",
+  progressSaveFailed: "Progress save failed",
+  saveProgressBtnText: "Save Progress",
 };
 
 const zhTranslations = {
@@ -100,6 +103,9 @@ const zhTranslations = {
   login: "登录",
   emailAlreadyExists: "邮箱已存在",
   emailCheckFailed: "邮箱检查失败",
+  progressSaved: "进度已保存",
+  progressSaveFailed: "进度保存失败",
+  saveProgressBtnText: "保存进度",
 };
 
 const jaTranslations = {
@@ -151,6 +157,9 @@ const jaTranslations = {
   login: "登録",
   emailAlreadyExists: "メールアドレスが既に存在します",
   emailCheckFailed: "メールアドレスの確認に失敗しました",
+  progressSaved: "進捗が保存されました",
+  progressSaveFailed: "進捗の保存に失敗しました",
+  saveProgressBtnText: "進捗を保存",
 };
 
 const koTranslations = {
@@ -202,6 +211,9 @@ const koTranslations = {
   login: "로그인",
   emailAlreadyExists: "이메일이 이미 존재합니다",
   emailCheckFailed: "이메일 확인에 실패했습니다",
+  progressSaved: "진행 상황이 저장되었습니다",
+  progressSaveFailed: "진행 상황 저장에 실패했습니다",
+  saveProgressBtnText: "진행 상황 저장",
 };
 
 i18n.use(initReactI18next).init({

@@ -1,16 +1,19 @@
-import React from "react";
-import { Breadcrumb, Layout, theme } from "antd";
+import React, { useRef } from "react";
+import { Breadcrumb, Layout, theme, Button } from "antd";
 import { Route, Routes, useLocation, Link } from "react-router-dom";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
-import { VideoMain } from "@/components/dictation/video/VideoMain";
+import VideoMain, {
+  VideoMainRef,
+} from "@/components/dictation/video/VideoMain";
 import Radio from "@/components/dictation/Radio";
 import ChannelList from "@/components/dictation/video/ChannelList";
 import VideoList from "@/components/dictation/video/VideoList";
 import ChannelManagement from "@/components/admin/ChannelManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
-
+import { useTranslation } from "react-i18next";
+import { SaveTwoTone } from "@ant-design/icons";
 const { Content } = Layout;
 
 const AppContent: React.FC = () => {
@@ -19,6 +22,8 @@ const AppContent: React.FC = () => {
   } = theme.useToken();
 
   const location = useLocation();
+  const videoMainRef = useRef<VideoMainRef>(null);
+  const { t } = useTranslation();
 
   const componentStyle = {
     width: "640px",
@@ -36,7 +41,6 @@ const AppContent: React.FC = () => {
       const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
       let title = snippet.charAt(0).toUpperCase() + snippet.slice(1);
 
-      // 处理频道名称
       if (snippet === "channel" && location.state && location.state.name) {
         title = location.state.name;
       }
@@ -47,15 +51,40 @@ const AppContent: React.FC = () => {
     return breadcrumbItems;
   };
 
+  const handleSaveProgress = () => {
+    if (videoMainRef.current) {
+      videoMainRef.current.saveProgress();
+    }
+  };
+
+  const isVideoPage = /^\/dictation\/video\/[^/]+\/[^/]+$/.test(
+    location.pathname
+  );
+
   return (
     <Content style={{ padding: "0 48px" }}>
-      <Breadcrumb style={{ margin: "16px 0" }}>
-        {getBreadcrumbItems().map((item, index) => (
-          <Breadcrumb.Item key={index}>
-            <Link to={item.path}>{item.title}</Link>
-          </Breadcrumb.Item>
-        ))}
-      </Breadcrumb>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          margin: "16px 0",
+        }}
+      >
+        <Breadcrumb>
+          {getBreadcrumbItems().map((item, index) => (
+            <Breadcrumb.Item key={index}>
+              <Link to={item.path}>{item.title}</Link>
+            </Breadcrumb.Item>
+          ))}
+        </Breadcrumb>
+        {isVideoPage && (
+          <Button onClick={handleSaveProgress}>
+            <SaveTwoTone />
+            {t("saveProgressBtnText")}
+          </Button>
+        )}
+      </div>
       <Layout
         style={{
           height: "80vh",
@@ -69,8 +98,8 @@ const AppContent: React.FC = () => {
           style={{
             padding: "0 24px",
             minHeight: 280,
-            width: "100%", // 确保内容区域占满剩余宽度
-            overflow: "auto", // 添加滚动条
+            width: "100%",
+            overflow: "auto",
           }}
         >
           <Routes>
@@ -78,7 +107,7 @@ const AppContent: React.FC = () => {
             <Route path="/dictation/video/:channelId" element={<VideoList />} />
             <Route
               path="/dictation/video/:channelId/:videoId"
-              element={<VideoMain />}
+              element={<VideoMain ref={videoMainRef} />}
             />
             <Route
               path="/dictation/word"
