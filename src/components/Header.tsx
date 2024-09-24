@@ -9,7 +9,8 @@ import { api } from "@/api/api";
 import LoginModal from "@/components/LoginModal";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { clearUser, setUser } from "@/redux/userSlice";
+import { clearUser, setPage, setUser } from "@/redux/userSlice";
+import { Page } from "@/utils/type";
 
 const { Header } = Layout;
 
@@ -74,6 +75,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
     } catch (error) {
       console.error("Logout failed:", error);
       message.error(t("logoutFailed"));
+    } finally {
+      dispatch(setPage(Page.MAIN));
     }
   };
 
@@ -91,7 +94,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile">{t("userProfile")}</Menu.Item>
+      <Menu.Item key="profile" onClick={() => dispatch(setPage(Page.PROFILE))}>
+        {t("userProfile")}
+      </Menu.Item>
       <Menu.Item key="logout" onClick={logout}>
         {t("logout")}
       </Menu.Item>
@@ -116,6 +121,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
           defaultSelectedKeys={["home"]}
           items={[{ key: "home", label: "Daily Dictation" }]}
           style={{ background: "transparent" }}
+          onClick={() => dispatch(setPage(Page.MAIN))}
         />
       </div>
       <Space>

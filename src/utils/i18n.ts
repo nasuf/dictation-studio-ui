@@ -53,6 +53,7 @@ const enTranslations = {
   progressSaved: "Progress saved",
   progressSaveFailed: "Progress save failed",
   saveProgressBtnText: "Save Progress",
+  profile: "Profile",
 };
 
 const zhTranslations = {
@@ -98,7 +99,7 @@ const zhTranslations = {
   cancel: "取消",
   logoutSuccessful: "退出成功",
   logoutFailed: "退出失败",
-  userProfile: "用户资料",
+  userProfile: "个人中心",
   logout: "退出登录",
   login: "登录",
   emailAlreadyExists: "邮箱已存在",
@@ -106,6 +107,7 @@ const zhTranslations = {
   progressSaved: "进度已保存",
   progressSaveFailed: "进度保存失败",
   saveProgressBtnText: "保存进度",
+  profile: "个人中心",
 };
 
 const jaTranslations = {
@@ -160,6 +162,7 @@ const jaTranslations = {
   progressSaved: "進捗が保存されました",
   progressSaveFailed: "進捗の保存に失敗しました",
   saveProgressBtnText: "進捗を保存",
+  profile: "プロフィール",
 };
 
 const koTranslations = {
@@ -214,6 +217,7 @@ const koTranslations = {
   progressSaved: "진행 상황이 저장되었습니다",
   progressSaveFailed: "진행 상황 저장에 실패했습니다",
   saveProgressBtnText: "진행 상황 저장",
+  profile: "프로필",
 };
 
 i18n.use(initReactI18next).init({

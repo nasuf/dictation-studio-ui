@@ -1,14 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserInfo } from "@/utils/type";
+import { Page, UserInfo } from "@/utils/type";
 
 interface UserState {
   userInfo: UserInfo | null;
   isDictationStarted: boolean;
+  page: Page;
 }
 
 const initialState: UserState = {
   userInfo: null,
   isDictationStarted: false,
+  page: Page.MAIN, // 确保初始值是 Page.MAIN
 };
 
 const userSlice = createSlice({
@@ -24,8 +26,12 @@ const userSlice = createSlice({
     setIsDictationStarted: (state, action: PayloadAction<boolean>) => {
       state.isDictationStarted = action.payload;
     },
+    setPage: (state, action: PayloadAction<Page>) => {
+      state.page = action.payload;
+    },
   },
 });
 
-export const { setUser, clearUser, setIsDictationStarted } = userSlice.actions;
+export const { setUser, clearUser, setIsDictationStarted, setPage } =
+  userSlice.actions;
 export default userSlice.reducer;

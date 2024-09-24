@@ -31,3 +31,16 @@ export interface TranscriptItem {
   transcript: string;
   userInput?: string;
 }
+
+export interface MenuItem {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  path?: string;
+  children?: MenuItem[];
+}
+
+export enum Page {
+  MAIN = "MAIN",
+  PROFILE = "PROFILE",
+}

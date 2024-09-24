@@ -5,21 +5,15 @@ import {
   CustomerServiceTwoTone,
   NotificationTwoTone,
   SettingTwoTone,
+  IdcardTwoTone,
 } from "@ant-design/icons";
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "@/lib/styles/Sider.module.css";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-
-interface MenuItem {
-  key: string;
-  icon: React.ReactNode;
-  label: string;
-  path?: string;
-  children?: MenuItem[];
-}
+import { MenuItem, Page } from "@/utils/type";
 
 const AppSider: React.FC = () => {
   const {
@@ -28,8 +22,11 @@ const AppSider: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const page = useSelector((state: RootState) => state.user.page);
+  const navigate = useNavigate();
+  const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
 
-  const siderItems: MenuItem[] = [
+  const mainSiderItems: MenuItem[] = [
     {
       key: "Dictation",
       icon: <CustomerServiceTwoTone />,
@@ -76,8 +73,17 @@ const AppSider: React.FC = () => {
     },
   ];
 
-  if (userInfo && userInfo.role === "admin") {
-    siderItems.push({
+  const profileSiderItems: MenuItem[] = [
+    {
+      key: "Profile",
+      icon: <IdcardTwoTone />,
+      label: t("profile"),
+      path: "/profile",
+    },
+  ];
+
+  const adminSiderItems: MenuItem[] = [
+    {
       key: "Admin",
       icon: <SettingTwoTone />,
       label: "Admin",
@@ -94,9 +100,34 @@ const AppSider: React.FC = () => {
           path: "/admin/video",
           icon: <></>,
         },
+        {
+          key: "UserManagement",
+          label: "User",
+          path: "/admin/user",
+          icon: <></>,
+        },
       ],
-    });
-  }
+    },
+  ];
+
+  useEffect(() => {
+    const getSiderItems = () => {
+      let items: MenuItem[] = [];
+      if (page === Page.MAIN) {
+        items = mainSiderItems;
+        navigate("/");
+      } else if (page === Page.PROFILE) {
+        items = profileSiderItems;
+        navigate("/profile");
+      }
+      if (userInfo && userInfo.role === "admin" && page === Page.PROFILE) {
+        items = [...items, ...adminSiderItems];
+        navigate("/proflie");
+      }
+      setSiderItems(items);
+    };
+    getSiderItems();
+  }, [page, userInfo]);
 
   const renderMenuItems = (items: MenuItem[]) => {
     return items.map((item) => {
