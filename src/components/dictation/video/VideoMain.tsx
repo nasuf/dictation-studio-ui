@@ -17,7 +17,6 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
-  TranscriptItem,
   CenteredContainer,
   ContentWrapper,
   StyledVideoColumn,
@@ -37,8 +36,10 @@ import {
   HideYouTubeControls,
   ButtonContainer,
 } from "@/components/dictation/video/Widget";
-import { ProgressData } from "@/utils/type";
-
+import { ProgressData, TranscriptItem } from "@/utils/type";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { setIsDictationStarted } from "@/redux/userSlice";
 export interface VideoMainRef {
   saveProgress: () => Promise<void>;
 }
@@ -63,6 +64,8 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const { isDictationStarted } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     fetchTranscript();
@@ -169,6 +172,13 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
       return newTranscript;
     });
     setUserInput("");
+    dispatch(
+      setIsDictationStarted(
+        Object.values(transcript).some(
+          (item) => item.userInput !== "" && item.userInput !== null
+        )
+      )
+    );
   };
 
   const revealCurrentSentence = () => {

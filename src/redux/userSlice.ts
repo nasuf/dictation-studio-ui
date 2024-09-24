@@ -3,10 +3,12 @@ import { UserInfo } from "@/utils/type";
 
 interface UserState {
   userInfo: UserInfo | null;
+  isDictationStarted: boolean;
 }
 
 const initialState: UserState = {
   userInfo: null,
+  isDictationStarted: false,
 };
 
 const userSlice = createSlice({
@@ -19,8 +21,11 @@ const userSlice = createSlice({
     clearUser: (state) => {
       state.userInfo = null;
     },
+    setIsDictationStarted: (state, action: PayloadAction<boolean>) => {
+      state.isDictationStarted = action.payload;
+    },
   },
 });
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { setUser, clearUser, setIsDictationStarted } = userSlice.actions;
 export default userSlice.reducer;

@@ -2,13 +2,6 @@ import { Card } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
-export interface TranscriptItem {
-  start: number;
-  end: number;
-  transcript: string;
-  userInput?: string;
-}
-
 export const VideoContainer = styled.div`
   display: flex;
   gap: 24px;

@@ -14,6 +14,8 @@ import ChannelManagement from "@/components/admin/ChannelManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
 import { useTranslation } from "react-i18next";
 import { SaveTwoTone } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 const { Content } = Layout;
 
 const AppContent: React.FC = () => {
@@ -24,6 +26,9 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const videoMainRef = useRef<VideoMainRef>(null);
   const { t } = useTranslation();
+  const isDictationStarted = useSelector(
+    (state: RootState) => state.user.isDictationStarted
+  );
 
   const componentStyle = {
     width: "640px",
@@ -79,7 +84,7 @@ const AppContent: React.FC = () => {
           ))}
         </Breadcrumb>
         {isVideoPage && (
-          <Button onClick={handleSaveProgress}>
+          <Button onClick={handleSaveProgress} disabled={!isDictationStarted}>
             <SaveTwoTone />
             {t("saveProgressBtnText")}
           </Button>

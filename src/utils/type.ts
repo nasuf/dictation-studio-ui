@@ -24,3 +24,10 @@ export interface ProgressData {
   currentTime: number;
   overallCompletion: number;
 }
+
+export interface TranscriptItem {
+  start: number;
+  end: number;
+  transcript: string;
+  userInput?: string;
+}
