@@ -82,10 +82,6 @@ const VideoList: React.FC = () => {
     );
   }
 
-  const overallProgress =
-    videos.reduce((sum, video) => sum + video.overallCompletion, 0) /
-    videos.length;
-
   return (
     <StyledScrollableContainer>
       <VideoCardGrid>
@@ -122,7 +118,6 @@ const VideoList: React.FC = () => {
           </Link>
         ))}
       </VideoCardGrid>
-      {overallProgress > 0 && <ProgressBar percent={overallProgress} />}
     </StyledScrollableContainer>
   );
 };

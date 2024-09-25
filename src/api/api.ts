@@ -4,12 +4,10 @@ import { ProgressData } from "@/utils/type";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
 
-// 创建一个 axios 实例
 const axiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/daily-dictation`,
 });
 
-// 添加请求拦截器
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("jwt_token");
@@ -63,4 +61,6 @@ export const api = {
     ),
   getChannelProgress: (channelId: string) =>
     axiosInstance.get(`/user/progress/${channelId}`),
+
+  getAllUsers: () => axiosInstance.get("/user/all"),
 };

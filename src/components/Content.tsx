@@ -16,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { SaveTwoTone } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import UserManagement from "@/components/admin/UserManagement";
+
 const { Content } = Layout;
 
 const AppContent: React.FC = () => {
@@ -124,6 +126,7 @@ const AppContent: React.FC = () => {
             <Route path="/" element={<ChannelList />} />
             <Route path="/admin/channel" element={<ChannelManagement />} />
             <Route path="/admin/video" element={<VideoManagement />} />
+            <Route path="/admin/user" element={<UserManagement />} />
             <Route path="/profile" element={<div>个人中心</div>} />
           </Routes>
         </Content>
