@@ -56,4 +56,9 @@ export const api = {
 
   saveProgress: (progressData: ProgressData) =>
     axiosInstance.post("/user/progress", progressData),
+
+  getUserProgress: (channelId: string, videoId: string) =>
+    axiosInstance.get(
+      `/user/progress?channelId=${channelId}&videoId=${videoId}`
+    ),
 };

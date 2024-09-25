@@ -63,26 +63,77 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [userProgress, setUserProgress] = useState<ProgressData | null>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    fetchTranscript();
-  }, [videoId, channelId]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [transcriptResponse, progressResponse] = await Promise.all([
+          api.getVideoTranscript(channelId!, videoId!),
+          api.getUserProgress(channelId!, videoId!),
+        ]);
 
-  const fetchTranscript = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.getVideoTranscript(channelId!, videoId!);
-      setTranscript(response.data.transcript);
-    } catch (error: any) {
-      console.error("Error fetching transcript:", error);
-      if (error.response && error.response.status === 401) {
-        setIsUnauthorized(true);
-        window.dispatchEvent(new CustomEvent("unauthorized"));
+        setTranscript(transcriptResponse.data.transcript);
+
+        if (progressResponse.data && progressResponse.data.userInput) {
+          setUserProgress(progressResponse.data);
+          restoreUserProgress(
+            progressResponse.data,
+            transcriptResponse.data.transcript
+          );
+        } else {
+          // 如果没有用户进度，只设置 transcript
+          setCurrentSentenceIndex(0);
+          dispatch(setIsDictationStarted(false));
+        }
+      } catch (error: any) {
+        console.error("Error fetching data:", error);
+        if (error.response && error.response.status === 401) {
+          setIsUnauthorized(true);
+          window.dispatchEvent(new CustomEvent("unauthorized"));
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [videoId, channelId, dispatch]);
+
+  const restoreUserProgress = (
+    progress: ProgressData,
+    transcriptData: TranscriptItem[]
+  ) => {
+    if (!progress || !progress.userInput || transcriptData.length === 0) return;
+
+    // 恢复用户输入
+    const newTranscript = transcriptData.map((item, index) => ({
+      ...item,
+      userInput: progress.userInput[index] || "",
+    }));
+    setTranscript(newTranscript);
+
+    // 设置当前句子索引
+    const lastInputIndex = Math.max(
+      ...Object.keys(progress.userInput).map(Number)
+    );
+    setCurrentSentenceIndex(lastInputIndex);
+
+    // 恢复已揭示的句子
+    setRevealedSentences(Object.keys(progress.userInput).map(Number));
+
+    // 跳转到最后输入的位置
+    if (playerRef.current && transcriptData[lastInputIndex]) {
+      playerRef.current.seekTo(transcriptData[lastInputIndex].start, true);
     }
+
+    // 更新总体进度和准确率
+    updateOverallProgress();
+
+    // 设置听写已开始
+    dispatch(setIsDictationStarted(true));
   };
 
   useEffect(() => {
@@ -248,7 +299,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     return { inputResult, transcriptResult, completionPercentage };
   };
 
-  const updateOverallProgress = () => {
+  const updateOverallProgress = useCallback(() => {
     const totalWords = transcript.reduce(
       (sum, item) => sum + item.transcript.split(/\s+/).length,
       0
@@ -272,13 +323,13 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
 
     setOverallCompletion(Math.floor((completedWords / totalWords) * 100));
     setOverallAccuracy(
-      completedWords > 0 ? (correctWords / completedWords) * 100 : 0
+      completedWords > 0 ? Math.floor((correctWords / completedWords) * 100) : 0
     );
-  };
+  }, [revealedSentences, transcript]);
 
   useEffect(() => {
     updateOverallProgress();
-  }, [revealedSentences, transcript]);
+  }, [revealedSentences, transcript, updateOverallProgress]);
 
   const saveProgress = useCallback(async () => {
     const userInputJson: { [key: number]: string } = {};
