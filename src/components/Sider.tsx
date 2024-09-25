@@ -13,7 +13,7 @@ import styles from "@/lib/styles/Sider.module.css";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { MenuItem, Page } from "@/utils/type";
+import { MenuItem } from "@/utils/type";
 
 const AppSider: React.FC = () => {
   const {
@@ -22,7 +22,6 @@ const AppSider: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
-  const page = useSelector((state: RootState) => state.user.page);
   const navigate = useNavigate();
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
 
@@ -113,21 +112,18 @@ const AppSider: React.FC = () => {
   useEffect(() => {
     const getSiderItems = () => {
       let items: MenuItem[] = [];
-      if (page === Page.MAIN) {
-        items = mainSiderItems;
-        navigate("/");
-      } else if (page === Page.PROFILE) {
+      if (location.pathname.includes("/profile")) {
         items = profileSiderItems;
-        navigate("/profile");
-      }
-      if (userInfo && userInfo.role === "admin" && page === Page.PROFILE) {
-        items = [...items, ...adminSiderItems];
-        navigate("/proflie");
+        if (userInfo?.role === "admin") {
+          items = [...items, ...adminSiderItems];
+        }
+      } else {
+        items = mainSiderItems;
       }
       setSiderItems(items);
     };
     getSiderItems();
-  }, [page, userInfo]);
+  }, [location.pathname, userInfo]);
 
   const renderMenuItems = (items: MenuItem[]) => {
     return items.map((item) => {

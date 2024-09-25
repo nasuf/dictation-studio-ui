@@ -39,8 +39,3 @@ export interface MenuItem {
   path?: string;
   children?: MenuItem[];
 }
-
-export enum Page {
-  MAIN = "MAIN",
-  PROFILE = "PROFILE",
-}

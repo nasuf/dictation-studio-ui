@@ -9,8 +9,8 @@ import { api } from "@/api/api";
 import LoginModal from "@/components/LoginModal";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { clearUser, setPage, setUser } from "@/redux/userSlice";
-import { Page } from "@/utils/type";
+import { clearUser, setUser } from "@/redux/userSlice";
+import { useNavigate } from "react-router-dom";
 
 const { Header } = Layout;
 
@@ -32,6 +32,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const dispatch = useDispatch();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const navigate = useNavigate();
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -66,9 +67,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
         dispatch(clearUser());
         localStorage.removeItem("jwt_token");
         message.success(t("logoutSuccessful"));
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
       } else {
         message.error(t("logoutFailed"));
       }
@@ -76,7 +74,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
       console.error("Logout failed:", error);
       message.error(t("logoutFailed"));
     } finally {
-      dispatch(setPage(Page.MAIN));
+      navigate("/");
     }
   };
 
@@ -94,7 +92,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile" onClick={() => dispatch(setPage(Page.PROFILE))}>
+      <Menu.Item key="profile" onClick={() => navigate("/profile")}>
         {t("userProfile")}
       </Menu.Item>
       <Menu.Item key="logout" onClick={logout}>
@@ -121,7 +119,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
           defaultSelectedKeys={["home"]}
           items={[{ key: "home", label: "Daily Dictation" }]}
           style={{ background: "transparent" }}
-          onClick={() => dispatch(setPage(Page.MAIN))}
+          onClick={() => navigate("/")}
         />
       </div>
       <Space>
