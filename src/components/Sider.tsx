@@ -84,7 +84,7 @@ const AppSider: React.FC = () => {
     {
       key: "Admin",
       icon: <SettingTwoTone />,
-      label: "Admin",
+      label: t("adminPanel"),
       children: [
         {
           key: "ChannelManagement",
@@ -113,16 +113,15 @@ const AppSider: React.FC = () => {
       let items: MenuItem[] = [];
       if (location.pathname.includes("/profile")) {
         items = profileSiderItems;
-        if (userInfo?.role === "admin") {
-          items = [...items, ...adminSiderItems];
-        }
+      } else if (location.pathname.includes("/admin")) {
+        items = adminSiderItems;
       } else {
         items = mainSiderItems;
       }
       setSiderItems(items);
     };
     getSiderItems();
-  }, [location.pathname, userInfo]);
+  }, [location.pathname, userInfo, t]);
 
   const renderMenuItems = (items: MenuItem[]) => {
     return items.map((item) => {

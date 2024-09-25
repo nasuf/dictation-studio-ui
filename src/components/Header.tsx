@@ -95,6 +95,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
       <Menu.Item key="profile" onClick={() => navigate("/profile")}>
         {t("userProfile")}
       </Menu.Item>
+      {userInfo?.role === "admin" && (
+        <Menu.Item key="admin" onClick={() => navigate("/admin")}>
+          {t("adminPanel")}
+        </Menu.Item>
+      )}
       <Menu.Item key="logout" onClick={logout}>
         {t("logout")}
       </Menu.Item>

@@ -10,6 +10,7 @@ import {
   Row,
   Col,
   Card,
+  Modal,
 } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { api } from "@/api/api";
@@ -30,6 +31,12 @@ interface Video {
   title: string;
 }
 
+interface TranscriptItem {
+  start: number;
+  end: number;
+  transcript: string;
+}
+
 const VideoManagement: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
@@ -42,6 +49,11 @@ const VideoManagement: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
+    []
+  );
+  const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -99,6 +111,20 @@ const VideoManagement: React.FC = () => {
     }
   };
 
+  const showTranscript = async (channelId: string, videoId: string) => {
+    setIsTranscriptLoading(true);
+    setIsModalVisible(true);
+    try {
+      const response = await api.getVideoTranscript(channelId, videoId);
+      setCurrentTranscript(response.data.transcript);
+    } catch (error) {
+      console.error("Error fetching transcript:", error);
+      message.error("Failed to fetch transcript");
+    } finally {
+      setIsTranscriptLoading(false);
+    }
+  };
+
   const columns = [
     {
       title: "Video ID",
@@ -120,12 +146,23 @@ const VideoManagement: React.FC = () => {
         </a>
       ),
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (text: string, record: Video) => (
+        <Button
+          onClick={() => showTranscript(selectedChannel!, record.video_id)}
+        >
+          View Transcript
+        </Button>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: "20px" }}>
       <Row gutter={24}>
-        <Col span={12}>
+        <Col span={8}>
           <Card title="Add Videos" style={{ height: "100%" }}>
             <Form form={form} onFinish={onFinish}>
               <Form.Item
@@ -186,7 +223,7 @@ const VideoManagement: React.FC = () => {
             </Form>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col span={16}>
           <Card title="Existing Videos" style={{ height: "100%" }}>
             <Table
               columns={columns}
@@ -198,6 +235,35 @@ const VideoManagement: React.FC = () => {
           </Card>
         </Col>
       </Row>
+      <Modal
+        title="Video Transcript"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        {isTranscriptLoading ? (
+          <div style={{ textAlign: "center", padding: "20px" }}>
+            Loading transcript...
+          </div>
+        ) : (
+          <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+            {currentTranscript.map((item, index) => (
+              <p key={index}>
+                <strong>{`${Math.floor(item.start / 60)}:${(item.start % 60)
+                  .toFixed(2)
+                  .padStart(5, "0")} - ${Math.floor(item.end / 60)}:${(
+                  item.end % 60
+                )
+                  .toFixed(2)
+                  .padStart(5, "0")}`}</strong>
+                <br />
+                {item.transcript}
+              </p>
+            ))}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

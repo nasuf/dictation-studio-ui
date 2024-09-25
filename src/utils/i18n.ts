@@ -54,6 +54,7 @@ const enTranslations = {
   progressSaveFailed: "Progress save failed",
   saveProgressBtnText: "Save Progress",
   profile: "Profile",
+  adminPanel: "Admin Panel",
 };
 
 const zhTranslations = {
@@ -108,6 +109,7 @@ const zhTranslations = {
   progressSaveFailed: "进度保存失败",
   saveProgressBtnText: "保存进度",
   profile: "个人中心",
+  adminPanel: "管理员面板",
 };
 
 const jaTranslations = {
@@ -163,6 +165,7 @@ const jaTranslations = {
   progressSaveFailed: "進捗の保存に失敗しました",
   saveProgressBtnText: "進捗を保存",
   profile: "プロフィール",
+  adminPanel: "管理パネル",
 };
 
 const koTranslations = {
@@ -218,6 +221,7 @@ const koTranslations = {
   progressSaveFailed: "진행 상황 저장에 실패했습니다",
   saveProgressBtnText: "진행 상황 저장",
   profile: "프로필",
+  adminPanel: "관리자 패널",
 };
 
 i18n.use(initReactI18next).init({

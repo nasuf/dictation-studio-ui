@@ -96,7 +96,7 @@ const ChannelManagement: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Row gutter={24}>
-        <Col span={12}>
+        <Col span={8}>
           <Card title="Add Channels" style={{ height: "100%" }}>
             <Form form={form} onFinish={onFinish}>
               <Form.List name="channels">
@@ -159,7 +159,7 @@ const ChannelManagement: React.FC = () => {
             </Form>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col span={16}>
           <Card title="Existing Channels" style={{ height: "100%" }}>
             <Table
               columns={columns}
