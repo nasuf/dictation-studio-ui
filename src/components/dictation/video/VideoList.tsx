@@ -1,99 +1,75 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
-import { Card, Spin } from "antd";
+import { Link, useParams } from "react-router-dom";
+import { Card, Progress } from "antd";
 import { api } from "@/api/api";
 import {
-  HoverCard,
-  ScrollingTitle,
   VideoCardGrid,
-  ProgressBar,
-  StyledScrollableContainer,
+  CustomCardMeta,
+  CustomHoverCard,
+  ScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 
-interface VideoWithProgress extends Video {
-  overallCompletion: number;
-}
+const { Meta } = Card;
 
 const VideoList: React.FC = () => {
-  const [videos, setVideos] = useState<VideoWithProgress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [videos, setVideos] = useState<Video[]>([]);
   const { channelId } = useParams<{ channelId: string }>();
-  const location = useLocation();
-  const channelName = location.state?.channelName;
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const [progress, setProgress] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
+    const fetchVideos = async () => {
       try {
-        const videoResponse = await api.getVideoList(channelId!);
-        let videosWithProgress = videoResponse.data.videos.map(
-          (video: Video) => ({
-            ...video,
-            overallCompletion: 0,
-          })
-        );
-
-        if (userInfo) {
-          const progressResponse = await api.getChannelProgress(channelId!);
-          const progressList = progressResponse.data.progress;
-
-          videosWithProgress = videosWithProgress.map(
-            (video: VideoWithProgress) => {
-              const progress = progressList.find(
-                (p: any) => p.videoId === video.video_id
-              );
-              return {
-                ...video,
-                overallCompletion: progress ? progress.overallCompletion : 0,
-              };
-            }
-          );
+        const response = await api.getVideoList(channelId!);
+        if (Array.isArray(response.data)) {
+          setVideos(response.data);
+          fetchProgress(response.data);
+        } else if (response.data && Array.isArray(response.data.videos)) {
+          setVideos(response.data.videos);
+          fetchProgress(response.data.videos);
+        } else {
+          console.error("Unexpected API response format:", response.data);
+          setVideos([]);
         }
-
-        setVideos(videosWithProgress);
       } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
+        console.error("Error fetching videos:", error);
+        setVideos([]);
       }
     };
 
-    if (channelId) {
-      fetchData();
-    }
-  }, [channelId, userInfo]);
+    fetchVideos();
+  }, [channelId]);
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-        }}
-      >
-        <Spin size="large" tip="Loading videos..." />
-      </div>
-    );
-  }
+  const fetchProgress = async (videoList: Video[]) => {
+    try {
+      const progressPromises = videoList.map((video) =>
+        api.getUserProgress(channelId!, video.video_id)
+      );
+      const progressResponses = await Promise.all(progressPromises);
+      const newProgress: { [key: string]: number } = {};
+      progressResponses.forEach((response, index) => {
+        if (response.data && response.data.overallCompletion) {
+          newProgress[videoList[index].video_id] =
+            response.data.overallCompletion;
+        }
+      });
+      setProgress(newProgress);
+    } catch (error) {
+      console.error("Error fetching progress:", error);
+    }
+  };
 
   return (
-    <StyledScrollableContainer>
+    <ScrollableContainer>
       <VideoCardGrid>
         {videos.map((video) => (
           <Link
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
-            state={{ channelId, channelName, videoId: video.video_id }}
           >
-            <HoverCard
+            <CustomHoverCard
               hoverable
-              style={{ width: "100%", position: "relative" }}
+              style={{ width: "100%" }}
               cover={
                 <img
                   alt={video.title}
@@ -101,24 +77,21 @@ const VideoList: React.FC = () => {
                 />
               }
             >
-              <Card.Meta
-                title={
-                  <ScrollingTitle>
-                    <span className="inner-text">{video.title}</span>
-                  </ScrollingTitle>
+              <CustomCardMeta
+                title={video.title}
+                description={
+                  <Progress
+                    percent={Math.round(progress[video.video_id] || 0)}
+                    status="active"
+                    format={(percent) => `${percent}%`}
+                  />
                 }
               />
-              {video.overallCompletion > 0 && (
-                <ProgressBar
-                  percent={video.overallCompletion}
-                  className="progress-bar"
-                />
-              )}
-            </HoverCard>
+            </CustomHoverCard>
           </Link>
         ))}
       </VideoCardGrid>
-    </StyledScrollableContainer>
+    </ScrollableContainer>
   );
 };
 

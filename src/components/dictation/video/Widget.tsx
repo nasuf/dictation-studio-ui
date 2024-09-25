@@ -241,17 +241,19 @@ export const CustomCardMeta = styled(Card.Meta)`
     line-height: 1.5em; /* 行高 */
     overflow: hidden; /* 隐藏溢出内容 */
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* 显示最多两行 */
+    -webkit-line-clamp: 3; /* 显示最多两行 */
     -webkit-box-orient: vertical;
     text-align: center; /* 居中显示 */
+    .ant-card-meta-title {
+      margin-bottom: 8px;
+    }
   }
 `;
 
 export const CustomHoverCard = styled(HoverCard)`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 320px; /* 固定卡片高度 */
+  .ant-card-body {
+    padding-top: 8px;
+  }
 `;
 
 export const HideYouTubeControls = styled.div`

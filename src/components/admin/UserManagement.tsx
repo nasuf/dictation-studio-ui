@@ -21,12 +21,7 @@ const UserManagement: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await api.getAllUsers();
-      if (Array.isArray(response.data.users)) {
-        setUsers(response.data.users);
-      } else {
-        console.error("API response is not an array:", response.data);
-        message.error("Failed to fetch users: Invalid data format");
-      }
+      setUsers(response.data.users);
     } catch (error) {
       console.error("Error fetching users:", error);
       message.error("Failed to fetch users");
