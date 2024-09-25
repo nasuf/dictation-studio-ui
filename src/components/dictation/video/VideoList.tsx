@@ -4,34 +4,56 @@ import { Card, Spin } from "antd";
 import { api } from "@/api/api";
 import {
   HoverCard,
-  ScrollableContainer,
   ScrollingTitle,
   VideoCardGrid,
+  ProgressBar,
+  StyledScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
 
+interface VideoWithProgress extends Video {
+  overallCompletion: number;
+}
+
 const VideoList: React.FC = () => {
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [videos, setVideos] = useState<VideoWithProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const channelName = location.state?.channelName;
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await api.getVideoList(channelId!);
-        setVideos(response.data.videos);
+        const [videoResponse, progressResponse] = await Promise.all([
+          api.getVideoList(channelId!),
+          api.getChannelProgress(channelId!),
+        ]);
+
+        const videoList = videoResponse.data.videos;
+        const progressList = progressResponse.data.progress;
+
+        const videosWithProgress = videoList.map((video: Video) => {
+          const progress = progressList.find(
+            (p: any) => p.videoId === video.video_id
+          );
+          return {
+            ...video,
+            overallCompletion: progress ? progress.overallCompletion : 0,
+          };
+        });
+
+        setVideos(videosWithProgress);
       } catch (error) {
-        console.error("Error fetching videos:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     if (channelId) {
-      fetchVideos();
+      fetchData();
     }
   }, [channelId]);
 
@@ -50,8 +72,12 @@ const VideoList: React.FC = () => {
     );
   }
 
+  const overallProgress =
+    videos.reduce((sum, video) => sum + video.overallCompletion, 0) /
+    videos.length;
+
   return (
-    <ScrollableContainer>
+    <StyledScrollableContainer>
       <VideoCardGrid>
         {videos.map((video) => (
           <Link
@@ -61,7 +87,7 @@ const VideoList: React.FC = () => {
           >
             <HoverCard
               hoverable
-              style={{ width: "100%" }}
+              style={{ width: "100%", position: "relative" }}
               cover={
                 <img
                   alt={video.title}
@@ -76,11 +102,18 @@ const VideoList: React.FC = () => {
                   </ScrollingTitle>
                 }
               />
+              {video.overallCompletion > 0 && (
+                <ProgressBar
+                  percent={video.overallCompletion}
+                  className="progress-bar"
+                />
+              )}
             </HoverCard>
           </Link>
         ))}
       </VideoCardGrid>
-    </ScrollableContainer>
+      {overallProgress > 0 && <ProgressBar percent={overallProgress} />}
+    </StyledScrollableContainer>
   );
 };
 

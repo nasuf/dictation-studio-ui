@@ -130,10 +130,42 @@ export const ScrollingTitle = styled.div`
 
 export const HoverCard = styled(Card)`
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    .progress-bar {
+      transform: scaleY(1.5);
+      bottom: -1px;
+    }
+  }
+`;
+
+export const ProgressBar = styled.div<{ percent: number }>`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #e6e6e6;
+  transition: all 0.3s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: ${(props) => props.percent}%;
+    background-color: #1890ff;
+    transition: width 0.3s ease-in-out;
+  }
+
+  &.progress-bar {
+    transform-origin: bottom;
   }
 `;
 
@@ -347,3 +379,8 @@ export const ProgressCircle: React.FC<{ percentage: number }> = ({
     </svg>
   );
 };
+
+export const StyledScrollableContainer = styled(ScrollableContainer)`
+  position: relative;
+  padding-bottom: 4px;
+`;

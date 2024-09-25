@@ -61,4 +61,6 @@ export const api = {
     axiosInstance.get(
       `/user/progress?channelId=${channelId}&videoId=${videoId}`
     ),
+  getChannelProgress: (channelId: string) =>
+    axiosInstance.get(`/user/progress/${channelId}`),
 };
