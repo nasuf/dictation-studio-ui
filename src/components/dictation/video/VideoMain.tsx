@@ -108,31 +108,25 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   ) => {
     if (!progress || !progress.userInput || transcriptData.length === 0) return;
 
-    // 恢复用户输入
     const newTranscript = transcriptData.map((item, index) => ({
       ...item,
       userInput: progress.userInput[index] || "",
     }));
     setTranscript(newTranscript);
 
-    // 设置当前句子索引
     const lastInputIndex = Math.max(
       ...Object.keys(progress.userInput).map(Number)
     );
     setCurrentSentenceIndex(lastInputIndex);
 
-    // 恢复已揭示的句子
     setRevealedSentences(Object.keys(progress.userInput).map(Number));
 
-    // 跳转到最后输入的位置
     if (playerRef.current && transcriptData[lastInputIndex]) {
       playerRef.current.seekTo(transcriptData[lastInputIndex].start, true);
     }
 
-    // 更新总体进度和准确率
     updateOverallProgress();
 
-    // 设置听写已开始
     dispatch(setIsDictationStarted(true));
   };
 
@@ -321,10 +315,16 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
       );
     }, 0);
 
-    setOverallCompletion(Math.floor((completedWords / totalWords) * 100));
-    setOverallAccuracy(
-      completedWords > 0 ? Math.floor((correctWords / completedWords) * 100) : 0
+    const newOverallCompletion = Number(
+      ((completedWords / totalWords) * 100).toFixed(2)
     );
+    const newOverallAccuracy =
+      completedWords > 0
+        ? Number(((correctWords / completedWords) * 100).toFixed(2))
+        : 0;
+
+    setOverallCompletion(newOverallCompletion);
+    setOverallAccuracy(newOverallAccuracy);
   }, [revealedSentences, transcript]);
 
   useEffect(() => {
@@ -344,7 +344,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
       videoId: videoId!,
       userInput: userInputJson,
       currentTime: new Date().getTime(),
-      overallCompletion,
+      overallCompletion: Number(overallCompletion.toFixed(2)),
     };
 
     try {
