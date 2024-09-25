@@ -12,13 +12,18 @@ import {
   Card,
   Modal,
 } from "antd";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 
 const { Option } = Select;
+const { TextArea } = Input;
 
 interface Channel {
   id: string;
@@ -54,6 +59,7 @@ const VideoManagement: React.FC = () => {
     []
   );
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
+  const [editingKey, setEditingKey] = useState("");
 
   useEffect(() => {
     fetchChannels();
@@ -125,6 +131,119 @@ const VideoManagement: React.FC = () => {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = (seconds % 60).toFixed(2);
+    return `${minutes}:${remainingSeconds.padStart(5, "0")}`;
+  };
+
+  const isEditing = (record: TranscriptItem) =>
+    record.start.toString() === editingKey;
+
+  const edit = (record: TranscriptItem) => {
+    form.setFieldsValue({ transcript: record.transcript });
+    setEditingKey(record.start.toString());
+  };
+
+  const cancel = () => {
+    setEditingKey("");
+  };
+
+  const save = async (key: React.Key) => {
+    try {
+      const row = (await form.validateFields()) as TranscriptItem;
+      const newData = [...currentTranscript];
+      const index = newData.findIndex((item) => key === item.start);
+      if (index > -1) {
+        const item = newData[index];
+        newData.splice(index, 1, {
+          ...item,
+          ...row,
+        });
+        setCurrentTranscript(newData);
+        setEditingKey("");
+      } else {
+        newData.push(row);
+        setCurrentTranscript(newData);
+        setEditingKey("");
+      }
+    } catch (errInfo) {
+      console.log("Validate Failed:", errInfo);
+    }
+  };
+
+  const transcriptColumns = [
+    {
+      title: "Start Time",
+      dataIndex: "start",
+      key: "start",
+      render: (text: number) => formatTime(text),
+      width: "15%",
+    },
+    {
+      title: "End Time",
+      dataIndex: "end",
+      key: "end",
+      render: (text: number) => formatTime(text),
+      width: "15%",
+    },
+    {
+      title: "Transcript",
+      dataIndex: "transcript",
+      key: "transcript",
+      editable: true,
+      render: (text: string, record: TranscriptItem) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <Form.Item
+            name="transcript"
+            style={{ margin: 0 }}
+            rules={[
+              { required: true, message: "Please input the transcript!" },
+            ]}
+          >
+            <TextArea
+              autoSize={{ minRows: 2, maxRows: 6 }}
+              defaultValue={text}
+            />
+          </Form.Item>
+        ) : (
+          text
+        );
+      },
+    },
+    {
+      title: "Action",
+      dataIndex: "operation",
+      render: (_: any, record: TranscriptItem) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <span>
+            <Button
+              onClick={() => save(record.start)}
+              style={{ marginRight: 8 }}
+              type="link"
+            >
+              Save
+            </Button>
+            <Button onClick={cancel} type="link">
+              Cancel
+            </Button>
+          </span>
+        ) : (
+          <Button
+            disabled={editingKey !== ""}
+            onClick={() => edit(record)}
+            icon={<EditOutlined />}
+          >
+            Edit
+          </Button>
+        );
+      },
+      width: "15%",
+    },
+  ];
+
   const columns = [
     {
       title: "Video ID",
@@ -149,7 +268,7 @@ const VideoManagement: React.FC = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (text: string, record: Video) => (
+      render: (_: string, record: Video) => (
         <Button
           onClick={() => showTranscript(selectedChannel!, record.video_id)}
         >
@@ -247,21 +366,15 @@ const VideoManagement: React.FC = () => {
             Loading transcript...
           </div>
         ) : (
-          <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
-            {currentTranscript.map((item, index) => (
-              <p key={index}>
-                <strong>{`${Math.floor(item.start / 60)}:${(item.start % 60)
-                  .toFixed(2)
-                  .padStart(5, "0")} - ${Math.floor(item.end / 60)}:${(
-                  item.end % 60
-                )
-                  .toFixed(2)
-                  .padStart(5, "0")}`}</strong>
-                <br />
-                {item.transcript}
-              </p>
-            ))}
-          </div>
+          <Form form={form} component={false}>
+            <Table
+              columns={transcriptColumns}
+              dataSource={currentTranscript}
+              rowKey={(record) => record.start.toString()}
+              pagination={{ pageSize: 10 }}
+              scroll={{ y: 400 }}
+            />
+          </Form>
         )}
       </Modal>
     </div>
