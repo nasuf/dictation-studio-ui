@@ -8,7 +8,7 @@ import {
   IdcardTwoTone,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styles from "@/lib/styles/Sider.module.css";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -22,7 +22,6 @@ const AppSider: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
-  const navigate = useNavigate();
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
 
   const mainSiderItems: MenuItem[] = [

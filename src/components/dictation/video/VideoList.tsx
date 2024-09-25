@@ -10,6 +10,8 @@ import {
   StyledScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface VideoWithProgress extends Video {
   overallCompletion: number;
@@ -21,28 +23,36 @@ const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const channelName = location.state?.channelName;
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [videoResponse, progressResponse] = await Promise.all([
-          api.getVideoList(channelId!),
-          api.getChannelProgress(channelId!),
-        ]);
-
-        const videoList = videoResponse.data.videos;
-        const progressList = progressResponse.data.progress;
-
-        const videosWithProgress = videoList.map((video: Video) => {
-          const progress = progressList.find(
-            (p: any) => p.videoId === video.video_id
-          );
-          return {
+        const videoResponse = await api.getVideoList(channelId!);
+        let videosWithProgress = videoResponse.data.videos.map(
+          (video: Video) => ({
             ...video,
-            overallCompletion: progress ? progress.overallCompletion : 0,
-          };
-        });
+            overallCompletion: 0,
+          })
+        );
+
+        if (userInfo) {
+          const progressResponse = await api.getChannelProgress(channelId!);
+          const progressList = progressResponse.data.progress;
+
+          videosWithProgress = videosWithProgress.map(
+            (video: VideoWithProgress) => {
+              const progress = progressList.find(
+                (p: any) => p.videoId === video.video_id
+              );
+              return {
+                ...video,
+                overallCompletion: progress ? progress.overallCompletion : 0,
+              };
+            }
+          );
+        }
 
         setVideos(videosWithProgress);
       } catch (error) {
@@ -55,7 +65,7 @@ const VideoList: React.FC = () => {
     if (channelId) {
       fetchData();
     }
-  }, [channelId]);
+  }, [channelId, userInfo]);
 
   if (isLoading) {
     return (
