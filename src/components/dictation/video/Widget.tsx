@@ -1,15 +1,6 @@
-import { Card } from "antd";
+import { Card, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-
-export const VideoContainer = styled.div`
-  display: flex;
-  gap: 24px;
-  padding: 20px;
-  height: calc(100vh - 64px);
-  align-items: center;
-  justify-content: center;
-`;
 
 export const VideoColumn = styled.div`
   flex: 1;
@@ -101,47 +92,6 @@ export const SubtitleContent = styled.div`
 export const ProgressCircleWrapper = styled.div`
   flex-shrink: 0;
   width: 40px;
-`;
-
-export const HoverCard = styled(Card)`
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
-    .progress-bar {
-      transform: scaleY(1.5);
-      bottom: -1px;
-    }
-  }
-`;
-
-export const ProgressBar = styled.div<{ percent: number }>`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: #e6e6e6;
-  transition: all 0.3s ease;
-
-  &::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: ${(props) => props.percent}%;
-    background-color: #1890ff;
-    transition: width 0.3s ease-in-out;
-  }
-
-  &.progress-bar {
-    transform-origin: bottom;
-  }
 `;
 
 export const CenteredContainer = styled.div`
@@ -327,40 +277,9 @@ export const ProgressCircle: React.FC<{ percentage: number }> = ({
   );
 };
 
-export const StyledScrollableContainer = styled(ScrollableContainer)`
-  position: relative;
-  padding-bottom: 4px;
-`;
-
-export const ChannelCardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  padding: 16px;
-`;
-
-export const CenteredCardMeta = styled(Card.Meta)`
-  .ant-card-meta-title {
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.5;
-  }
-`;
-
 export const CustomCardMeta = styled(Card.Meta)`
   .ant-card-meta-title {
     margin-bottom: 8px;
-  }
-`;
-
-export const ChannelCustomCardMeta = styled(CustomCardMeta)`
-  .ant-card-meta-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
   }
 `;
 
@@ -396,4 +315,52 @@ export const CustomHoverCard = styled(Card)`
   &:hover {
     transform: scale(1.05);
   }
+`;
+
+export const ChannelGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+  padding: 0px;
+`;
+
+export const ChannelCard = styled(Card)`
+  border-radius: 9px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
+  height: 240px; // 设置固定高度
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 11px rgba(0, 0, 0, 0.2);
+  }
+`;
+
+export const ChannelImage = styled.img`
+  width: 100%;
+  height: 145px;
+  object-fit: cover;
+`;
+
+export const ChannelInfo = styled.div`
+  padding: 0px;
+  background: linear-gradient(to bottom, #f0f2f5, #ffffff);
+  height: 65px; // 设置固定高度
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const { Title } = Typography;
+export const ChannelName = styled(Title)`
+  margin: 0 !important;
+  font-size: 15px !important;
+  text-align: center;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;

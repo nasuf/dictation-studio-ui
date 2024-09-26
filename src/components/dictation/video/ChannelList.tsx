@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { api } from "@/api/api";
 import { Channel } from "@/utils/type";
 import {
-  ChannelCardGrid,
-  CustomHoverCard,
-  CenteredCardMeta,
-  ScrollableContainer,
+  ChannelGrid,
+  ChannelCard,
+  ChannelImage,
+  ChannelInfo,
+  ChannelName,
 } from "@/components/dictation/video/Widget";
 
 const ChannelList: React.FC = () => {
@@ -26,23 +27,18 @@ const ChannelList: React.FC = () => {
   }, []);
 
   return (
-    <ScrollableContainer>
-      <ChannelCardGrid>
-        {channels.map((channel) => (
-          <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
-            <CustomHoverCard
-              hoverable
-              cover={<img alt={channel.name} src={channel.image_url} />}
-            >
-              <CenteredCardMeta
-                title={channel.name}
-                style={{ height: "23px" }} // Adjust this value to match the height of one line
-              />
-            </CustomHoverCard>
-          </Link>
-        ))}
-      </ChannelCardGrid>
-    </ScrollableContainer>
+    <ChannelGrid>
+      {channels.map((channel) => (
+        <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
+          <ChannelCard hoverable>
+            <ChannelImage alt={channel.name} src={channel.image_url} />
+            <ChannelInfo>
+              <ChannelName level={5}>{channel.name}</ChannelName>
+            </ChannelInfo>
+          </ChannelCard>
+        </Link>
+      ))}
+    </ChannelGrid>
   );
 };
 
