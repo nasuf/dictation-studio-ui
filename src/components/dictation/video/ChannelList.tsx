@@ -4,6 +4,7 @@ import { Avatar } from "antd";
 import { api } from "@/api/api";
 import {
   ChannelCardGrid,
+  ChannelCustomCardMeta,
   CustomCardMeta,
   CustomHoverCard,
   ScrollableContainer,
@@ -43,12 +44,12 @@ const ChannelList: React.FC = () => {
                   size={200}
                   src={channel.image_url}
                   style={{
-                    margin: "20px auto",
+                    margin: "0px auto",
                   }}
                 />
               }
             >
-              <CustomCardMeta title={channel.name} />
+              <ChannelCustomCardMeta title={channel.name} />
             </CustomHoverCard>
           </Link>
         ))}

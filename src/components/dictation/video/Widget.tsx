@@ -250,6 +250,15 @@ export const CustomCardMeta = styled(Card.Meta)`
   }
 `;
 
+export const ChannelCustomCardMeta = styled(CustomCardMeta)`
+  .ant-card-meta-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+`;
+
 export const CustomHoverCard = styled(HoverCard)`
   .ant-card-body {
     padding-top: 8px;

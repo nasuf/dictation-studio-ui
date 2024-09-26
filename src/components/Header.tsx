@@ -96,7 +96,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
         {t("userProfile")}
       </Menu.Item>
       {userInfo?.role === "admin" && (
-        <Menu.Item key="admin" onClick={() => navigate("/admin")}>
+        <Menu.Item key="admin" onClick={() => navigate("/admin/channel")}>
           {t("adminPanel")}
         </Menu.Item>
       )}

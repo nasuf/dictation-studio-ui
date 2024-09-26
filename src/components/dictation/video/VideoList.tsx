@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Card, Progress } from "antd";
+import { Progress } from "antd";
 import { api } from "@/api/api";
 import {
   VideoCardGrid,
@@ -9,8 +9,6 @@ import {
   ScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
-
-const { Meta } = Card;
 
 const VideoList: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
