@@ -139,14 +139,12 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         playCurrentSentence();
       } else if (event.key === "Enter") {
         event.preventDefault();
+        saveUserInput();
+        revealCurrentSentence();
         if (isFirstEnterAfterRestore) {
           setIsFirstEnterAfterRestore(false);
-          playNextSentence();
-        } else {
-          saveUserInput();
-          revealCurrentSentence();
-          playNextSentence();
         }
+        playNextSentence();
       }
     };
 
@@ -166,15 +164,34 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   const playCurrentSentence = () => {
     if (!playerRef.current || transcript.length === 0) return;
     const currentSentence = transcript[currentSentenceIndex];
-    playerRef.current.seekTo(currentSentence.start, true);
-    playerRef.current.playVideo();
 
-    const duration = (currentSentence.end - currentSentence.start) * 1000;
-    setTimeout(() => {
-      if (playerRef.current) {
-        playerRef.current.pauseVideo();
-      }
-    }, duration);
+    playerRef.current.pauseVideo();
+
+    playerRef.current.seekTo(currentSentence.start, true);
+
+    const playPromise = new Promise<void>((resolve) => {
+      const onStateChange = (event: { data: number }) => {
+        if (event.data === YouTube.PlayerState.PLAYING) {
+          playerRef.current?.removeEventListener(
+            "onStateChange",
+            onStateChange
+          );
+          resolve();
+        }
+      };
+
+      playerRef.current?.addEventListener("onStateChange", onStateChange);
+      playerRef.current?.playVideo();
+    });
+
+    playPromise.then(() => {
+      const duration = (currentSentence.end - currentSentence.start) * 1000;
+      setTimeout(() => {
+        if (playerRef.current) {
+          playerRef.current.pauseVideo();
+        }
+      }, duration);
+    });
   };
 
   const playNextSentence = () => {
@@ -220,6 +237,11 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         };
         return newTranscript;
       });
+      setRevealedSentences((prev) =>
+        prev.includes(currentSentenceIndex)
+          ? prev
+          : [...prev, currentSentenceIndex]
+      );
     }
     setUserInput("");
     dispatch(
