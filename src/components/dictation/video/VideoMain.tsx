@@ -63,8 +63,9 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [userProgress, setUserProgress] = useState<ProgressData | null>(null);
   const dispatch = useDispatch();
+  const [isFirstEnterAfterRestore, setIsFirstEnterAfterRestore] =
+    useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,13 +79,11 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         setTranscript(transcriptResponse.data.transcript);
 
         if (progressResponse.data && progressResponse.data.userInput) {
-          setUserProgress(progressResponse.data);
           restoreUserProgress(
             progressResponse.data,
             transcriptResponse.data.transcript
           );
         } else {
-          // 如果没有用户进度，只设置 transcript
           setCurrentSentenceIndex(0);
           dispatch(setIsDictationStarted(false));
         }
@@ -128,6 +127,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     updateOverallProgress();
 
     dispatch(setIsDictationStarted(true));
+    setIsFirstEnterAfterRestore(true);
   };
 
   useEffect(() => {
@@ -139,15 +139,20 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         playCurrentSentence();
       } else if (event.key === "Enter") {
         event.preventDefault();
-        saveUserInput();
-        revealCurrentSentence();
-        playNextSentence();
+        if (isFirstEnterAfterRestore) {
+          setIsFirstEnterAfterRestore(false);
+          playNextSentence();
+        } else {
+          saveUserInput();
+          revealCurrentSentence();
+          playNextSentence();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [transcript, currentSentenceIndex, userInput]);
+  }, [transcript, currentSentenceIndex, userInput, isFirstEnterAfterRestore]);
 
   useEffect(() => {
     scrollToCurrentSentence();
@@ -206,14 +211,16 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   };
 
   const saveUserInput = () => {
-    setTranscript((prevTranscript) => {
-      const newTranscript = [...prevTranscript];
-      newTranscript[currentSentenceIndex] = {
-        ...newTranscript[currentSentenceIndex],
-        userInput: userInput,
-      };
-      return newTranscript;
-    });
+    if (userInput.trim() !== "") {
+      setTranscript((prevTranscript) => {
+        const newTranscript = [...prevTranscript];
+        newTranscript[currentSentenceIndex] = {
+          ...newTranscript[currentSentenceIndex],
+          userInput: userInput,
+        };
+        return newTranscript;
+      });
+    }
     setUserInput("");
     dispatch(
       setIsDictationStarted(
