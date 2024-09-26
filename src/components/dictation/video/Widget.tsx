@@ -103,31 +103,6 @@ export const ProgressCircleWrapper = styled.div`
   width: 40px;
 `;
 
-export const ScrollingTitle = styled.div`
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-
-  &:hover .inner-text {
-    animation: scroll 15s linear infinite;
-  }
-
-  .inner-text {
-    display: inline-block;
-    white-space: nowrap;
-    padding-right: 100%;
-  }
-
-  @keyframes scroll {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(-100%, 0);
-    }
-  }
-`;
-
 export const HoverCard = styled(Card)`
   transition: all 0.3s ease;
   position: relative;
@@ -219,50 +194,11 @@ export const ScrollableContainer = styled.div`
   padding: 20px;
 `;
 
-export const ChannelCardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  align-content: start;
-`;
-
 export const VideoCardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   align-content: start;
-`;
-
-export const CustomCardMeta = styled(Card.Meta)`
-  .ant-card-meta-title {
-    white-space: normal; /* 允许折行 */
-    word-break: break-word; /* 防止长单词溢出 */
-    max-height: 3em; /* 最大高度 */
-    line-height: 1.5em; /* 行高 */
-    overflow: hidden; /* 隐藏溢出内容 */
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* 显示最多两行 */
-    -webkit-box-orient: vertical;
-    text-align: center; /* 居中显示 */
-    .ant-card-meta-title {
-      margin-bottom: 8px;
-    }
-  }
-`;
-
-export const ChannelCustomCardMeta = styled(CustomCardMeta)`
-  .ant-card-meta-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-  }
-`;
-
-export const CustomHoverCard = styled(HoverCard)`
-  .ant-card-body {
-    padding-top: 8px;
-  }
 `;
 
 export const HideYouTubeControls = styled.div`
@@ -394,4 +330,70 @@ export const ProgressCircle: React.FC<{ percentage: number }> = ({
 export const StyledScrollableContainer = styled(ScrollableContainer)`
   position: relative;
   padding-bottom: 4px;
+`;
+
+export const ChannelCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 16px;
+`;
+
+export const CenteredCardMeta = styled(Card.Meta)`
+  .ant-card-meta-title {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+  }
+`;
+
+export const CustomCardMeta = styled(Card.Meta)`
+  .ant-card-meta-title {
+    margin-bottom: 8px;
+  }
+`;
+
+export const ChannelCustomCardMeta = styled(CustomCardMeta)`
+  .ant-card-meta-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+`;
+
+export const ScrollingTitle = styled.div`
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+
+  .inner-text {
+    display: inline-block;
+    padding-right: 100%;
+    animation: scroll-left 15s linear infinite;
+    animation-play-state: paused;
+  }
+
+  &:hover .inner-text {
+    animation-play-state: running;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+`;
+
+export const CustomHoverCard = styled(Card)`
+  transition: transform 0.3s ease-in-out;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 `;

@@ -7,6 +7,7 @@ import {
   CustomCardMeta,
   CustomHoverCard,
   ScrollableContainer,
+  ScrollingTitle,
 } from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
 
@@ -19,19 +20,10 @@ const VideoList: React.FC = () => {
     const fetchVideos = async () => {
       try {
         const response = await api.getVideoList(channelId!);
-        if (Array.isArray(response.data)) {
-          setVideos(response.data);
-          fetchProgress(response.data);
-        } else if (response.data && Array.isArray(response.data.videos)) {
-          setVideos(response.data.videos);
-          fetchProgress(response.data.videos);
-        } else {
-          console.error("Unexpected API response format:", response.data);
-          setVideos([]);
-        }
+        setVideos(response.data.videos);
+        fetchProgress(response.data.videos);
       } catch (error) {
         console.error("Error fetching videos:", error);
-        setVideos([]);
       }
     };
 
@@ -67,7 +59,6 @@ const VideoList: React.FC = () => {
           >
             <CustomHoverCard
               hoverable
-              style={{ width: "100%" }}
               cover={
                 <img
                   alt={video.title}
@@ -76,7 +67,11 @@ const VideoList: React.FC = () => {
               }
             >
               <CustomCardMeta
-                title={video.title}
+                title={
+                  <ScrollingTitle>
+                    <span className="inner-text">{video.title}</span>
+                  </ScrollingTitle>
+                }
                 description={
                   <Progress
                     percent={Math.round(progress[video.video_id] || 0)}

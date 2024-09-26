@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Avatar } from "antd";
 import { api } from "@/api/api";
+import { Channel } from "@/utils/type";
 import {
   ChannelCardGrid,
-  ChannelCustomCardMeta,
-  CustomCardMeta,
   CustomHoverCard,
+  CenteredCardMeta,
   ScrollableContainer,
 } from "@/components/dictation/video/Widget";
-import { Channel } from "@/utils/type";
 
 const ChannelList: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -31,25 +29,15 @@ const ChannelList: React.FC = () => {
     <ScrollableContainer>
       <ChannelCardGrid>
         {channels.map((channel) => (
-          <Link
-            key={channel.id}
-            to={`/dictation/video/${channel.id}`}
-            state={{ channelId: channel.id, channelName: channel.name }}
-          >
+          <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
             <CustomHoverCard
               hoverable
-              style={{ width: "100%", textAlign: "center" }}
-              cover={
-                <Avatar
-                  size={200}
-                  src={channel.image_url}
-                  style={{
-                    margin: "0px auto",
-                  }}
-                />
-              }
+              cover={<img alt={channel.name} src={channel.image_url} />}
             >
-              <ChannelCustomCardMeta title={channel.name} />
+              <CenteredCardMeta
+                title={channel.name}
+                style={{ height: "23px" }} // Adjust this value to match the height of one line
+              />
             </CustomHoverCard>
           </Link>
         ))}
