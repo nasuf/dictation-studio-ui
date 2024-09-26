@@ -128,6 +128,29 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
 
     dispatch(setIsDictationStarted(true));
     setIsFirstEnterAfterRestore(true);
+
+    setTimeout(() => {
+      scrollToSentence(lastInputIndex);
+    }, 1000);
+  };
+
+  const scrollToSentence = (index: number) => {
+    if (subtitlesRef.current) {
+      const sentenceElements =
+        subtitlesRef.current.getElementsByClassName("subtitle-item");
+      if (sentenceElements[index]) {
+        const sentenceElement = sentenceElements[index] as HTMLElement;
+        const containerHeight = subtitlesRef.current.clientHeight;
+        const scrollPosition =
+          sentenceElement.offsetTop -
+          containerHeight / 2 +
+          sentenceElement.clientHeight / 2;
+        subtitlesRef.current.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -139,10 +162,12 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         playCurrentSentence();
       } else if (event.key === "Enter") {
         event.preventDefault();
-        saveUserInput();
-        revealCurrentSentence();
         if (isFirstEnterAfterRestore) {
           setIsFirstEnterAfterRestore(false);
+          playNextSentence();
+        } else {
+          saveUserInput();
+          revealCurrentSentence();
         }
         playNextSentence();
       }
@@ -199,15 +224,33 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     setCurrentSentenceIndex(nextIndex);
     const nextSentence = transcript[nextIndex];
-    playerRef.current.seekTo(nextSentence.start, true);
-    playerRef.current.playVideo();
 
-    const duration = (nextSentence.end - nextSentence.start) * 1000;
-    setTimeout(() => {
-      if (playerRef.current) {
-        playerRef.current.pauseVideo();
-      }
-    }, duration);
+    playerRef.current.pauseVideo();
+    playerRef.current.seekTo(nextSentence.start, true);
+
+    const playPromise = new Promise<void>((resolve) => {
+      const onStateChange = (event: { data: number }) => {
+        if (event.data === YouTube.PlayerState.PLAYING) {
+          playerRef.current?.removeEventListener(
+            "onStateChange",
+            onStateChange
+          );
+          resolve();
+        }
+      };
+
+      playerRef.current?.addEventListener("onStateChange", onStateChange);
+      playerRef.current?.playVideo();
+    });
+
+    playPromise.then(() => {
+      const duration = (nextSentence.end - nextSentence.start) * 1000;
+      setTimeout(() => {
+        if (playerRef.current) {
+          playerRef.current.pauseVideo();
+        }
+      }, duration);
+    });
   };
 
   const playPreviousSentence = () => {
