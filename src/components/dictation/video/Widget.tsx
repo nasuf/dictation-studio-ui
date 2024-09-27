@@ -1,6 +1,7 @@
-import { Card, Typography } from "antd";
+import { Card, Typography, Avatar } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { AudioOutlined } from "@ant-design/icons";
 
 export const VideoColumn = styled.div`
   flex: 1;
@@ -187,19 +188,22 @@ const ProgressBarFill = styled.div<{ width: number; color: string }>`
   transition: width 0.5s ease-in-out;
 `;
 
-const ProgressBarText = styled.div<{ color: string }>`
+const ProgressBarText = styled.div`
   position: absolute;
   left: 5px;
-  top: 2px;
-  color: ${(props) => props.color};
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
   font-size: 12px;
   z-index: 1;
   width: 100%;
   text-align: left;
   padding: 0 5px;
   box-sizing: border-box;
-  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
-    1px 1px 0 #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const getTextColor = (backgroundColor: string) => {
@@ -218,12 +222,6 @@ export const DualProgressBar: React.FC<{
   const { t } = useTranslation();
   const completionColor = "#1890ff";
   const accuracyColor = "#52c41a";
-  const backgroundColor = "#f0f0f0";
-
-  const textColor =
-    completionPercentage > 10
-      ? getTextColor(completionColor)
-      : getTextColor(backgroundColor);
 
   return (
     <ProgressBarBase>
@@ -233,7 +231,7 @@ export const DualProgressBar: React.FC<{
         color={accuracyColor}
         style={{ opacity: 0.7 }}
       />
-      <ProgressBarText color={textColor}>
+      <ProgressBarText>
         {`${t("completionRate")}: ${Math.round(completionPercentage)}% ${t(
           "accuracyRate"
         )}: ${Math.round(accuracyPercentage)}%`}
@@ -363,4 +361,32 @@ export const ChannelName = styled(Title)`
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+export const StyledAvatar = styled(Avatar)`
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+`;
+
+export const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+`;
+
+export const LogoIcon = styled(AudioOutlined)`
+  font-size: 24px;
+  color: #1890ff;
+  margin-right: 8px;
+`;
+
+export const LogoText = styled.span`
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 `;
