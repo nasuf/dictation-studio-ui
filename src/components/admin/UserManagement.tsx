@@ -11,8 +11,6 @@ const { Option } = Select;
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);

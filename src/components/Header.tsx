@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { Layout, Menu, Space, Dropdown, message, Avatar } from "antd";
-import { GlobalOutlined, DownOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  GlobalOutlined,
+  DownOutlined,
+  UserOutlined,
+  AudioOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
@@ -24,6 +29,26 @@ const StyledAvatar = styled(Avatar)`
   height: 40px;
   border: 2px solid white;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+`;
+
+const LogoIcon = styled(AudioOutlined)`
+  font-size: 24px;
+  color: #1890ff;
+  margin-right: 8px;
+`;
+
+const LogoText = styled.span`
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 `;
 
 const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
@@ -116,17 +141,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
         marginBottom: 16,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <div className="demo-logo" />
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          defaultSelectedKeys={["home"]}
-          items={[{ key: "home", label: "Daily Dictation" }]}
-          style={{ background: "transparent" }}
-          onClick={() => navigate("/")}
-        />
-      </div>
+      <LogoContainer onClick={() => navigate("/")}>
+        <LogoIcon />
+        <LogoText>Daily Dictation</LogoText>
+      </LogoContainer>
       <Space>
         <Dropdown overlay={languageMenu} trigger={["click"]}>
           <a onClick={(e) => e.preventDefault()} style={{ color: "white" }}>
