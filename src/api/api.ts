@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ProgressData } from "@/utils/type";
+import { ProgressData, TranscriptItem } from "@/utils/type";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -63,4 +63,16 @@ export const api = {
     axiosInstance.get(`/user/progress/${channelId}`),
 
   getAllUsers: () => axiosInstance.get("/user/all"),
+  updateTranscript: async (
+    channelId: string,
+    videoId: string,
+    index: number,
+    transcriptItem: TranscriptItem
+  ) => {
+    const response = await axiosInstance.put(
+      `/service/${channelId}/${videoId}/transcript`,
+      { index, ...transcriptItem }
+    );
+    return response.data;
+  },
 };

@@ -44,7 +44,7 @@ export interface VideoMainRef {
 }
 
 const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
-  props,
+  _,
   ref
 ) => {
   const { videoId, channelId } = useParams<{

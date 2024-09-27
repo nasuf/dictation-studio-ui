@@ -60,6 +60,7 @@ const VideoManagement: React.FC = () => {
   );
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [editingKey, setEditingKey] = useState("");
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchChannels();
@@ -120,6 +121,7 @@ const VideoManagement: React.FC = () => {
   const showTranscript = async (channelId: string, videoId: string) => {
     setIsTranscriptLoading(true);
     setIsModalVisible(true);
+    setCurrentVideoId(videoId);
     try {
       const response = await api.getVideoTranscript(channelId, videoId);
       setCurrentTranscript(response.data.transcript);
@@ -156,16 +158,24 @@ const VideoManagement: React.FC = () => {
       const index = newData.findIndex((item) => key === item.start);
       if (index > -1) {
         const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-        });
-        setCurrentTranscript(newData);
-        setEditingKey("");
-      } else {
-        newData.push(row);
-        setCurrentTranscript(newData);
-        setEditingKey("");
+        const updatedItem = { ...item, ...row };
+        newData.splice(index, 1, updatedItem);
+
+        // 调用 API 保存修改后的 transcript
+        try {
+          await api.updateTranscript(
+            selectedChannel!,
+            currentVideoId!,
+            index,
+            updatedItem
+          );
+          setCurrentTranscript(newData);
+          setEditingKey("");
+          message.success("Transcript updated successfully");
+        } catch (error) {
+          console.error("Error updating transcript:", error);
+          message.error("Failed to update transcript");
+        }
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
