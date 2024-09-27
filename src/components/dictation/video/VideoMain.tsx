@@ -370,34 +370,45 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
       (sum, item) => sum + item.transcript.split(/\s+/).length,
       0
     );
-    const completedWords = revealedSentences.reduce(
-      (sum, index) => sum + transcript[index].transcript.split(/\s+/).length,
-      0
-    );
-    const correctWords = revealedSentences.reduce((sum, index) => {
-      const { completionPercentage } = compareInputWithTranscript(
-        transcript[index].userInput || "",
-        transcript[index].transcript
-      );
-      return (
-        sum +
-        (transcript[index].transcript.split(/\s+/).length *
-          completionPercentage) /
-          100
-      );
+
+    const completedWords = transcript.reduce((sum, item, index) => {
+      if (item.userInput && revealedSentences.includes(index)) {
+        return sum + item.transcript.split(/\s+/).length;
+      }
+      return sum;
     }, 0);
 
-    const newOverallCompletion = Number(
-      ((completedWords / totalWords) * 100).toFixed(2)
-    );
-    const newOverallAccuracy =
-      completedWords > 0
-        ? Number(((correctWords / completedWords) * 100).toFixed(2))
-        : 0;
+    const correctWords = transcript.reduce((sum, item, index) => {
+      if (item.userInput && revealedSentences.includes(index)) {
+        const { completionPercentage } = compareInputWithTranscript(
+          item.userInput,
+          item.transcript
+        );
+        return (
+          sum +
+          (item.transcript.split(/\s+/).length * completionPercentage) / 100
+        );
+      }
+      return sum;
+    }, 0);
+
+    let newOverallCompletion: number;
+    if (completedWords === totalWords) {
+      newOverallCompletion = 100;
+    } else {
+      newOverallCompletion = Math.round((completedWords / totalWords) * 100);
+    }
+
+    let newOverallAccuracy: number;
+    if (completedWords > 0) {
+      newOverallAccuracy = Math.round((correctWords / completedWords) * 100);
+    } else {
+      newOverallAccuracy = 0;
+    }
 
     setOverallCompletion(newOverallCompletion);
     setOverallAccuracy(newOverallAccuracy);
-  }, [revealedSentences, transcript]);
+  }, [transcript, revealedSentences]);
 
   useEffect(() => {
     updateOverallProgress();
