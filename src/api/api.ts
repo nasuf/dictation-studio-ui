@@ -75,4 +75,6 @@ export const api = {
     );
     return response.data;
   },
+  updateUserRole: (email: string, role: string) =>
+    axiosInstance.put("/auth/user/role", { email, role }),
 };

@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, message, Button, Modal } from "antd";
+import { Table, Card, message, Button, Modal, Select, Form } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
 
+const { Option } = Select;
+
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchUsers();
@@ -30,9 +35,25 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const showUserDetails = (user: UserInfo) => {
-    setSelectedUser(user);
-    setIsModalVisible(true);
+  const showEditModal = (user: UserInfo) => {
+    setEditingUser(user);
+    form.setFieldsValue({ role: user.role });
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      if (editingUser) {
+        await api.updateUserRole(editingUser.email, values.role);
+        message.success("User role updated successfully");
+        setIsEditModalVisible(false);
+        fetchUsers(); // Refresh the user list
+      }
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      message.error("Failed to update user role");
+    }
   };
 
   const columns = [
@@ -55,7 +76,7 @@ const UserManagement: React.FC = () => {
       title: "Actions",
       key: "actions",
       render: (_: any, record: UserInfo) => (
-        <Button onClick={() => showUserDetails(record)}>View Details</Button>
+        <Button onClick={() => showEditModal(record)}>Edit Role</Button>
       ),
     },
   ];
@@ -75,29 +96,23 @@ const UserManagement: React.FC = () => {
         />
       </Card>
       <Modal
-        title="User Details"
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
+        title="Edit User Role"
+        visible={isEditModalVisible}
+        onOk={handleEditSubmit}
+        onCancel={() => setIsEditModalVisible(false)}
       >
-        {selectedUser && (
-          <div>
-            <p>
-              <strong>Username:</strong> {selectedUser.username}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedUser.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {selectedUser.role}
-            </p>
-            <img
-              src={selectedUser.avatar}
-              alt="User Avatar"
-              style={{ maxWidth: "100px" }}
-            />
-          </div>
-        )}
+        <Form form={form}>
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: "Please select a role" }]}
+          >
+            <Select>
+              <Option value="user">User</Option>
+              <Option value="admin">Admin</Option>
+            </Select>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
