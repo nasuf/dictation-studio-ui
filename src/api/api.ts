@@ -77,4 +77,17 @@ export const api = {
   },
   updateUserRole: (email: string, role: string) =>
     axiosInstance.put("/auth/user/role", { email, role }),
+  updateFullTranscript: async (
+    channelId: string,
+    videoId: string,
+    transcript: TranscriptItem[]
+  ) => {
+    const response = await axiosInstance.put(
+      `/service/${channelId}/${videoId}/full-transcript`,
+      { transcript }
+    );
+    return response.data;
+  },
+  getOriginalTranscript: (videoId: string) =>
+    axiosInstance.get(`/service/video-transcript/air/${videoId}`),
 };

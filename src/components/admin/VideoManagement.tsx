@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Form,
   Select,
@@ -16,6 +16,9 @@ import {
   MinusCircleOutlined,
   PlusOutlined,
   EditOutlined,
+  MergeCellsOutlined,
+  UndoOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -61,6 +64,12 @@ const VideoManagement: React.FC = () => {
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [editingKey, setEditingKey] = useState("");
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [selectedRows, setSelectedRows] = useState<TranscriptItem[]>([]);
+  const [transcriptHistory, setTranscriptHistory] = useState<
+    TranscriptItem[][]
+  >([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const tableRef = useRef<any>(null);
 
   useEffect(() => {
     fetchChannels();
@@ -180,6 +189,94 @@ const VideoManagement: React.FC = () => {
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  const mergeTranscripts = () => {
+    if (selectedRows.length < 2) {
+      message.warning("Please select at least two rows to merge");
+      return;
+    }
+
+    setTranscriptHistory([...transcriptHistory, currentTranscript]);
+
+    const sortedRows = [...selectedRows].sort((a, b) => a.start - b.start);
+    const mergedTranscript: TranscriptItem = {
+      start: sortedRows[0].start,
+      end: sortedRows[sortedRows.length - 1].end,
+      transcript: sortedRows.map((row) => row.transcript).join(" "),
+    };
+
+    const newTranscript = currentTranscript.filter(
+      (item) => !selectedRows.some((row) => row.start === item.start)
+    );
+    newTranscript.push(mergedTranscript);
+    newTranscript.sort((a, b) => a.start - b.start);
+
+    setCurrentTranscript(newTranscript);
+    setSelectedRows([]);
+    setSelectedRowKeys([]);
+    if (tableRef.current) {
+      tableRef.current.clearSelection();
+    }
+  };
+
+  const undoMerge = () => {
+    if (transcriptHistory.length > 0) {
+      const previousTranscript =
+        transcriptHistory[transcriptHistory.length - 1];
+      setCurrentTranscript(previousTranscript);
+      setTranscriptHistory(transcriptHistory.slice(0, -1));
+      setSelectedRows([]);
+      setSelectedRowKeys([]);
+      if (tableRef.current) {
+        tableRef.current.clearSelection();
+      }
+    } else {
+      message.info("No more actions to undo");
+    }
+  };
+
+  const updateFullTranscript = async () => {
+    try {
+      await api.updateFullTranscript(
+        selectedChannel!,
+        currentVideoId!,
+        currentTranscript
+      );
+      message.success("Full transcript updated successfully");
+    } catch (error) {
+      console.error("Error updating full transcript:", error);
+      message.error("Failed to update full transcript");
+    }
+  };
+
+  const loadOriginalTranscript = async () => {
+    if (!currentVideoId) {
+      message.error("No video selected");
+      return;
+    }
+    setIsTranscriptLoading(true);
+    try {
+      const response = await api.getOriginalTranscript(currentVideoId);
+      setCurrentTranscript(response.data.transcript);
+      message.success("Original transcript loaded successfully");
+    } catch (error) {
+      console.error("Error loading original transcript:", error);
+      message.error("Failed to load original transcript");
+    } finally {
+      setIsTranscriptLoading(false);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (
+      selectedRowKeys: React.Key[],
+      selectedRows: TranscriptItem[]
+    ) => {
+      setSelectedRowKeys(selectedRowKeys);
+      setSelectedRows(selectedRows);
+    },
   };
 
   const transcriptColumns = [
@@ -368,7 +465,34 @@ const VideoManagement: React.FC = () => {
         title="Video Transcript"
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        footer={null}
+        footer={[
+          <Button
+            key="loadOriginal"
+            onClick={loadOriginalTranscript}
+            icon={<CloudDownloadOutlined />}
+          >
+            Load Original Transcript
+          </Button>,
+          <Button
+            key="undo"
+            onClick={undoMerge}
+            disabled={transcriptHistory.length === 0}
+            icon={<UndoOutlined />}
+          >
+            Undo
+          </Button>,
+          <Button
+            key="merge"
+            onClick={mergeTranscripts}
+            disabled={selectedRows.length < 2}
+            icon={<MergeCellsOutlined />}
+          >
+            Merge Selected
+          </Button>,
+          <Button key="update" onClick={updateFullTranscript} type="primary">
+            Update Full Transcript
+          </Button>,
+        ]}
         width={800}
       >
         {isTranscriptLoading ? (
@@ -378,6 +502,8 @@ const VideoManagement: React.FC = () => {
         ) : (
           <Form form={form} component={false}>
             <Table
+              ref={tableRef}
+              rowSelection={rowSelection}
               columns={transcriptColumns}
               dataSource={currentTranscript}
               rowKey={(record) => record.start.toString()}
