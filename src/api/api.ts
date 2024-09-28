@@ -30,11 +30,14 @@ export const api = {
     axiosInstance.get(`/service/video-list/${channelId}`),
   getVideoTranscript: (channelId: string, videoId: string) =>
     axiosInstance.get(`/service/video-transcript/${channelId}/${videoId}`),
-  uploadVideos: (channelId: string, videoLinks: string[]) =>
-    axiosInstance.post("/service/video-list", {
-      channel_id: channelId,
-      video_links: videoLinks,
-    }),
+  uploadVideos: async (formData: FormData) => {
+    const response = await axiosInstance.post("/service/video-list", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
   verifyGoogleToken: (token: string) =>
     axiosInstance.post("/auth/verify-google-token", { token }),
   checkLogin: () => axiosInstance.get("/auth/check-login"),
@@ -90,4 +93,7 @@ export const api = {
   },
   getOriginalTranscript: (videoId: string) =>
     axiosInstance.get(`/service/video-transcript/air/${videoId}`),
+
+  deleteVideo: (channelId: string, videoId: string) =>
+    axiosInstance.delete(`/service/video-list/${channelId}/${videoId}`),
 };

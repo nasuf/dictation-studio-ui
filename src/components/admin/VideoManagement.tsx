@@ -7,10 +7,9 @@ import {
   message,
   Space,
   Table,
-  Row,
-  Col,
   Card,
   Modal,
+  Upload,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -19,11 +18,15 @@ import {
   MergeCellsOutlined,
   UndoOutlined,
   CloudDownloadOutlined,
+  DownloadOutlined,
+  UploadOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
+import getYoutubeId from "get-youtube-id";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -45,6 +48,131 @@ interface TranscriptItem {
   transcript: string;
 }
 
+const extractVideoId = (url: string): string => {
+  if (!url) return "";
+  try {
+    const videoId = getYoutubeId(url);
+    if (videoId) {
+      return videoId;
+    }
+  } catch (error) {
+    console.error("Error parsing URL:", error);
+  }
+  return "";
+};
+
+const customUploadStyles = `
+  .ant-upload-list-text {
+    display: none !important;
+  }
+`;
+
+const AddVideosForm: React.FC<{
+  onFinish: (values: any) => void;
+  isLoading: boolean;
+  form: any;
+  handleSrtUpload: (videoLink: string, file: File) => void;
+  srtFiles: { [key: string]: File };
+}> = ({ onFinish, isLoading, form, handleSrtUpload, srtFiles }) => {
+  const openSubtitleDownloader = (videoLink: string) => {
+    const url = `https://downsub.com/?url=${encodeURIComponent(videoLink)}`;
+    window.open(url, "_blank");
+  };
+
+  return (
+    <>
+      <style>{customUploadStyles}</style>
+      <Form form={form} onFinish={onFinish}>
+        <Form.List name="video_links">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <div key={key} style={{ marginBottom: 16 }}>
+                  <Space
+                    style={{ display: "flex", marginBottom: 8 }}
+                    align="baseline"
+                  >
+                    <Form.Item
+                      {...restField}
+                      name={[name, "link"]}
+                      rules={[
+                        { required: true, message: "Missing video link" },
+                      ]}
+                    >
+                      <Input placeholder="YouTube video link" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "title"]}
+                      rules={[
+                        { required: true, message: "Missing video title" },
+                      ]}
+                    >
+                      <Input placeholder="Video title" />
+                    </Form.Item>
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Space>
+                  <Space align="center" style={{ width: "100%" }}>
+                    <Button
+                      onClick={() =>
+                        openSubtitleDownloader(
+                          form.getFieldValue(["video_links", name, "link"])
+                        )
+                      }
+                      icon={<DownloadOutlined />}
+                    >
+                      Get Subtitles
+                    </Button>
+                    <Upload
+                      beforeUpload={(file) => {
+                        const videoLink = form.getFieldValue([
+                          "video_links",
+                          name,
+                          "link",
+                        ]);
+                        handleSrtUpload(videoLink, file);
+                        return false;
+                      }}
+                    >
+                      <Button icon={<UploadOutlined />}>Upload SRT</Button>
+                    </Upload>
+                    {srtFiles[
+                      extractVideoId(
+                        form.getFieldValue(["video_links", name, "link"])
+                      )
+                    ] ? (
+                      <CheckCircleOutlined
+                        style={{ color: "#52c41a", fontSize: "24px" }}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </Space>
+                </div>
+              ))}
+              <Form.Item>
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  block
+                  icon={<PlusOutlined />}
+                >
+                  Add Video
+                </Button>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={isLoading}>
+            Upload Videos
+          </Button>
+        </Form.Item>
+      </Form>
+    </>
+  );
+};
+
 const VideoManagement: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
@@ -52,12 +180,12 @@ const VideoManagement: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  const [form] = Form.useForm();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAddVideoModalVisible, setIsAddVideoModalVisible] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
     []
   );
@@ -70,6 +198,8 @@ const VideoManagement: React.FC = () => {
   >([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const tableRef = useRef<any>(null);
+  const [form] = Form.useForm();
+  const [srtFiles, setSrtFiles] = useState<{ [key: string]: File }>({});
 
   useEffect(() => {
     fetchChannels();
@@ -82,7 +212,6 @@ const VideoManagement: React.FC = () => {
       if (response.data.length > 0) {
         const firstChannelId = response.data[0].id;
         setSelectedChannel(firstChannelId);
-        form.setFieldsValue({ channel_id: firstChannelId });
         fetchVideos(firstChannelId);
       }
     } catch (error) {
@@ -104,21 +233,50 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const onChannelChange = (value: string) => {
-    setSelectedChannel(value);
-    fetchVideos(value);
+  const handleSrtUpload = (videoLink: string, file: File) => {
+    const videoId = extractVideoId(videoLink);
+    if (!videoId) {
+      message.error(
+        "Invalid YouTube URL. Please enter a valid URL before uploading SRT."
+      );
+      return;
+    }
+    const newFile = new File([file], `${videoId}.srt`, { type: file.type });
+    setSrtFiles((prev) => ({ ...prev, [videoId]: newFile }));
+    message.success(`${newFile.name} file uploaded successfully`);
   };
 
   const onFinish = async (values: {
-    channel_id: string;
-    video_links: string[];
+    video_links: Array<{ link: string; title: string }>;
   }) => {
     setIsLoading(true);
     try {
-      await api.uploadVideos(values.channel_id, values.video_links);
+      const formData = new FormData();
+
+      const videoData = values.video_links.map((video) => ({
+        channel_id: selectedChannel,
+        video_link: video.link,
+        title: video.title,
+      }));
+
+      formData.append("data", JSON.stringify(videoData));
+
+      videoData.forEach((video) => {
+        const videoId = extractVideoId(video.video_link);
+        const file = srtFiles[videoId];
+        if (file) {
+          formData.append("transcript_files", file, file.name);
+        }
+      });
+
+      await api.uploadVideos(formData);
+
       message.success("Videos uploaded successfully");
-      form.resetFields(["video_links"]);
-      fetchVideos(values.channel_id);
+
+      fetchVideos(selectedChannel!);
+      setSrtFiles({});
+      setIsAddVideoModalVisible(false);
+      form.resetFields();
     } catch (error) {
       console.error("Error uploading videos:", error);
       message.error("Failed to upload videos");
@@ -351,6 +509,23 @@ const VideoManagement: React.FC = () => {
     },
   ];
 
+  const handleDeleteVideo = async (channelId: string, videoId: string) => {
+    Modal.confirm({
+      title: "Are you sure you want to delete this video?",
+      content: "This action cannot be undone.",
+      onOk: async () => {
+        try {
+          await api.deleteVideo(channelId, videoId);
+          message.success("Video deleted successfully");
+          fetchVideos(channelId);
+        } catch (error) {
+          console.error("Error deleting video:", error);
+          message.error("Failed to delete video");
+        }
+      },
+    });
+  };
+
   const columns = [
     {
       title: "Video ID",
@@ -376,91 +551,79 @@ const VideoManagement: React.FC = () => {
       title: "Actions",
       key: "actions",
       render: (_: string, record: Video) => (
-        <Button
-          onClick={() => showTranscript(selectedChannel!, record.video_id)}
-        >
-          View Transcript
-        </Button>
+        <Space>
+          <Button
+            onClick={() => showTranscript(selectedChannel!, record.video_id)}
+          >
+            View Transcript
+          </Button>
+          <Button
+            danger
+            onClick={() => handleDeleteVideo(selectedChannel!, record.video_id)}
+          >
+            Delete
+          </Button>
+        </Space>
       ),
     },
   ];
 
+  const handleChannelChange = (value: string) => {
+    setSelectedChannel(value);
+    fetchVideos(value);
+  };
+
+  const showAddVideoModal = () => {
+    if (!selectedChannel) {
+      message.error("Please select a channel first");
+      return;
+    }
+    setIsAddVideoModalVisible(true);
+  };
+
   return (
     <div style={{ padding: "20px" }}>
-      <Row gutter={24}>
-        <Col span={8}>
-          <Card title="Add Videos" style={{ height: "100%" }}>
-            <Form form={form} onFinish={onFinish}>
-              <Form.Item
-                name="channel_id"
-                rules={[{ required: true, message: "Please select a channel" }]}
-              >
-                <Select
-                  placeholder="Select a channel"
-                  onChange={onChannelChange}
-                  value={selectedChannel}
-                >
-                  {channels.map((channel) => (
-                    <Option key={channel.id} value={channel.id}>
-                      {channel.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.List name="video_links">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map(({ key, name, ...restField }) => (
-                      <Space
-                        key={key}
-                        style={{ display: "flex", marginBottom: 8 }}
-                        align="baseline"
-                      >
-                        <Form.Item
-                          {...restField}
-                          name={name}
-                          rules={[
-                            { required: true, message: "Missing video link" },
-                          ]}
-                        >
-                          <Input placeholder="YouTube video link" />
-                        </Form.Item>
-                        <MinusCircleOutlined onClick={() => remove(name)} />
-                      </Space>
-                    ))}
-                    <Form.Item>
-                      <Button
-                        type="dashed"
-                        onClick={() => add()}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add Video Link
-                      </Button>
-                    </Form.Item>
-                  </>
-                )}
-              </Form.List>
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={isLoading}>
-                  Upload Videos
-                </Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </Col>
-        <Col span={16}>
-          <Card title="Existing Videos" style={{ height: "100%" }}>
-            <Table
-              columns={columns}
-              dataSource={videos}
-              rowKey="video_id"
-              loading={isLoading}
-              scroll={{ y: 400 }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <Card title="Video Management">
+        <Space style={{ marginBottom: 16 }}>
+          <Select
+            style={{ width: 200 }}
+            placeholder="Select a channel"
+            onChange={handleChannelChange}
+            value={selectedChannel}
+          >
+            {channels.map((channel) => (
+              <Option key={channel.id} value={channel.id}>
+                {channel.name}
+              </Option>
+            ))}
+          </Select>
+          <Button type="primary" onClick={showAddVideoModal}>
+            Add Videos
+          </Button>
+        </Space>
+        <Table
+          columns={columns}
+          dataSource={videos}
+          rowKey="video_id"
+          loading={isLoading}
+          scroll={{ y: 400 }}
+        />
+      </Card>
+      <Modal
+        title="Add Videos"
+        visible={isAddVideoModalVisible}
+        onCancel={() => setIsAddVideoModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <AddVideosForm
+          onFinish={onFinish}
+          isLoading={isLoading}
+          form={form}
+          handleSrtUpload={handleSrtUpload}
+          srtFiles={srtFiles}
+        />
+      </Modal>
       <Modal
         title="Video Transcript"
         visible={isModalVisible}
