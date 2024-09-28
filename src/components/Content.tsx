@@ -13,7 +13,7 @@ import VideoList from "@/components/dictation/video/VideoList";
 import ChannelManagement from "@/components/admin/ChannelManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
 import { useTranslation } from "react-i18next";
-import { SaveTwoTone } from "@ant-design/icons";
+import { CloudUploadOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import UserManagement from "@/components/admin/UserManagement";
@@ -87,7 +87,7 @@ const AppContent: React.FC = () => {
         </Breadcrumb>
         {isVideoPage && (
           <Button onClick={handleSaveProgress} disabled={!isDictationStarted}>
-            <SaveTwoTone />
+            <CloudUploadOutlined />
             {t("saveProgressBtnText")}
           </Button>
         )}
@@ -110,6 +110,8 @@ const AppContent: React.FC = () => {
           }}
         >
           <Routes>
+            <Route path="/" element={<ChannelList />} />
+            <Route path="/dictation" element={<ChannelList />} />
             <Route path="/dictation/video" element={<ChannelList />} />
             <Route path="/dictation/video/:channelId" element={<VideoList />} />
             <Route
@@ -123,7 +125,6 @@ const AppContent: React.FC = () => {
             <Route path="/collection/video" element={<div>文章收藏</div>} />
             <Route path="/collection/word" element={<div>单词收藏</div>} />
             <Route path="/radio" element={<Radio style={componentStyle} />} />
-            <Route path="/" element={<ChannelList />} />
             <Route path="/admin/channel" element={<ChannelManagement />} />
             <Route path="/admin/video" element={<VideoManagement />} />
             <Route path="/admin/user" element={<UserManagement />} />
