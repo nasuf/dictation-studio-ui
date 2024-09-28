@@ -178,7 +178,11 @@ const ProgressBarBase = styled.div`
   overflow: hidden;
 `;
 
-const ProgressBarFill = styled.div<{ width: number; color: string }>`
+const ProgressBarFill = styled.div<{
+  width: number;
+  color: string;
+  isCompleted: boolean;
+}>`
   width: ${(props) => props.width}%;
   height: 100%;
   background: ${(props) => props.color};
@@ -186,6 +190,17 @@ const ProgressBarFill = styled.div<{ width: number; color: string }>`
   left: 0;
   top: 0;
   transition: width 0.5s ease-in-out;
+  animation: ${(props) => (props.isCompleted ? "flash 0.5s linear 5" : "none")};
+
+  @keyframes flash {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
 `;
 
 const ProgressBarText = styled.div`
@@ -206,30 +221,27 @@ const ProgressBarText = styled.div`
   text-overflow: ellipsis;
 `;
 
-const getTextColor = (backgroundColor: string) => {
-  const hex = backgroundColor.replace("#", "");
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 128 ? "#000000" : "#FFFFFF";
-};
-
 export const DualProgressBar: React.FC<{
   completionPercentage: number;
   accuracyPercentage: number;
-}> = ({ completionPercentage, accuracyPercentage }) => {
+  isCompleted: boolean;
+}> = ({ completionPercentage, accuracyPercentage, isCompleted }) => {
   const { t } = useTranslation();
   const completionColor = "#1890ff";
   const accuracyColor = "#52c41a";
 
   return (
     <ProgressBarBase>
-      <ProgressBarFill width={completionPercentage} color={completionColor} />
+      <ProgressBarFill
+        width={completionPercentage}
+        color={completionColor}
+        isCompleted={isCompleted}
+      />
       <ProgressBarFill
         width={accuracyPercentage}
         color={accuracyColor}
         style={{ opacity: 0.7 }}
+        isCompleted={false}
       />
       <ProgressBarText>
         {`${t("completionRate")}: ${Math.round(completionPercentage)}% ${t(

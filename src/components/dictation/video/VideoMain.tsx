@@ -6,7 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { Alert, Input, Spin, Button, Space, message } from "antd";
+import { Alert, Input, Spin, Button, Space, message, Modal } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -66,6 +66,8 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
   const dispatch = useDispatch();
   const [isFirstEnterAfterRestore, setIsFirstEnterAfterRestore] =
     useState(true);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,6 +134,28 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     setTimeout(() => {
       scrollToSentence(lastInputIndex);
     }, 1000);
+
+    if (progress.overallCompletion === 100) {
+      setIsCompleted(true);
+      if (isInitialLoad) {
+        Modal.confirm({
+          title: t("dictationCompleted"),
+          content: t("startOverOrNot"),
+          onOk() {
+            setTranscript(
+              transcriptData.map((item) => ({ ...item, userInput: "" }))
+            );
+            setRevealedSentences([]);
+            setCurrentSentenceIndex(0);
+            setOverallCompletion(0);
+            setOverallAccuracy(0);
+            setIsCompleted(false);
+          },
+          onCancel() {},
+        });
+      }
+    }
+    setIsInitialLoad(false);
   };
 
   const scrollToSentence = (index: number) => {
@@ -433,7 +457,15 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
 
     setOverallCompletion(newOverallCompletion);
     setOverallAccuracy(newOverallAccuracy);
-  }, [transcript, revealedSentences]);
+
+    if (newOverallCompletion === 100 && !isCompleted && !isInitialLoad) {
+      setIsCompleted(true);
+      Modal.success({
+        title: t("dictationCompletedCongratulations"),
+        content: t("dictationCompletedCongratulationsContent"),
+      });
+    }
+  }, [transcript, revealedSentences, isCompleted, isInitialLoad, t]);
 
   useEffect(() => {
     updateOverallProgress();
@@ -536,6 +568,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
               <DualProgressBar
                 completionPercentage={overallCompletion}
                 accuracyPercentage={overallAccuracy}
+                isCompleted={isCompleted}
               />
               <ScrollableSubtitles ref={subtitlesRef}>
                 <SubtitlesContainer>

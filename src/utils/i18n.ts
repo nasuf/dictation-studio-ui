@@ -55,6 +55,12 @@ const enTranslations = {
   saveProgressBtnText: "Save Progress",
   profile: "Profile",
   adminPanel: "Admin Panel",
+  dictationCompleted: "Dictation Completed",
+  startOverOrNot:
+    "You have already completed this dictation. Do you want to start over?",
+  dictationCompletedCongratulations: "Congratulations!",
+  dictationCompletedCongratulationsContent:
+    "You have completed this dictation exercise!",
 };
 
 const zhTranslations = {
@@ -110,6 +116,10 @@ const zhTranslations = {
   saveProgressBtnText: "保存进度",
   profile: "个人中心",
   adminPanel: "管理员面板",
+  dictationCompleted: "听写完成",
+  startOverOrNot: "你已经完成了这个听写。你想从头开始吗？",
+  dictationCompletedCongratulations: "恭喜！",
+  dictationCompletedCongratulationsContent: "你已经完成了这个听写练习！",
 };
 
 const jaTranslations = {
@@ -166,6 +176,11 @@ const jaTranslations = {
   saveProgressBtnText: "進捗を保存",
   profile: "プロフィール",
   adminPanel: "管理パネル",
+  dictationCompleted: "聞き取りが完了しました",
+  startOverOrNot: "聞き取りをやり直しますか？",
+  dictationCompletedCongratulations: "おめでとう！",
+  dictationCompletedCongratulationsContent:
+    "あなたはこの聞き取りの練習を完了しました！",
 };
 
 const koTranslations = {
@@ -222,6 +237,11 @@ const koTranslations = {
   saveProgressBtnText: "진행 상황 저장",
   profile: "프로필",
   adminPanel: "관리자 패널",
+  dictationCompleted: "聞き取りが完了しました",
+  startOverOrNot: "聞き取りをやり直しますか？",
+  dictationCompletedCongratulations: "おめでとう！",
+  dictationCompletedCongratulationsContent:
+    "あなたはこの聞き取りの練習を完了しました！",
 };
 
 i18n.use(initReactI18next).init({
