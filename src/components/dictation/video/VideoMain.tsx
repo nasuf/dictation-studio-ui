@@ -162,14 +162,18 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         playCurrentSentence();
       } else if (event.key === "Enter") {
         event.preventDefault();
+        saveUserInput();
+        revealCurrentSentence();
+        updateOverallProgress();
+
         if (isFirstEnterAfterRestore) {
           setIsFirstEnterAfterRestore(false);
-          playNextSentence();
-        } else {
-          saveUserInput();
-          revealCurrentSentence();
         }
-        playNextSentence();
+
+        // 使用 setTimeout 来确保在 DOM 更新后播放下一句
+        setTimeout(() => {
+          playNextSentence();
+        }, 0);
       }
     };
 
@@ -191,7 +195,6 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     const currentSentence = transcript[currentSentenceIndex];
 
     playerRef.current.pauseVideo();
-
     playerRef.current.seekTo(currentSentence.start, true);
 
     const playPromise = new Promise<void>((resolve) => {
@@ -211,11 +214,22 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
 
     playPromise.then(() => {
       const duration = (currentSentence.end - currentSentence.start) * 1000;
+      const checkInterval = setInterval(() => {
+        if (playerRef.current) {
+          const currentTime = playerRef.current.getCurrentTime();
+          if (currentTime >= currentSentence.end) {
+            playerRef.current.pauseVideo();
+            clearInterval(checkInterval);
+          }
+        }
+      }, 100);
+
       setTimeout(() => {
+        clearInterval(checkInterval);
         if (playerRef.current) {
           playerRef.current.pauseVideo();
         }
-      }, duration);
+      }, duration + 500); // 添加额外的500毫秒作为缓冲
     });
   };
 
@@ -245,11 +259,22 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
 
     playPromise.then(() => {
       const duration = (nextSentence.end - nextSentence.start) * 1000;
+      const checkInterval = setInterval(() => {
+        if (playerRef.current) {
+          const currentTime = playerRef.current.getCurrentTime();
+          if (currentTime >= nextSentence.end) {
+            playerRef.current.pauseVideo();
+            clearInterval(checkInterval);
+          }
+        }
+      }, 100);
+
       setTimeout(() => {
+        clearInterval(checkInterval);
         if (playerRef.current) {
           playerRef.current.pauseVideo();
         }
-      }, duration);
+      }, duration + 500); // 添加额外的500毫秒作为缓冲
     });
   };
 
