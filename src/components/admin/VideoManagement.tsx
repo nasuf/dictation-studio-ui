@@ -10,6 +10,7 @@ import {
   Card,
   Modal,
   Upload,
+  InputNumber,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -21,32 +22,18 @@ import {
   DownloadOutlined,
   UploadOutlined,
   CheckCircleOutlined,
+  SaveOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import getYoutubeId from "get-youtube-id";
+import { Channel, TranscriptItem, Video } from "@/utils/type";
 
 const { Option } = Select;
 const { TextArea } = Input;
-
-interface Channel {
-  id: string;
-  name: string;
-}
-
-interface Video {
-  video_id: string;
-  link: string;
-  title: string;
-}
-
-interface TranscriptItem {
-  start: number;
-  end: number;
-  transcript: string;
-}
 
 const extractVideoId = (url: string): string => {
   if (!url) return "";
@@ -190,7 +177,7 @@ const VideoManagement: React.FC = () => {
     []
   );
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<string>("");
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<TranscriptItem[]>([]);
   const [transcriptHistory, setTranscriptHistory] = useState<
@@ -306,43 +293,48 @@ const VideoManagement: React.FC = () => {
     return `${minutes}:${remainingSeconds.padStart(5, "0")}`;
   };
 
-  const isEditing = (record: TranscriptItem) =>
-    record.start.toString() === editingKey;
+  const isEditing = (record: Video | TranscriptItem): boolean => {
+    if ("video_id" in record) {
+      return record.video_id === editingKey;
+    } else {
+      return record.start.toString() === editingKey;
+    }
+  };
 
-  const edit = (record: TranscriptItem) => {
-    form.setFieldsValue({ transcript: record.transcript });
-    setEditingKey(record.start.toString());
+  const edit = (record: Video | TranscriptItem) => {
+    if ("video_id" in record) {
+      form.setFieldsValue({ ...record });
+      setEditingKey(record.video_id);
+    } else {
+      form.setFieldsValue({ transcript: record.transcript });
+      setEditingKey(record.start.toString());
+    }
   };
 
   const cancel = () => {
     setEditingKey("");
   };
 
-  const save = async (key: React.Key) => {
+  const save = async (key: string) => {
     try {
-      const row = (await form.validateFields()) as TranscriptItem;
-      const newData = [...currentTranscript];
-      const index = newData.findIndex((item) => key === item.start);
+      const row = await form.validateFields();
+      const newData = [...videos];
+      const index = newData.findIndex((item) => key === item.video_id);
       if (index > -1) {
         const item = newData[index];
-        const updatedItem = { ...item, ...row };
+        const updatedItem = {
+          ...item,
+          ...row,
+        };
         newData.splice(index, 1, updatedItem);
-
-        // 调用 API 保存修改后的 transcript
-        try {
-          await api.updateTranscript(
-            selectedChannel!,
-            currentVideoId!,
-            index,
-            updatedItem
-          );
-          setCurrentTranscript(newData);
-          setEditingKey("");
-          message.success("Transcript updated successfully");
-        } catch (error) {
-          console.error("Error updating transcript:", error);
-          message.error("Failed to update transcript");
-        }
+        await api.updateVideo(selectedChannel!, key, updatedItem);
+        setVideos(newData);
+        setEditingKey("");
+        message.success("Video updated successfully");
+      } else {
+        newData.push(row);
+        setVideos(newData);
+        setEditingKey("");
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
@@ -485,7 +477,7 @@ const VideoManagement: React.FC = () => {
         return editable ? (
           <span>
             <Button
-              onClick={() => save(record.start)}
+              onClick={() => save(record.start.toString())}
               style={{ marginRight: 8 }}
               type="link"
             >
@@ -531,42 +523,93 @@ const VideoManagement: React.FC = () => {
       title: "Video ID",
       dataIndex: "video_id",
       key: "video_id",
+      editable: true,
     },
     {
       title: "Title",
       dataIndex: "title",
       key: "title",
+      editable: true,
     },
     {
       title: "Link",
       dataIndex: "link",
       key: "link",
-      render: (text: string) => (
-        <a href={text} target="_blank" rel="noopener noreferrer">
-          {text}
-        </a>
-      ),
+      editable: true,
+      render: (text: string, record: Video) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <Form.Item
+            name="link"
+            style={{ margin: 0 }}
+            rules={[{ required: true, message: "Please input the link!" }]}
+          >
+            <Input />
+          </Form.Item>
+        ) : (
+          <a href={text} target="_blank" rel="noopener noreferrer">
+            {text}
+          </a>
+        );
+      },
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_: string, record: Video) => (
-        <Space>
-          <Button
-            onClick={() => showTranscript(selectedChannel!, record.video_id)}
-          >
-            View Transcript
-          </Button>
-          <Button
-            danger
-            onClick={() => handleDeleteVideo(selectedChannel!, record.video_id)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
+      render: (_: string, record: Video) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <span>
+            <Button
+              onClick={() => save(record.video_id)}
+              style={{ marginRight: 8 }}
+              icon={<SaveOutlined />}
+            >
+              Save
+            </Button>
+            <Button onClick={cancel} icon={<CloseOutlined />}>
+              Cancel
+            </Button>
+          </span>
+        ) : (
+          <Space>
+            <Button
+              onClick={() => showTranscript(selectedChannel!, record.video_id)}
+            >
+              View Transcript
+            </Button>
+            <Button onClick={() => edit(record)} icon={<EditOutlined />}>
+              Edit
+            </Button>
+            <Button
+              danger
+              onClick={() =>
+                handleDeleteVideo(selectedChannel!, record.video_id)
+              }
+            >
+              Delete
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
+
+  const mergedColumns = columns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: Video) => ({
+        record,
+        inputType: col.dataIndex === "link" ? "text" : "text",
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditing(record),
+      }),
+    };
+  });
 
   const handleChannelChange = (value: string) => {
     setSelectedChannel(value);
@@ -601,13 +644,20 @@ const VideoManagement: React.FC = () => {
             Add Videos
           </Button>
         </Space>
-        <Table
-          columns={columns}
-          dataSource={videos}
-          rowKey="video_id"
-          loading={isLoading}
-          scroll={{ y: 400 }}
-        />
+        <Form form={form} component={false}>
+          <Table
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            columns={mergedColumns}
+            dataSource={videos}
+            rowKey="video_id"
+            loading={isLoading}
+            scroll={{ y: 400 }}
+          />
+        </Form>
       </Card>
       <Modal
         title="Add Videos"
@@ -677,6 +727,40 @@ const VideoManagement: React.FC = () => {
         )}
       </Modal>
     </div>
+  );
+};
+
+const EditableCell: React.FC<any> = ({
+  editing,
+  dataIndex,
+  title,
+  inputType,
+  record,
+  index,
+  children,
+  ...restProps
+}) => {
+  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[
+            {
+              required: true,
+              message: `Please Input ${title}!`,
+            },
+          ]}
+        >
+          {inputNode}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
   );
 };
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ProgressData, TranscriptItem } from "@/utils/type";
+import { ProgressData, TranscriptItem, Video } from "@/utils/type";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -96,4 +96,11 @@ export const api = {
 
   deleteVideo: (channelId: string, videoId: string) =>
     axiosInstance.delete(`/service/video-list/${channelId}/${videoId}`),
+
+  updateVideo: (
+    channelId: string,
+    videoId: string,
+    videoData: Partial<Video>
+  ) =>
+    axiosInstance.put(`/service/video-list/${channelId}/${videoId}`, videoData),
 };
