@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Card, Progress } from "antd";
+import { Progress } from "antd";
 import { api } from "@/api/api";
 import { Video } from "@/utils/type";
-import { ScrollableContainer, VideoCardGrid } from "./Widget";
+import {
+  ScrollableContainer,
+  VideoCardGrid,
+  CustomHoverCard,
+  CustomCardMeta,
+  ScrollingTitle,
+} from "./Widget";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
@@ -35,7 +41,7 @@ const VideoList: React.FC = () => {
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
           >
-            <Card
+            <CustomHoverCard
               hoverable
               cover={
                 <img
@@ -44,14 +50,20 @@ const VideoList: React.FC = () => {
                 />
               }
             >
-              <Card.Meta title={video.title} />
+              <CustomCardMeta
+                title={
+                  <ScrollingTitle>
+                    <div className="inner-text">{video.title}</div>
+                  </ScrollingTitle>
+                }
+              />
               <Progress
                 percent={progress[video.video_id] || 0}
                 size="small"
                 status="active"
                 style={{ marginTop: "10px" }}
               />
-            </Card>
+            </CustomHoverCard>
           </Link>
         ))}
       </VideoCardGrid>

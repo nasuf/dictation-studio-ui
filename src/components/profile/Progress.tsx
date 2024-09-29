@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Card, Progress, Layout, theme, Menu } from "antd";
 import { api } from "@/api/api";
 import {
+  CustomCardMeta,
+  CustomHoverCard,
   ScrollableContainer,
+  ScrollingTitle,
   VideoCardGrid,
 } from "@/components/dictation/video/Widget";
 import { UserProgressData } from "@/utils/type";
+import { Link } from "react-router-dom";
 
 const { Content, Sider } = Layout;
 
@@ -70,24 +74,35 @@ const UserProgress: React.FC = () => {
         <ScrollableContainer>
           <VideoCardGrid>
             {filteredVideos.map((video) => (
-              <Card
+              <Link
                 key={video.videoId}
-                hoverable
-                cover={
-                  <img
-                    alt={video.videoTitle}
-                    src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
-                  />
-                }
+                to={`/dictation/video/${selectedChannel}/${video.videoId}`}
               >
-                <Card.Meta title={video.videoTitle} />
-                <Progress
-                  percent={video.overallCompletion}
-                  size="small"
-                  status="active"
-                  style={{ marginTop: "10px" }}
-                />
-              </Card>
+                <CustomHoverCard
+                  key={video.videoId}
+                  hoverable
+                  cover={
+                    <img
+                      alt={video.videoTitle}
+                      src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                    />
+                  }
+                >
+                  <CustomCardMeta
+                    title={
+                      <ScrollingTitle>
+                        <div className="inner-text">{video.videoTitle}</div>
+                      </ScrollingTitle>
+                    }
+                  />
+                  <Progress
+                    percent={video.overallCompletion}
+                    size="small"
+                    status="active"
+                    style={{ marginTop: "10px" }}
+                  />
+                </CustomHoverCard>
+              </Link>
             ))}
           </VideoCardGrid>
         </ScrollableContainer>
