@@ -1,53 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Progress } from "antd";
+import { useParams, Link } from "react-router-dom";
+import { Card, List, Progress } from "antd";
 import { api } from "@/api/api";
-import {
-  VideoCardGrid,
-  CustomCardMeta,
-  CustomHoverCard,
-  ScrollableContainer,
-  ScrollingTitle,
-} from "@/components/dictation/video/Widget";
 import { Video } from "@/utils/type";
+import { ScrollableContainer, VideoCardGrid } from "./Widget";
 
 const VideoList: React.FC = () => {
-  const [videos, setVideos] = useState<Video[]>([]);
   const { channelId } = useParams<{ channelId: string }>();
+  const [videos, setVideos] = useState<Video[]>([]);
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.getVideoList(channelId!);
-        setVideos(response.data.videos);
-        fetchProgress(response.data.videos);
+        const [videoResponse, progressResponse] = await Promise.all([
+          api.getVideoList(channelId!),
+          api.getChannelProgress(channelId!),
+        ]);
+        setVideos(videoResponse.data.videos);
+        setProgress(progressResponse.data.progress);
       } catch (error) {
-        console.error("Error fetching videos:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchVideos();
+    fetchData();
   }, [channelId]);
-
-  const fetchProgress = async (videoList: Video[]) => {
-    try {
-      const progressPromises = videoList.map((video) =>
-        api.getUserProgress(channelId!, video.video_id)
-      );
-      const progressResponses = await Promise.all(progressPromises);
-      const newProgress: { [key: string]: number } = {};
-      progressResponses.forEach((response, index) => {
-        if (response.data && response.data.overallCompletion) {
-          newProgress[videoList[index].video_id] =
-            response.data.overallCompletion;
-        }
-      });
-      setProgress(newProgress);
-    } catch (error) {
-      console.error("Error fetching progress:", error);
-    }
-  };
 
   return (
     <ScrollableContainer>
@@ -57,7 +35,7 @@ const VideoList: React.FC = () => {
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
           >
-            <CustomHoverCard
+            <Card
               hoverable
               cover={
                 <img
@@ -66,21 +44,14 @@ const VideoList: React.FC = () => {
                 />
               }
             >
-              <CustomCardMeta
-                title={
-                  <ScrollingTitle>
-                    <span className="inner-text">{video.title}</span>
-                  </ScrollingTitle>
-                }
-                description={
-                  <Progress
-                    percent={Math.round(progress[video.video_id] || 0)}
-                    status="active"
-                    format={(percent) => `${percent}%`}
-                  />
-                }
+              <Card.Meta title={video.title} />
+              <Progress
+                percent={progress[video.video_id] || 0}
+                size="small"
+                status="active"
+                style={{ marginTop: "10px" }}
               />
-            </CustomHoverCard>
+            </Card>
           </Link>
         ))}
       </VideoCardGrid>

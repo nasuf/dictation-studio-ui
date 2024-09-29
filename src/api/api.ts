@@ -63,7 +63,7 @@ export const api = {
       `/user/progress?channelId=${channelId}&videoId=${videoId}`
     ),
   getChannelProgress: (channelId: string) =>
-    axiosInstance.get(`/user/progress/${channelId}`),
+    axiosInstance.get(`/user/progress/channel?channelId=${channelId}`),
 
   getAllUsers: () => axiosInstance.get("/user/all"),
   updateTranscript: async (
