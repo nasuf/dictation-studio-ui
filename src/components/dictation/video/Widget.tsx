@@ -44,14 +44,13 @@ export const ScrollingSubtitles = styled.div`
 
 export const BlurredText = styled.div<{
   isBlurred: boolean;
-  isCurrent: boolean;
 }>`
   filter: ${(props) => (props.isBlurred ? "blur(5px)" : "none")};
   transition: filter 0.3s ease;
   font-size: 18px;
   text-align: center;
   margin: 20px 0;
-  opacity: ${(props) => (props.isCurrent ? 1 : 0.5)};
+  opacity: ${(props) => (props.isBlurred ? 0.5 : 1)};
 `;
 
 export const LoadingContainer = styled.div`

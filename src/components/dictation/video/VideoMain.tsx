@@ -674,7 +674,6 @@ const VideoMain: React.ForwardRefRenderFunction<
                       key={index}
                       className="subtitle-item"
                       isBlurred={!revealedSentences.includes(index)}
-                      isCurrent={index === currentSentenceIndex}
                     >
                       <SubtitleRow>
                         <SubtitleContent>
