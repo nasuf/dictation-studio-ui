@@ -242,7 +242,8 @@ const AppContent: React.FC = () => {
             <Route path="/admin/channel" element={<ChannelManagement />} />
             <Route path="/admin/video" element={<VideoManagement />} />
             <Route path="/admin/user" element={<UserManagement />} />
-            <Route path="/profile" element={<div>个人中心</div>} />
+            <Route path="/profile/info" element={<div>个人中心</div>} />
+            <Route path="/profile/progress" element={<div>进度</div>} />
           </Routes>
         </Content>
       </Layout>

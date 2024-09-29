@@ -73,10 +73,16 @@ const AppSider: React.FC = () => {
 
   const profileSiderItems: MenuItem[] = [
     {
-      key: "Profile",
+      key: "Information",
       icon: <IdcardTwoTone />,
-      label: t("profile"),
-      path: "/profile",
+      label: t("information"),
+      path: "/profile/info",
+    },
+    {
+      key: "Progress",
+      icon: <NotificationTwoTone />,
+      label: t("progress"),
+      path: "/profile/progress",
     },
   ];
 

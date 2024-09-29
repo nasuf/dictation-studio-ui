@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Card, List, Progress } from "antd";
+import { Card, Progress } from "antd";
 import { api } from "@/api/api";
 import { Video } from "@/utils/type";
 import { ScrollableContainer, VideoCardGrid } from "./Widget";
