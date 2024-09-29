@@ -39,6 +39,7 @@ import {
 import { ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch } from "react-redux";
 import { setIsDictationStarted } from "@/redux/userSlice";
+import nlp from "compromise";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -428,6 +429,27 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const populateMissedWords = () => {
+    const removePunctuation = (word: string) => {
+      return word.replace(/^[^\w\s]+|[^\w\s]+$/g, "");
+    };
+
+    const normalizeWord = (word: string) => {
+      word = word.replace(/['']s$/, "");
+
+      const doc = nlp(word);
+      let normalized = word;
+
+      if (doc.nouns().length > 0) {
+        normalized = doc.nouns().toSingular().text();
+      }
+
+      if (doc.verbs().length > 0) {
+        normalized = doc.verbs().toInfinitive().text();
+      }
+
+      return normalized.toLowerCase();
+    };
+
     const missedWords = transcript.flatMap((item, index) => {
       if (item.userInput && revealedSentences.includes(index)) {
         const { transcriptResult } = compareInputWithTranscript(
@@ -436,7 +458,9 @@ const VideoMain: React.ForwardRefRenderFunction<
         );
         return transcriptResult
           .filter((word) => !word.isCorrect)
-          .map((word) => word.word);
+          .map((word) => removePunctuation(word.word))
+          .map(normalizeWord)
+          .filter((word) => word.length > 0);
       }
       return [];
     });
