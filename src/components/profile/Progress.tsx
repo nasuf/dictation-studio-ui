@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Progress, Layout, theme, Menu } from "antd";
+import { Progress, Layout, theme, Menu } from "antd";
 import { api } from "@/api/api";
 import {
   CustomCardMeta,
@@ -10,6 +10,7 @@ import {
 } from "@/components/dictation/video/Widget";
 import { UserProgressData } from "@/utils/type";
 import { Link } from "react-router-dom";
+import { resetScrollPosition } from "@/utils/util";
 
 const { Content, Sider } = Layout;
 
@@ -90,7 +91,7 @@ const UserProgress: React.FC = () => {
                 >
                   <CustomCardMeta
                     title={
-                      <ScrollingTitle>
+                      <ScrollingTitle onMouseLeave={resetScrollPosition}>
                         <div className="inner-text">{video.videoTitle}</div>
                       </ScrollingTitle>
                     }

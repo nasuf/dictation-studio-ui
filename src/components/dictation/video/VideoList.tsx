@@ -10,6 +10,7 @@ import {
   CustomCardMeta,
   ScrollingTitle,
 } from "./Widget";
+import { resetScrollPosition } from "@/utils/util";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
@@ -52,7 +53,7 @@ const VideoList: React.FC = () => {
             >
               <CustomCardMeta
                 title={
-                  <ScrollingTitle>
+                  <ScrollingTitle onMouseLeave={resetScrollPosition}>
                     <div className="inner-text">{video.title}</div>
                   </ScrollingTitle>
                 }

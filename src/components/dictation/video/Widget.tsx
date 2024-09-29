@@ -296,6 +296,7 @@ export const ScrollingTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   position: relative;
+  width: 100%;
 
   .inner-text {
     display: inline-block;
@@ -315,6 +316,14 @@ export const ScrollingTitle = styled.div`
     100% {
       transform: translateX(-100%);
     }
+  }
+
+  .inner-text::after {
+    content: attr(data-content);
+    position: absolute;
+    left: 100%;
+    top: 0;
+    white-space: nowrap;
   }
 `;
 
