@@ -61,6 +61,7 @@ const enTranslations = {
   dictationCompletedCongratulations: "Congratulations!",
   dictationCompletedCongratulationsContent:
     "You have completed this dictation exercise!",
+  missedWordsSummary: "Missed Words Summary",
 };
 
 const zhTranslations = {
@@ -120,6 +121,7 @@ const zhTranslations = {
   startOverOrNot: "你已经完成了这个听写。你想从头开始吗？",
   dictationCompletedCongratulations: "恭喜！",
   dictationCompletedCongratulationsContent: "你已经完成了这个听写练习！",
+  missedWordsSummary: "未写出单词汇总",
 };
 
 const jaTranslations = {
@@ -181,6 +183,7 @@ const jaTranslations = {
   dictationCompletedCongratulations: "おめでとう！",
   dictationCompletedCongratulationsContent:
     "あなたはこの聞き取りの練習を完了しました！",
+  missedWordsSummary: "未写出単語の概要",
 };
 
 const koTranslations = {
@@ -242,6 +245,7 @@ const koTranslations = {
   dictationCompletedCongratulations: "おめでとう！",
   dictationCompletedCongratulationsContent:
     "あなたはこの聞き取りの練習を完了しました！",
+  missedWordsSummary: "未写出単語の概要",
 };
 
 i18n.use(initReactI18next).init({

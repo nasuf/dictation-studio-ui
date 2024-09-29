@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
-import { Breadcrumb, Layout, theme, Button } from "antd";
+import React, { useRef, useState } from "react";
+import { Breadcrumb, Layout, theme, Button, Modal, Tag } from "antd";
 import { Route, Routes, useLocation, Link } from "react-router-dom";
+import { CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
@@ -13,7 +14,6 @@ import VideoList from "@/components/dictation/video/VideoList";
 import ChannelManagement from "@/components/admin/ChannelManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
 import { useTranslation } from "react-i18next";
-import { CloudUploadOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import UserManagement from "@/components/admin/UserManagement";
@@ -68,6 +68,25 @@ const AppContent: React.FC = () => {
     location.pathname
   );
 
+  const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
+    useState(false);
+  const [missedWords, setMissedWords] = useState<string[]>([]);
+  const [isDictationCompleted, setIsDictationCompleted] = useState(false);
+
+  const showMissedWordsModal = () => {
+    if (videoMainRef.current) {
+      setMissedWords(videoMainRef.current.getMissedWords());
+      setIsMissedWordsModalVisible(true);
+    }
+  };
+
+  const handleRemoveMissedWord = (word: string) => {
+    if (videoMainRef.current) {
+      videoMainRef.current.removeMissedWord(word);
+      setMissedWords((prev) => prev.filter((w) => w !== word));
+    }
+  };
+
   return (
     <Content style={{ padding: "0 48px" }}>
       <div
@@ -86,10 +105,20 @@ const AppContent: React.FC = () => {
           ))}
         </Breadcrumb>
         {isVideoPage && (
-          <Button onClick={handleSaveProgress} disabled={!isDictationStarted}>
-            <CloudUploadOutlined />
-            {t("saveProgressBtnText")}
-          </Button>
+          <div>
+            <Button
+              onClick={showMissedWordsModal}
+              style={{ marginRight: 8 }}
+              disabled={!isDictationCompleted}
+            >
+              <FileTextOutlined />
+              {t("missedWordsSummary")}
+            </Button>
+            <Button onClick={handleSaveProgress} disabled={!isDictationStarted}>
+              <CloudUploadOutlined />
+              {t("saveProgressBtnText")}
+            </Button>
+          </div>
         )}
       </div>
       <Layout
@@ -116,7 +145,12 @@ const AppContent: React.FC = () => {
             <Route path="/dictation/video/:channelId" element={<VideoList />} />
             <Route
               path="/dictation/video/:channelId/:videoId"
-              element={<VideoMain ref={videoMainRef} />}
+              element={
+                <VideoMain
+                  ref={videoMainRef}
+                  onComplete={() => setIsDictationCompleted(true)}
+                />
+              }
             />
             <Route
               path="/dictation/word"
@@ -132,6 +166,25 @@ const AppContent: React.FC = () => {
           </Routes>
         </Content>
       </Layout>
+      <Modal
+        title={t("missedWordsSummary")}
+        open={isMissedWordsModalVisible}
+        onCancel={() => setIsMissedWordsModalVisible(false)}
+        footer={null}
+      >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          {missedWords.map((word) => (
+            <Tag
+              key={word}
+              closable
+              onClose={() => handleRemoveMissedWord(word)}
+              style={{ fontSize: "16px", padding: "4px 8px" }}
+            >
+              {word}
+            </Tag>
+          ))}
+        </div>
+      </Modal>
     </Content>
   );
 };

@@ -39,14 +39,21 @@ import {
 import { ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch } from "react-redux";
 import { setIsDictationStarted } from "@/redux/userSlice";
-export interface VideoMainRef {
-  saveProgress: () => Promise<void>;
+
+interface VideoMainProps {
+  onComplete: () => void;
 }
 
-const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
-  _,
-  ref
-) => {
+export interface VideoMainRef {
+  saveProgress: () => Promise<void>;
+  getMissedWords: () => string[];
+  removeMissedWord: (word: string) => void;
+}
+
+const VideoMain: React.ForwardRefRenderFunction<
+  VideoMainRef,
+  VideoMainProps
+> = ({ onComplete }, ref) => {
   const { videoId, channelId } = useParams<{
     videoId: string;
     channelId: string;
@@ -68,6 +75,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     useState(true);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [missedWords, setMissedWords] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,6 +111,10 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     fetchData();
   }, [videoId, channelId, dispatch]);
 
+  useEffect(() => {
+    populateMissedWords();
+  }, [transcript]);
+
   const restoreUserProgress = (
     progress: ProgressData,
     transcriptData: TranscriptItem[]
@@ -136,7 +148,9 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     }, 1000);
 
     if (progress.overallCompletion === 100) {
+      populateMissedWords();
       setIsCompleted(true);
+      onComplete();
       if (isInitialLoad) {
         Modal.confirm({
           title: t("dictationCompleted"),
@@ -194,7 +208,6 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
           setIsFirstEnterAfterRestore(false);
         }
 
-        // 使用 setTimeout 来确保在 DOM 更新后播放下一句
         setTimeout(() => {
           playNextSentence();
         }, 0);
@@ -253,7 +266,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         if (playerRef.current) {
           playerRef.current.pauseVideo();
         }
-      }, duration + 500); // 添加额外的500毫秒作为缓冲
+      }, duration + 500);
     });
   };
 
@@ -298,7 +311,7 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
         if (playerRef.current) {
           playerRef.current.pauseVideo();
         }
-      }, duration + 500); // 添加额外的500毫秒作为缓冲
+      }, duration + 500);
     });
   };
 
@@ -414,6 +427,22 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     return { inputResult, transcriptResult, completionPercentage };
   };
 
+  const populateMissedWords = () => {
+    const missedWords = transcript.flatMap((item, index) => {
+      if (item.userInput && revealedSentences.includes(index)) {
+        const { transcriptResult } = compareInputWithTranscript(
+          item.userInput,
+          item.transcript
+        );
+        return transcriptResult
+          .filter((word) => !word.isCorrect)
+          .map((word) => word.word);
+      }
+      return [];
+    });
+    setMissedWords([...new Set(missedWords)]);
+  };
+
   const updateOverallProgress = useCallback(() => {
     const totalWords = transcript.reduce(
       (sum, item) => sum + item.transcript.split(/\s+/).length,
@@ -459,13 +488,22 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     setOverallAccuracy(newOverallAccuracy);
 
     if (newOverallCompletion === 100 && !isCompleted && !isInitialLoad) {
+      populateMissedWords();
       setIsCompleted(true);
+      onComplete();
       Modal.success({
         title: t("dictationCompletedCongratulations"),
         content: t("dictationCompletedCongratulationsContent"),
       });
     }
-  }, [transcript, revealedSentences, isCompleted, isInitialLoad, t]);
+  }, [
+    transcript,
+    revealedSentences,
+    isCompleted,
+    isInitialLoad,
+    t,
+    onComplete,
+  ]);
 
   useEffect(() => {
     updateOverallProgress();
@@ -496,8 +534,14 @@ const VideoMain: React.ForwardRefRenderFunction<VideoMainRef, {}> = (
     }
   }, [channelId, videoId, transcript, overallCompletion, t]);
 
+  const removeMissedWord = (word: string) => {
+    setMissedWords((prev) => prev.filter((w) => w !== word));
+  };
+
   useImperativeHandle(ref, () => ({
     saveProgress,
+    getMissedWords: () => missedWords,
+    removeMissedWord,
   }));
 
   if (isUnauthorized) {
