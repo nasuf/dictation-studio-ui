@@ -103,4 +103,6 @@ export const api = {
     videoData: Partial<Video>
   ) =>
     axiosInstance.put(`/service/video-list/${channelId}/${videoId}`, videoData),
+
+  getAllProgress: () => axiosInstance.get("/user/all-progress"),
 };

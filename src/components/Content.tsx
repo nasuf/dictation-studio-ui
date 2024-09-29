@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import UserManagement from "@/components/admin/UserManagement";
+import UserProgress from "@/components/profile/Progress";
 
 import nlp from "compromise";
 
@@ -243,6 +244,7 @@ const AppContent: React.FC = () => {
             <Route path="/admin/video" element={<VideoManagement />} />
             <Route path="/admin/user" element={<UserManagement />} />
             <Route path="/profile/info" element={<div>个人中心</div>} />
+            <Route path="/profile/progress" element={<UserProgress />} />
             <Route path="/profile/progress" element={<div>进度</div>} />
           </Routes>
         </Content>
