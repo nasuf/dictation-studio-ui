@@ -322,15 +322,44 @@ const VideoMain: React.ForwardRefRenderFunction<
       (currentSentenceIndex - 1 + transcript.length) % transcript.length;
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
-    playerRef.current.seekTo(prevSentence.start, true);
-    playerRef.current.playVideo();
 
-    const duration = (prevSentence.end - prevSentence.start) * 1000;
-    setTimeout(() => {
-      if (playerRef.current) {
-        playerRef.current.pauseVideo();
-      }
-    }, duration);
+    playerRef.current.pauseVideo();
+    playerRef.current.seekTo(prevSentence.start, true);
+
+    const playPromise = new Promise<void>((resolve) => {
+      const onStateChange = (event: { data: number }) => {
+        if (event.data === YouTube.PlayerState.PLAYING) {
+          playerRef.current?.removeEventListener(
+            "onStateChange",
+            onStateChange
+          );
+          resolve();
+        }
+      };
+
+      playerRef.current?.addEventListener("onStateChange", onStateChange);
+      playerRef.current?.playVideo();
+    });
+
+    playPromise.then(() => {
+      const duration = (prevSentence.end - prevSentence.start) * 1000;
+      const checkInterval = setInterval(() => {
+        if (playerRef.current) {
+          const currentTime = playerRef.current.getCurrentTime();
+          if (currentTime >= prevSentence.end) {
+            playerRef.current.pauseVideo();
+            clearInterval(checkInterval);
+          }
+        }
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        if (playerRef.current) {
+          playerRef.current.pauseVideo();
+        }
+      }, duration + 500);
+    });
   };
 
   const saveUserInput = () => {
