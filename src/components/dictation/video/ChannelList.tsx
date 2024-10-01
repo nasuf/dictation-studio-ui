@@ -27,21 +27,25 @@ const ChannelList: React.FC = () => {
   }, []);
 
   return (
-    <ChannelGrid>
-      {channels.map((channel) => (
-        <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
-          <ChannelCard
-            hoverable
-            cover={<ChannelImage alt={channel.name} src={channel.image_url} />}
-            bodyStyle={{ padding: 0 }}
-          >
-            <ChannelInfo>
-              <ChannelName level={5}>{channel.name}</ChannelName>
-            </ChannelInfo>
-          </ChannelCard>
-        </Link>
-      ))}
-    </ChannelGrid>
+    <div className="h-full overflow-y-auto custom-scrollbar">
+      <ChannelGrid>
+        {channels.map((channel) => (
+          <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
+            <ChannelCard
+              hoverable
+              cover={
+                <ChannelImage alt={channel.name} src={channel.image_url} />
+              }
+              bodyStyle={{ padding: 0 }}
+            >
+              <ChannelInfo>
+                <ChannelName level={5}>{channel.name}</ChannelName>
+              </ChannelInfo>
+            </ChannelCard>
+          </Link>
+        ))}
+      </ChannelGrid>
+    </div>
   );
 };
 

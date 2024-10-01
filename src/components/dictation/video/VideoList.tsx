@@ -30,7 +30,6 @@ const VideoList: React.FC = () => {
         ]);
         setVideos(videoResponse.data.videos);
         setProgress(progressResponse.data.progress);
-        // Initialize all images as not loaded
         setLoadedImages(
           videoResponse.data.videos.reduce(
             (acc: { [key: string]: boolean }, video: Video) => {
@@ -53,7 +52,7 @@ const VideoList: React.FC = () => {
   };
 
   return (
-    <ScrollableContainer className="h-full overflow-y-auto">
+    <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
       <VideoCardGrid>
         {videos.map((video) => (
           <Link
@@ -62,6 +61,7 @@ const VideoList: React.FC = () => {
           >
             <CustomHoverCard
               hoverable
+              className="video-card"
               cover={
                 <div style={{ position: "relative", paddingTop: "56.25%" }}>
                   {!loadedImages[video.video_id] && <SkeletonImage active />}
@@ -77,7 +77,7 @@ const VideoList: React.FC = () => {
                       height: "100%",
                       objectFit: "cover",
                       display: loadedImages[video.video_id] ? "block" : "none",
-                      borderRadius: "10px 10px 0 0",
+                      borderRadius: "8px 8px 0 0",
                     }}
                   />
                 </div>
