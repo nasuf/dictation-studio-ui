@@ -30,7 +30,6 @@ import {
   SubtitleRow,
   SubtitleContent,
   HighlightedText,
-  ComparisonText,
   ProgressCircleWrapper,
   ProgressCircle,
   HideYouTubeControls,
@@ -676,7 +675,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                       isBlurred={!revealedSentences.includes(index)}
                     >
                       <SubtitleRow>
-                        <SubtitleContent>
+                        <SubtitleContent className="subtitle-content">
                           {revealedSentences.includes(index) ? (
                             <>
                               <p>
@@ -693,18 +692,22 @@ const VideoMain: React.ForwardRefRenderFunction<
                                 ))}
                               </p>
                               {item.userInput && (
-                                <p>
+                                <p className="user-input-text">
                                   {t("yourInput")}:{" "}
                                   {compareInputWithTranscript(
                                     item.userInput,
                                     item.transcript
                                   ).inputResult.map((word, wordIndex) => (
-                                    <ComparisonText
+                                    <span
                                       key={wordIndex}
-                                      color={word.color}
+                                      className={
+                                        word.isCorrect
+                                          ? "comparison-text-correct"
+                                          : "comparison-text-incorrect"
+                                      }
                                     >
                                       {word.word}{" "}
-                                    </ComparisonText>
+                                    </span>
                                   ))}
                                 </p>
                               )}
