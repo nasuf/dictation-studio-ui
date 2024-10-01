@@ -675,7 +675,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                       isBlurred={!revealedSentences.includes(index)}
                     >
                       <SubtitleRow>
-                        <SubtitleContent className="subtitle-content">
+                        <SubtitleContent className="subtitle-content dark:text-white">
                           {revealedSentences.includes(index) ? (
                             <>
                               <p>
@@ -692,7 +692,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                                 ))}
                               </p>
                               {item.userInput && (
-                                <p className="user-input-text">
+                                <p className="user-input-text dark:text-gray-300">
                                   {t("yourInput")}:{" "}
                                   {compareInputWithTranscript(
                                     item.userInput,
@@ -713,7 +713,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                               )}
                             </>
                           ) : (
-                            <p>{item.transcript}</p>
+                            <p className="dark:text-white">{item.transcript}</p>
                           )}
                         </SubtitleContent>
                         {revealedSentences.includes(index) && (

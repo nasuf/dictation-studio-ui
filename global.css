@@ -139,7 +139,7 @@ html,
 }
 
 .dark .user-input-text {
-  color: #f0f0f0;
+  color: #d1d5db;
 }
 
 .comparison-text-correct {
@@ -164,4 +164,30 @@ html,
 
 .dark .progress-circle-text {
   fill: #ffffff;
+}
+
+.header-menu {
+  background-color: #ffffff;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dark .header-menu {
+  background-color: #1f2937;
+}
+
+.header-menu-item {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.dark .header-menu-item {
+  color: #ffffff !important;
+}
+
+.dark .ant-dropdown-menu-item-selected {
+  background-color: #3b82f6 !important;
+}
+
+.dark .ant-dropdown-menu-item:hover {
+  background-color: #4b5563 !important;
 }

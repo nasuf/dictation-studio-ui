@@ -82,25 +82,42 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     <Menu
       onClick={({ key }) => toggleLanguage(key as string)}
       selectedKeys={[currentLanguage]}
+      className="header-menu"
     >
-      <Menu.Item key="en">English</Menu.Item>
-      <Menu.Item key="zh">中文</Menu.Item>
-      <Menu.Item key="ja">日本語</Menu.Item>
-      <Menu.Item key="ko">한국어</Menu.Item>
+      <Menu.Item key="en" className="header-menu-item">
+        English
+      </Menu.Item>
+      <Menu.Item key="zh" className="header-menu-item">
+        中文
+      </Menu.Item>
+      <Menu.Item key="ja" className="header-menu-item">
+        日本語
+      </Menu.Item>
+      <Menu.Item key="ko" className="header-menu-item">
+        한국어
+      </Menu.Item>
     </Menu>
   );
 
   const userMenu = (
-    <Menu>
-      <Menu.Item key="profile" onClick={() => navigate("/profile")}>
+    <Menu className="header-menu">
+      <Menu.Item
+        key="profile"
+        onClick={() => navigate("/profile")}
+        className="header-menu-item"
+      >
         {t("userProfile")}
       </Menu.Item>
       {userInfo?.role === "admin" && (
-        <Menu.Item key="admin" onClick={() => navigate("/admin/channel")}>
+        <Menu.Item
+          key="admin"
+          onClick={() => navigate("/admin/channel")}
+          className="header-menu-item"
+        >
           {t("adminPanel")}
         </Menu.Item>
       )}
-      <Menu.Item key="logout" onClick={logout}>
+      <Menu.Item key="logout" onClick={logout} className="header-menu-item">
         {t("logout")}
       </Menu.Item>
     </Menu>
@@ -118,7 +135,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
       <div className="flex items-center space-x-4">
         {" "}
-        {/* 修改这里，使用固定的 space-x-4 */}
         <Switch
           checked={isDarkMode}
           onChange={toggleDarkMode}
