@@ -48,3 +48,9 @@ export interface MenuItem {
   path?: string;
   children?: MenuItem[];
 }
+
+export interface FilterOption {
+  key: string;
+  translationKey: string;
+  checked: boolean;
+}

@@ -21,6 +21,7 @@ import UserProgress from "@/components/profile/Progress";
 import Information from "@/components/profile/Information";
 
 import nlp from "compromise";
+import { FilterOption } from "@/utils/type";
 
 const { Content } = Layout;
 
@@ -130,40 +131,81 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const [filterOptions, setFilterOptions] = useState({
-    removePrepositions: false,
-    removeLinkingVerbs: false,
-    removePronouns: false,
-    removeAuxiliaryVerbs: false,
-    removeNumbers: false,
-    removeArticleOrDeterminer: false,
-    removeConjunctions: false,
-  });
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
+    {
+      key: "removePrepositions",
+      translationKey: "filterPrepositions",
+      checked: false,
+    },
+    { key: "removePronouns", translationKey: "filterPronouns", checked: false },
+    {
+      key: "removeAuxiliaryVerbs",
+      translationKey: "filterAuxiliaryVerbs",
+      checked: false,
+    },
+    { key: "removeNumbers", translationKey: "filterNumbers", checked: false },
+    {
+      key: "removeArticleOrDeterminer",
+      translationKey: "filterArticlesAndDeterminers",
+      checked: false,
+    },
+    {
+      key: "removeConjunctions",
+      translationKey: "filterConjunctions",
+      checked: false,
+    },
+  ]);
+
+  const [selectAll, setSelectAll] = useState(false);
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    setFilterOptions(filterOptions.map((option) => ({ ...option, checked })));
+  };
+
+  const handleFilterChange = (key: string, checked: boolean) => {
+    setFilterOptions((prevOptions) => {
+      const newOptions = prevOptions.map((option) =>
+        option.key === key ? { ...option, checked } : option
+      );
+      setSelectAll(newOptions.every((option) => option.checked));
+      return newOptions;
+    });
+  };
 
   const filteredMissedWords = useMemo(() => {
     return missedWords.filter((word) => {
       const doc = nlp(word);
-      if (filterOptions.removePrepositions && doc.prepositions().length > 0)
+      if (
+        filterOptions.find((o) => o.key === "removePrepositions")?.checked &&
+        doc.prepositions().length > 0
+      )
         return false;
       if (
-        filterOptions.removeLinkingVerbs &&
+        filterOptions.find((o) => o.key === "removePronouns")?.checked &&
+        doc.pronouns().length > 0
+      )
+        return false;
+      if (
+        filterOptions.find((o) => o.key === "removeAuxiliaryVerbs")?.checked &&
         doc.verbs().conjugate().length > 0
       )
         return false;
-      if (filterOptions.removePronouns && doc.pronouns().length > 0)
-        return false;
       if (
-        filterOptions.removeAuxiliaryVerbs &&
-        doc.verbs().conjugate().length > 0
+        filterOptions.find((o) => o.key === "removeNumbers")?.checked &&
+        doc.numbers().length > 0
       )
         return false;
-      if (filterOptions.removeNumbers && doc.numbers().length > 0) return false;
       if (
-        filterOptions.removeArticleOrDeterminer &&
+        filterOptions.find((o) => o.key === "removeArticleOrDeterminer")
+          ?.checked &&
         isArticleOrDeterminer(word)
       )
         return false;
-      if (filterOptions.removeConjunctions && doc.conjunctions().length > 0)
+      if (
+        filterOptions.find((o) => o.key === "removeConjunctions")?.checked &&
+        doc.conjunctions().length > 0
+      )
         return false;
       return true;
     });
@@ -269,82 +311,23 @@ const AppContent: React.FC = () => {
           }}
         >
           <Checkbox
-            checked={filterOptions.removePrepositions}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removePrepositions: e.target.checked,
-              }))
-            }
+            checked={selectAll}
+            onChange={(e) => handleSelectAll(e.target.checked)}
+            className="mb-2 font-bold"
           >
-            Remove Prepositions
+            {t("selectAll")}
           </Checkbox>
-          <Checkbox
-            checked={filterOptions.removeLinkingVerbs}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removeLinkingVerbs: e.target.checked,
-              }))
-            }
-          >
-            Remove Linking Verbs
-          </Checkbox>
-          <Checkbox
-            checked={filterOptions.removePronouns}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removePronouns: e.target.checked,
-              }))
-            }
-          >
-            Remove Pronouns
-          </Checkbox>
-          <Checkbox
-            checked={filterOptions.removeAuxiliaryVerbs}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removeAuxiliaryVerbs: e.target.checked,
-              }))
-            }
-          >
-            Remove Auxiliary Verbs
-          </Checkbox>
-          <Checkbox
-            checked={filterOptions.removeNumbers}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removeNumbers: e.target.checked,
-              }))
-            }
-          >
-            Remove Numbers
-          </Checkbox>
-          <Checkbox
-            checked={filterOptions.removeArticleOrDeterminer}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removeArticleOrDeterminer: e.target.checked,
-              }))
-            }
-          >
-            Remove Articles and Determiners
-          </Checkbox>
-          <Checkbox
-            checked={filterOptions.removeConjunctions}
-            onChange={(e) =>
-              setFilterOptions((prev) => ({
-                ...prev,
-                removeConjunctions: e.target.checked,
-              }))
-            }
-          >
-            Remove Conjunctions
-          </Checkbox>
+          <br />
+          {filterOptions.map((option) => (
+            <Checkbox
+              key={option.key}
+              checked={option.checked}
+              onChange={(e) => handleFilterChange(option.key, e.target.checked)}
+              className="mr-4 mb-2"
+            >
+              {t(option.translationKey)}
+            </Checkbox>
+          ))}
         </div>
         <div
           style={{

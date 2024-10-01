@@ -67,6 +67,13 @@ const enTranslations = {
   homePageDescription:
     "Improve your English listening with daily dictation exercises.",
   startDictation: "Start Dictation",
+  selectAll: "Select All",
+  filterPrepositions: "Remove Prepositions",
+  filterPronouns: "Remove Pronouns",
+  filterAuxiliaryVerbs: "Remove Auxiliary Verbs",
+  filterNumbers: "Remove Numbers",
+  filterArticlesAndDeterminers: "Remove Articles and Determiners",
+  filterConjunctions: "Remove Conjunctions",
 };
 
 const zhTranslations = {
@@ -131,6 +138,13 @@ const zhTranslations = {
   dictationProgress: "听写进度",
   homePageDescription: "通过每日听写练习提高您的英语听力。",
   startDictation: "开始听写",
+  selectAll: "全选",
+  filterPrepositions: "移除介词",
+  filterPronouns: "移除代词",
+  filterAuxiliaryVerbs: "移除助动词",
+  filterNumbers: "移除数字",
+  filterArticlesAndDeterminers: "移除冠词和限定词",
+  filterConjunctions: "移除连词",
 };
 
 const jaTranslations = {
@@ -198,6 +212,13 @@ const jaTranslations = {
   homePageDescription:
     "毎日の聞き取り練習で英語の聞き取りと書き取りの能力を向上させましょう。",
   startDictation: "聞き取りを開始",
+  selectAll: "全て選択",
+  filterPrepositions: "前置詞を除外",
+  filterPronouns: "代名詞を除外",
+  filterAuxiliaryVerbs: "助動詞を除外",
+  filterNumbers: "数字を除外",
+  filterArticlesAndDeterminers: "冠詞と限定詞を除外",
+  filterConjunctions: "接続詞を除外",
 };
 
 const koTranslations = {
@@ -265,6 +286,13 @@ const koTranslations = {
   homePageDescription:
     "매일 듣기 연습을 통해 영어 듣기와 쓰기 능력을 향상하세요.",
   startDictation: "듣기 시작",
+  selectAll: "전체 선택",
+  filterPrepositions: "전치사 제외",
+  filterPronouns: "대명사 제외",
+  filterAuxiliaryVerbs: "보조 동사 제외",
+  filterNumbers: "숫자 제외",
+  filterArticlesAndDeterminers: "관사와 한정사 제외",
+  filterConjunctions: "접속사 제외",
 };
 
 i18n.use(initReactI18next).init({
