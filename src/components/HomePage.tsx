@@ -1,80 +1,61 @@
-import React from "react";
-import { Typography, Button, Space } from "antd";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
 import { useTranslation } from "react-i18next";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Sphere, MeshDistortMaterial } from "@react-three/drei";
+import * as THREE from "three";
 
-const { Title, Paragraph } = Typography;
+const AnimatedSphere = () => {
+  const meshRef = useRef<THREE.Mesh>(null);
 
-const HomeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh);
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
-  color: white;
-  text-align: center;
-  padding: 20px;
-`;
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.01;
+      meshRef.current.rotation.y += 0.01;
+    }
+  });
 
-const AnimatedTitle = styled(Title)`
-  animation: fadeInDown 1s ease-out;
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
-
-const AnimatedParagraph = styled(Paragraph)`
-  animation: fadeIn 1s ease-out 0.5s both;
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-`;
-
-const StyledButton = styled(Button)`
-  margin: 10px;
-  animation: pulse 2s infinite;
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-`;
+  return (
+    <Sphere args={[1, 100, 200]} ref={meshRef}>
+      <MeshDistortMaterial
+        color="#8B5CF6"
+        attach="material"
+        distort={0.5}
+        speed={2}
+      />
+    </Sphere>
+  );
+};
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <HomeContainer>
-      <AnimatedTitle level={1}>Daily Dictation</AnimatedTitle>
-      <AnimatedParagraph>{t("homePageDescription")}</AnimatedParagraph>
-      <Space size="large">
-        <Link to="/dictation/video">
-          <StyledButton type="primary" size="large">
-            {t("startDictation")}
-          </StyledButton>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <Canvas>
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} />
+          <AnimatedSphere />
+        </Canvas>
+      </div>
+      <div className="z-10 text-center">
+        <h1 className="text-6xl font-bold mb-6 animate-fade-in-down">
+          Daily Dictation
+        </h1>
+        <p className="text-xl mb-12 animate-fade-in-up max-w-2xl">
+          {t("homePageDescription")}
+        </p>
+        <Link
+          to="/dictation/video"
+          className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
+                     transform transition duration-3000 hover:scale-110 hover:bg-purple-500
+                     animate-pulse"
+        >
+          {t("startDictation")}
         </Link>
-      </Space>
-    </HomeContainer>
+      </div>
+    </div>
   );
 };
 
