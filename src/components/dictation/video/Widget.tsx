@@ -1,4 +1,4 @@
-import { Card, Typography, Avatar } from "antd";
+import { Card, Typography, Avatar, Skeleton } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { AudioOutlined } from "@ant-design/icons";
@@ -409,4 +409,17 @@ export const LogoText = styled.span`
   color: white;
   text-transform: uppercase;
   letter-spacing: 1px;
+`;
+
+export const SkeletonImage = styled(Skeleton.Image)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+
+  .ant-skeleton-image {
+    width: 100% !important;
+    height: 100% !important;
+  }
 `;

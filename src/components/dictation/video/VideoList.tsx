@@ -9,6 +9,7 @@ import {
   CustomHoverCard,
   CustomCardMeta,
   ScrollingTitle,
+  SkeletonImage,
 } from "./Widget";
 import { resetScrollPosition } from "@/utils/util";
 
@@ -16,6 +17,9 @@ const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
   const [videos, setVideos] = useState<Video[]>([]);
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
+  const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +30,16 @@ const VideoList: React.FC = () => {
         ]);
         setVideos(videoResponse.data.videos);
         setProgress(progressResponse.data.progress);
+        // Initialize all images as not loaded
+        setLoadedImages(
+          videoResponse.data.videos.reduce(
+            (acc: { [key: string]: boolean }, video: Video) => {
+              acc[video.video_id] = false;
+              return acc;
+            },
+            {}
+          )
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -33,6 +47,10 @@ const VideoList: React.FC = () => {
 
     fetchData();
   }, [channelId]);
+
+  const handleImageLoad = (videoId: string) => {
+    setLoadedImages((prev) => ({ ...prev, [videoId]: true }));
+  };
 
   return (
     <ScrollableContainer>
@@ -45,10 +63,24 @@ const VideoList: React.FC = () => {
             <CustomHoverCard
               hoverable
               cover={
-                <img
-                  alt={video.title}
-                  src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
-                />
+                <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                  {!loadedImages[video.video_id] && <SkeletonImage active />}
+                  <img
+                    alt={video.title}
+                    src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
+                    onLoad={() => handleImageLoad(video.video_id)}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: loadedImages[video.video_id] ? "block" : "none",
+                      borderRadius: "10px 10px 0 0",
+                    }}
+                  />
+                </div>
               }
             >
               <CustomCardMeta

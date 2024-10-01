@@ -7,6 +7,7 @@ import {
   ScrollableContainer,
   ScrollingTitle,
   VideoCardGrid,
+  SkeletonImage,
 } from "@/components/dictation/video/Widget";
 import { UserProgressData } from "@/utils/type";
 import { Link } from "react-router-dom";
@@ -18,6 +19,9 @@ const UserProgress: React.FC = () => {
   const [allProgress, setAllProgress] = useState<UserProgressData[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const { token } = theme.useToken();
+  const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchAllProgress = async () => {
@@ -28,6 +32,16 @@ const UserProgress: React.FC = () => {
         if (data.progress.length > 0) {
           setSelectedChannel(data.progress[0].channelId);
         }
+        // Initialize all images as not loaded
+        setLoadedImages(
+          data.progress.reduce(
+            (acc: { [key: string]: boolean }, item: UserProgressData) => {
+              acc[item.videoId] = false;
+              return acc;
+            },
+            {}
+          )
+        );
       } catch (error) {
         console.error("Error fetching progress:", error);
       }
@@ -43,6 +57,10 @@ const UserProgress: React.FC = () => {
   const filteredVideos = allProgress.filter(
     (item) => item.channelId === selectedChannel
   );
+
+  const handleImageLoad = (videoId: string) => {
+    setLoadedImages((prev) => ({ ...prev, [videoId]: true }));
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -83,10 +101,26 @@ const UserProgress: React.FC = () => {
                   key={video.videoId}
                   hoverable
                   cover={
-                    <img
-                      alt={video.videoTitle}
-                      src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
-                    />
+                    <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                      {!loadedImages[video.videoId] && <SkeletonImage active />}
+                      <img
+                        alt={video.videoTitle}
+                        src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                        onLoad={() => handleImageLoad(video.videoId)}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: loadedImages[video.videoId]
+                            ? "block"
+                            : "none",
+                          borderRadius: "10px 10px 0 0",
+                        }}
+                      />
+                    </div>
                   }
                 >
                   <CustomCardMeta
