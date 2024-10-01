@@ -76,12 +76,12 @@ const AppSider: React.FC = () => {
       key: "Information",
       icon: <IdcardTwoTone />,
       label: t("information"),
-      path: "/profile/info",
+      path: "/profile/infomation",
     },
     {
-      key: "Progress",
-      icon: <NotificationTwoTone />,
-      label: t("progress"),
+      key: "DictationProgress",
+      icon: <CustomerServiceTwoTone />,
+      label: t("dictationProgress"),
       path: "/profile/progress",
     },
   ];

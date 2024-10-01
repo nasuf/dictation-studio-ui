@@ -63,7 +63,7 @@ const UserProgress: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", paddingLeft: "0px" }}>
       <Sider
         width={200}
         theme="light"

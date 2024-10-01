@@ -62,6 +62,8 @@ const enTranslations = {
   dictationCompletedCongratulationsContent:
     "You have completed this dictation exercise!",
   missedWordsSummary: "Missed Words Summary",
+  information: "Information",
+  dictationProgress: "Dictation Progress",
 };
 
 const zhTranslations = {
@@ -122,6 +124,8 @@ const zhTranslations = {
   dictationCompletedCongratulations: "恭喜！",
   dictationCompletedCongratulationsContent: "你已经完成了这个听写练习！",
   missedWordsSummary: "未写出单词汇总",
+  information: "个人信息",
+  dictationProgress: "听写进度",
 };
 
 const jaTranslations = {
@@ -184,6 +188,8 @@ const jaTranslations = {
   dictationCompletedCongratulationsContent:
     "あなたはこの聞き取りの練習を完了しました！",
   missedWordsSummary: "未写出単語の概要",
+  information: "個人情報",
+  dictationProgress: "聞き取りの進捗",
 };
 
 const koTranslations = {
@@ -240,12 +246,14 @@ const koTranslations = {
   saveProgressBtnText: "진행 상황 저장",
   profile: "프로필",
   adminPanel: "관리자 패널",
-  dictationCompleted: "聞き取りが完了しました",
-  startOverOrNot: "聞き取りをやり直しますか？",
-  dictationCompletedCongratulations: "おめでとう！",
+  dictationCompleted: "듣기 완료",
+  startOverOrNot: "듣기를 다시 시작하시겠습니까？",
+  dictationCompletedCongratulations: "축하합니다！",
   dictationCompletedCongratulationsContent:
-    "あなたはこの聞き取りの練習を完了しました！",
-  missedWordsSummary: "未写出単語の概要",
+    "축하합니다！ 이 듣기 연습을 완료했습니다！",
+  missedWordsSummary: "미완료 단어 요약",
+  information: "개인 정보",
+  dictationProgress: "듣기 진행 상황",
 };
 
 i18n.use(initReactI18next).init({

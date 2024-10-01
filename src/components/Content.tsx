@@ -18,6 +18,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import UserManagement from "@/components/admin/UserManagement";
 import UserProgress from "@/components/profile/Progress";
+import Information from "@/components/profile/Information";
 
 import nlp from "compromise";
 
@@ -243,9 +244,9 @@ const AppContent: React.FC = () => {
             <Route path="/admin/channel" element={<ChannelManagement />} />
             <Route path="/admin/video" element={<VideoManagement />} />
             <Route path="/admin/user" element={<UserManagement />} />
-            <Route path="/profile/info" element={<div>个人中心</div>} />
+            <Route path="/profile" element={<Information />} />
+            <Route path="/profile/infomation" element={<Information />} />
             <Route path="/profile/progress" element={<UserProgress />} />
-            <Route path="/profile/progress" element={<div>进度</div>} />
           </Routes>
         </Content>
       </Layout>
