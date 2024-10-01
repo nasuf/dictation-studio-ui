@@ -208,7 +208,7 @@ const AppContent: React.FC = () => {
   }, [missedWords, filterOptions]);
 
   return (
-    <Content className="p-6 bg-white dark:bg-gray-900 h-full">
+    <Content className="p-6 bg-white bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 h-full">
       <div className="flex justify-between items-center mb-6">
         <Breadcrumb
           className="text-gray-600 dark:text-gray-400"
@@ -251,7 +251,7 @@ const AppContent: React.FC = () => {
       <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md h-full">
         <Layout className="bg-transparent h-full">
           <AppSider />
-          <Content className="p-6 min-h-[80vh] h-full">
+          <Content className="p-6 min-h-[80vh] h-full bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 ">
             <Routes>
               <Route path="/" element={<ChannelList />} />
               <Route path="/dictation" element={<ChannelList />} />
