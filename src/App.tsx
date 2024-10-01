@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -12,6 +12,7 @@ import AppFooter from "@/components/Footer";
 import LoginModal from "@/components/LoginModal";
 import { api } from "@/api/api";
 import "../global.css";
+import HomePage from "@/components/HomePage";
 
 const { Header, Content, Footer } = Layout;
 
@@ -67,22 +68,30 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout style={{ height: "100vh", overflow: "hidden" }}>
-      <Header style={{ padding: 0, overflow: "hidden" }}>
-        <AppHeader showLoginModal={() => setIsLoginModalVisible(true)} />
-      </Header>
-      <Content style={{ padding: 0, overflow: "hidden" }}>
-        <AppContent />
-      </Content>
-      <Footer style={{ padding: 0, overflow: "hidden" }}>
-        <AppFooter />
-      </Footer>
-      <LoginModal
-        visible={isLoginModalVisible}
-        onClose={() => setIsLoginModalVisible(false)}
-        onGoogleLogin={handleGoogleLogin}
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route
+        path="*"
+        element={
+          <Layout style={{ height: "100vh", overflow: "hidden" }}>
+            <Header style={{ padding: 0, overflow: "hidden" }}>
+              <AppHeader showLoginModal={() => setIsLoginModalVisible(true)} />
+            </Header>
+            <Content style={{ padding: 0, overflow: "hidden" }}>
+              <AppContent />
+            </Content>
+            <Footer style={{ padding: 0, overflow: "hidden" }}>
+              <AppFooter />
+            </Footer>
+            <LoginModal
+              visible={isLoginModalVisible}
+              onClose={() => setIsLoginModalVisible(false)}
+              onGoogleLogin={handleGoogleLogin}
+            />
+          </Layout>
+        }
       />
-    </Layout>
+    </Routes>
   );
 };
 
