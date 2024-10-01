@@ -343,28 +343,36 @@ export const ChannelGrid = styled.div`
 `;
 
 export const ChannelCard = styled(Card)`
-  border-radius: 9px;
+  border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
-  height: 240px; // 设置固定高度
+  height: 240px;
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 5px 11px rgba(0, 0, 0, 0.2);
   }
+
+  .ant-card-cover {
+    height: 180px; // 调整这个值以适应您的设计
+  }
+
+  .ant-card-body {
+    padding: 0;
+  }
 `;
 
 export const ChannelImage = styled.img`
   width: 100%;
-  height: 145px;
+  height: 100%;
   object-fit: cover;
 `;
 
 export const ChannelInfo = styled.div`
-  padding: 0px;
+  padding: 12px;
   background: linear-gradient(to bottom, #f0f2f5, #ffffff);
-  height: 65px; // 设置固定高度
+  height: 60px; // 调整这个值以适应您的设计
   display: flex;
   align-items: center;
   justify-content: center;
@@ -373,7 +381,7 @@ export const ChannelInfo = styled.div`
 const { Title } = Typography;
 export const ChannelName = styled(Title)`
   margin: 0 !important;
-  font-size: 15px !important;
+  font-size: 14px !important;
   text-align: center;
   line-height: 1.2;
   display: -webkit-box;
