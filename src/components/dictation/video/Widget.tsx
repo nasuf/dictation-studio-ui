@@ -279,7 +279,14 @@ export const ProgressCircle: React.FC<{ percentage: number }> = ({
         strokeDashoffset={strokeDashoffset}
         transform="rotate(-90 20 20)"
       />
-      <text x="20" y="20" textAnchor="middle" dy=".3em" fontSize="10">
+      <text
+        className="progress-circle-text"
+        x="20"
+        y="20"
+        textAnchor="middle"
+        dy=".3em"
+        fontSize="10"
+      >
         {`${Math.round(percentage)}%`}
       </text>
     </svg>

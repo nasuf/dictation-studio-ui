@@ -157,3 +157,11 @@ html,
 .dark .comparison-text-incorrect {
   color: #ff6b6b;
 }
+
+.progress-circle-text {
+  fill: #000000;
+}
+
+.dark .progress-circle-text {
+  fill: #ffffff;
+}
