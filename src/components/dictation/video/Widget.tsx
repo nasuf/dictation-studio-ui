@@ -346,16 +346,18 @@ export const ChannelCard = styled(Card)`
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   height: 240px;
+  background-color: transparent;
+  border: none;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 5px 11px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 11px rgba(0, 0, 0, 0.5);
   }
 
   .ant-card-cover {
-    height: 180px; // 调整这个值以适应您的设计
+    height: 180px;
   }
 
   .ant-card-body {
@@ -371,11 +373,15 @@ export const ChannelImage = styled.img`
 
 export const ChannelInfo = styled.div`
   padding: 12px;
-  background: linear-gradient(to bottom, #f0f2f5, #ffffff);
-  height: 60px; // 调整这个值以适应您的设计
+  background: #f0f2f5;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  .dark & {
+    background: #1f2937;
+  }
 `;
 
 const { Title } = Typography;
@@ -389,6 +395,11 @@ export const ChannelName = styled(Title)`
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #333;
+
+  .dark & {
+    color: #e5e7eb;
+  }
 `;
 
 export const StyledAvatar = styled(Avatar)`

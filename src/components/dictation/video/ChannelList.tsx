@@ -36,12 +36,7 @@ const ChannelList: React.FC = () => {
             bodyStyle={{ padding: 0 }}
           >
             <ChannelInfo>
-              <ChannelName
-                level={5}
-                className="text-gray-800 dark:text-gray-200"
-              >
-                {channel.name}
-              </ChannelName>
+              <ChannelName level={5}>{channel.name}</ChannelName>
             </ChannelInfo>
           </ChannelCard>
         </Link>
