@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}", // 确保包含了所有的源文件
+  ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {

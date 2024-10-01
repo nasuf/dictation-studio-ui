@@ -1,4 +1,4 @@
-import { Menu, theme } from "antd";
+import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import {
   BookTwoTone,
@@ -9,16 +9,12 @@ import {
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import styles from "@/lib/styles/Sider.module.css";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { MenuItem } from "@/utils/type";
 
 const AppSider: React.FC = () => {
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
   const location = useLocation();
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
@@ -152,13 +148,13 @@ const AppSider: React.FC = () => {
   const defaultOpenKeys = [location.pathname.split("/")[1] || "Dictation"];
 
   return (
-    <Sider style={{ background: colorBgContainer }} width={200}>
+    <Sider className="bg-white dark:bg-gray-800" width={200}>
       <Menu
         mode="inline"
         defaultSelectedKeys={defaultSelectedKeys}
         defaultOpenKeys={defaultOpenKeys}
         style={{ height: "100%" }}
-        className={styles.siderMenu}
+        className="bg-white dark:bg-gray-800"
       >
         {renderMenuItems(siderItems)}
       </Menu>

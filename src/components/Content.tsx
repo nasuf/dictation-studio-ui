@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo } from "react";
-import { Breadcrumb, Layout, theme, Button, Modal, Tag, Checkbox } from "antd";
+import { Breadcrumb, Layout, Button, Modal, Tag, Checkbox } from "antd";
 import { Route, Routes, useLocation, Link } from "react-router-dom";
 import { CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
 
@@ -62,10 +62,6 @@ const removePunctuation = (word: string) => {
 };
 
 const AppContent: React.FC = () => {
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-
   const location = useLocation();
   const videoMainRef = useRef<VideoMainRef>(null);
   const { t } = useTranslation();
@@ -212,86 +208,84 @@ const AppContent: React.FC = () => {
   }, [missedWords, filterOptions]);
 
   return (
-    <Content style={{ padding: "0 48px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          margin: "16px 0",
-        }}
-      >
-        <Breadcrumb>
+    <Content className="p-6 bg-white dark:bg-gray-900 h-full">
+      <div className="flex justify-between items-center mb-6">
+        <Breadcrumb
+          className="text-gray-600 dark:text-gray-400"
+          separator={
+            <span className="text-gray-600 dark:text-gray-400">/</span>
+          }
+        >
           {getBreadcrumbItems().map((item, index) => (
             <Breadcrumb.Item key={index}>
-              <Link to={item.path}>{item.title}</Link>
+              <Link
+                to={item.path}
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+              >
+                {item.title}
+              </Link>
             </Breadcrumb.Item>
           ))}
         </Breadcrumb>
         {isVideoPage && (
-          <div>
+          <div className="space-x-4">
             <Button
               onClick={showMissedWordsModal}
-              style={{ marginRight: 8 }}
               disabled={!isDictationCompleted}
+              className="bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
             >
               <FileTextOutlined />
               {t("missedWordsSummary")}
             </Button>
-            <Button onClick={handleSaveProgress} disabled={!isDictationStarted}>
+            <Button
+              onClick={handleSaveProgress}
+              disabled={!isDictationStarted}
+              className="bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
+            >
               <CloudUploadOutlined />
               {t("saveProgressBtnText")}
             </Button>
           </div>
         )}
       </div>
-      <Layout
-        style={{
-          height: "80vh",
-          padding: "24px 0",
-          background: colorBgContainer,
-          borderRadius: borderRadiusLG,
-        }}
-      >
-        <AppSider />
-        <Content
-          style={{
-            padding: "0 24px",
-            minHeight: 280,
-            width: "100%",
-            overflow: "auto",
-          }}
-        >
-          <Routes>
-            <Route path="/" element={<ChannelList />} />
-            <Route path="/dictation" element={<ChannelList />} />
-            <Route path="/dictation/video" element={<ChannelList />} />
-            <Route path="/dictation/video/:channelId" element={<VideoList />} />
-            <Route
-              path="/dictation/video/:channelId/:videoId"
-              element={
-                <VideoMain
-                  ref={videoMainRef}
-                  onComplete={() => setIsDictationCompleted(true)}
-                />
-              }
-            />
-            <Route
-              path="/dictation/word"
-              element={<Word style={componentStyle} />}
-            />
-            <Route path="/collection/video" element={<div>文章收藏</div>} />
-            <Route path="/collection/word" element={<div>单词收藏</div>} />
-            <Route path="/radio" element={<Radio style={componentStyle} />} />
-            <Route path="/admin/channel" element={<ChannelManagement />} />
-            <Route path="/admin/video" element={<VideoManagement />} />
-            <Route path="/admin/user" element={<UserManagement />} />
-            <Route path="/profile" element={<Information />} />
-            <Route path="/profile/infomation" element={<Information />} />
-            <Route path="/profile/progress" element={<UserProgress />} />
-          </Routes>
-        </Content>
-      </Layout>
+      <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md h-full">
+        <Layout className="bg-transparent h-full">
+          <AppSider />
+          <Content className="p-6 min-h-[80vh] h-full">
+            <Routes>
+              <Route path="/" element={<ChannelList />} />
+              <Route path="/dictation" element={<ChannelList />} />
+              <Route path="/dictation/video" element={<ChannelList />} />
+              <Route
+                path="/dictation/video/:channelId"
+                element={<VideoList />}
+              />
+              <Route
+                path="/dictation/video/:channelId/:videoId"
+                element={
+                  <VideoMain
+                    ref={videoMainRef}
+                    onComplete={() => setIsDictationCompleted(true)}
+                  />
+                }
+              />
+              <Route
+                path="/dictation/word"
+                element={<Word style={componentStyle} />}
+              />
+              <Route path="/collection/video" element={<div>文章收藏</div>} />
+              <Route path="/collection/word" element={<div>单词收藏</div>} />
+              <Route path="/radio" element={<Radio style={componentStyle} />} />
+              <Route path="/admin/channel" element={<ChannelManagement />} />
+              <Route path="/admin/video" element={<VideoManagement />} />
+              <Route path="/admin/user" element={<UserManagement />} />
+              <Route path="/profile" element={<Information />} />
+              <Route path="/profile/infomation" element={<Information />} />
+              <Route path="/profile/progress" element={<UserProgress />} />
+            </Routes>
+          </Content>
+        </Layout>
+      </div>
       <Modal
         title={t("missedWordsSummary")}
         open={isMissedWordsModalVisible}
@@ -299,21 +293,13 @@ const AppContent: React.FC = () => {
         footer={null}
         width={800}
         bodyStyle={{ maxHeight: "calc(100vh - 200px)", padding: 0 }}
+        className="dark:bg-gray-800 dark:text-white"
       >
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            background: "white",
-            zIndex: 1,
-            padding: "16px",
-            borderBottom: "1px solid #f0f0f0",
-          }}
-        >
+        <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
           <Checkbox
             checked={selectAll}
             onChange={(e) => handleSelectAll(e.target.checked)}
-            className="mb-2 font-bold"
+            className="mb-2 font-bold dark:text-white"
           >
             {t("selectAll")}
           </Checkbox>
@@ -323,26 +309,20 @@ const AppContent: React.FC = () => {
               key={option.key}
               checked={option.checked}
               onChange={(e) => handleFilterChange(option.key, e.target.checked)}
-              className="mr-4 mb-2"
+              className="mr-4 mb-2 dark:text-gray-300"
             >
               {t(option.translationKey)}
             </Checkbox>
           ))}
         </div>
-        <div
-          style={{
-            padding: "16px",
-            overflowY: "auto",
-            maxHeight: "calc(100vh - 300px)",
-          }}
-        >
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)] dark:bg-gray-800">
+          <div className="flex flex-wrap gap-2">
             {filteredMissedWords.map((word) => (
               <Tag
                 key={word}
                 closable
                 onClose={() => handleRemoveMissedWord(word)}
-                style={{ fontSize: "16px", padding: "4px 8px" }}
+                className="text-base py-1 px-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
               >
                 {word}
               </Tag>

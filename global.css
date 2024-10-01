@@ -16,15 +16,6 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
 html,
 #root {
   height: 100%;
@@ -45,4 +36,41 @@ html,
 
 .animate-blink-cursor {
   animation: blink-cursor 1s infinite;
+}
+
+.ant-menu-item a,
+.ant-menu-submenu-title {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.dark .ant-menu-item-selected,
+.dark .ant-menu-item:active,
+.dark .ant-menu-submenu-active > .ant-menu-submenu-title {
+  background-color: #1e3a8a !important;
+}
+
+.dark .ant-menu-item-selected a,
+.dark .ant-menu-item-selected span,
+.dark .ant-menu-submenu-selected > .ant-menu-submenu-title,
+.dark .ant-menu-submenu:hover > .ant-menu-submenu-title,
+.dark .ant-menu-submenu-open > .ant-menu-submenu-title {
+  color: white !important;
+}
+
+.dark .ant-menu-item:hover,
+.dark .ant-menu-item:hover a {
+  color: #1890ff !important;
+}
+
+.dark .ant-menu-item a,
+.dark .ant-menu-submenu-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark .ant-menu-item-selected a,
+.dark .ant-menu-item:hover a,
+.dark .ant-menu-submenu-selected > .ant-menu-submenu-title,
+.dark .ant-menu-submenu:hover > .ant-menu-submenu-title,
+.dark .ant-menu-submenu-open > .ant-menu-submenu-title {
+  color: #1890ff !important;
 }

@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import { Layout, Menu, Space, Dropdown, message } from "antd";
-import { GlobalOutlined, DownOutlined, UserOutlined } from "@ant-design/icons";
+import { Menu, Dropdown, message, Switch } from "antd";
+import {
+  GlobalOutlined,
+  UserOutlined,
+  SunOutlined,
+  MoonOutlined,
+} from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -10,20 +15,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import {
-  LogoContainer,
-  LogoIcon,
-  LogoText,
-  StyledAvatar,
-} from "@/components/dictation/video/Widget";
-
-const { Header } = Layout;
 
 interface AppHeaderProps {
   showLoginModal: () => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({
+  showLoginModal,
+  isDarkMode,
+  toggleDarkMode,
+}) => {
   const { i18n, t } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -104,61 +107,66 @@ const AppHeader: React.FC<AppHeaderProps> = ({ showLoginModal }) => {
   );
 
   return (
-    <Header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 16px",
-        marginBottom: 16,
-      }}
-    >
-      <LogoContainer onClick={() => navigate("/")}>
-        <LogoIcon />
-        <LogoText>Daily Dictation</LogoText>
-      </LogoContainer>
-      <Space>
+    <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white py-2 px-4 md:px-6 flex items-center justify-between shadow-lg">
+      <div className="flex items-center">
+        <h1
+          className="text-xl md:text-2xl font-bold cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          Daily Dictation
+        </h1>
+      </div>
+      <div className="flex items-center space-x-4">
+        {" "}
+        {/* 修改这里，使用固定的 space-x-4 */}
+        <Switch
+          checked={isDarkMode}
+          onChange={toggleDarkMode}
+          checkedChildren={<MoonOutlined />}
+          unCheckedChildren={<SunOutlined />}
+          className="bg-purple-500 dark:bg-gray-600"
+        />
         <Dropdown overlay={languageMenu} trigger={["click"]}>
-          <a onClick={(e) => e.preventDefault()} style={{ color: "white" }}>
-            <Space>
-              <GlobalOutlined />
+          <button className="flex items-center space-x-1 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-2 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base">
+            <GlobalOutlined />
+            <span className="hidden md:inline">
               {i18n.language === "en"
                 ? "English"
                 : i18n.language === "zh"
                 ? "中文"
                 : i18n.language === "ja"
                 ? "日本語"
-                : i18n.language === "ko"
-                ? "한국어"
-                : "Language"}
-              <DownOutlined />
-            </Space>
-          </a>
+                : "한국어"}
+            </span>
+          </button>
         </Dropdown>
         {userInfo ? (
           <Dropdown overlay={userMenu} trigger={["click"]}>
-            <StyledAvatar
-              src={userInfo.avatar}
-              icon={<UserOutlined />}
-              style={{ verticalAlign: "middle" }}
-            />
+            <button className="flex items-center space-x-1 md:space-x-2 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-2 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base">
+              <img
+                src={userInfo.avatar}
+                alt="User Avatar"
+                className="w-6 h-6 md:w-8 md:h-8 rounded-full"
+              />
+              <span className="hidden md:inline">{userInfo.username}</span>
+            </button>
           </Dropdown>
         ) : (
-          <a onClick={showLoginModal} style={{ color: "white" }}>
-            <Space>
-              <UserOutlined />
-              {t("login")}
-              <DownOutlined />
-            </Space>
-          </a>
+          <button
+            onClick={showLoginModal}
+            className="bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base"
+          >
+            <UserOutlined className="md:mr-2" />
+            <span className="hidden md:inline">{t("login")}</span>
+          </button>
         )}
-      </Space>
+      </div>
       <LoginModal
         visible={isLoginModalVisible}
         onClose={() => setIsLoginModalVisible(false)}
         onGoogleLogin={() => login()}
       />
-    </Header>
+    </header>
   );
 };
 

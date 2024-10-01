@@ -30,10 +30,15 @@ const ChannelList: React.FC = () => {
     <ChannelGrid>
       {channels.map((channel) => (
         <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
-          <ChannelCard hoverable>
+          <ChannelCard hoverable className="bg-white dark:bg-gray-700">
             <ChannelImage alt={channel.name} src={channel.image_url} />
             <ChannelInfo>
-              <ChannelName level={5}>{channel.name}</ChannelName>
+              <ChannelName
+                level={5}
+                className="text-gray-800 dark:text-gray-200"
+              >
+                {channel.name}
+              </ChannelName>
             </ChannelInfo>
           </ChannelCard>
         </Link>

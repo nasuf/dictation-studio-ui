@@ -21,6 +21,24 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -68,30 +86,36 @@ const App: React.FC = () => {
   };
 
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route
-        path="*"
-        element={
-          <Layout style={{ height: "100vh", overflow: "hidden" }}>
-            <Header style={{ padding: 0, overflow: "hidden" }}>
-              <AppHeader showLoginModal={() => setIsLoginModalVisible(true)} />
-            </Header>
-            <Content style={{ padding: 0, overflow: "hidden" }}>
-              <AppContent />
-            </Content>
-            <Footer style={{ padding: 0, overflow: "hidden" }}>
-              <AppFooter />
-            </Footer>
-            <LoginModal
-              visible={isLoginModalVisible}
-              onClose={() => setIsLoginModalVisible(false)}
-              onGoogleLogin={handleGoogleLogin}
-            />
-          </Layout>
-        }
-      />
-    </Routes>
+    <div className={isDarkMode ? "dark" : ""}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="*"
+          element={
+            <Layout style={{ height: "100vh", overflow: "hidden" }}>
+              <Header style={{ padding: 0, overflow: "hidden" }}>
+                <AppHeader
+                  showLoginModal={() => setIsLoginModalVisible(true)}
+                  isDarkMode={isDarkMode}
+                  toggleDarkMode={toggleDarkMode}
+                />
+              </Header>
+              <Content style={{ padding: 0, overflow: "hidden" }}>
+                <AppContent />
+              </Content>
+              <Footer style={{ padding: 0, overflow: "hidden" }}>
+                <AppFooter />
+              </Footer>
+              <LoginModal
+                visible={isLoginModalVisible}
+                onClose={() => setIsLoginModalVisible(false)}
+                onGoogleLogin={handleGoogleLogin}
+              />
+            </Layout>
+          }
+        />
+      </Routes>
+    </div>
   );
 };
 

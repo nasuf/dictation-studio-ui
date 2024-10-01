@@ -53,7 +53,7 @@ const VideoList: React.FC = () => {
   };
 
   return (
-    <ScrollableContainer>
+    <ScrollableContainer className="h-full overflow-y-auto">
       <VideoCardGrid>
         {videos.map((video) => (
           <Link
