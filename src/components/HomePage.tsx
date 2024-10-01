@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Canvas } from "@react-three/fiber";
@@ -18,26 +18,32 @@ const AnimatedSphere = () => {
 };
 
 const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
-  const [displayText, setDisplayText] = useState("");
+  const textRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    const textElement = textRef.current;
+    if (!textElement) return;
+
     let i = 0;
+    textElement.textContent = "";
+
     const typingInterval = setInterval(() => {
       if (i < text.length) {
-        setDisplayText((prev) => prev + text.charAt(i));
+        console.log(text.charAt(i));
+        textElement.textContent += text.charAt(i);
         i++;
       } else {
         clearInterval(typingInterval);
       }
-    }, 100); // Adjust typing speed here
+    }, 200); // Adjust typing speed here
 
     return () => clearInterval(typingInterval);
   }, [text]);
 
   return (
     <h1 className="text-6xl font-bold mb-6 text-white">
-      {displayText}
-      <span className="animate-blink">|</span>
+      <span ref={textRef}></span>
+      <span className="animate-blink-cursor">|</span>
     </h1>
   );
 };

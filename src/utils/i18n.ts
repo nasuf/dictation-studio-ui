@@ -65,7 +65,7 @@ const enTranslations = {
   information: "Information",
   dictationProgress: "Dictation Progress",
   homePageDescription:
-    "Improve your English listening and writing skills with daily dictation exercises.",
+    "Improve your English listening with daily dictation exercises.",
   startDictation: "Start Dictation",
 };
 
@@ -129,7 +129,7 @@ const zhTranslations = {
   missedWordsSummary: "未写出单词汇总",
   information: "个人信息",
   dictationProgress: "听写进度",
-  homePageDescription: "通过每日听写练习提高您的英语听力和写作技能。",
+  homePageDescription: "通过每日听写练习提高您的英语听力。",
   startDictation: "开始听写",
 };
 
@@ -196,7 +196,7 @@ const jaTranslations = {
   information: "個人情報",
   dictationProgress: "聞き取りの進捗",
   homePageDescription:
-    "毎日の聞き取り練習で英語の聞き取りと書き取りのスキルを向上させましょう。",
+    "毎日の聞き取り練習で英語の聞き取りと書き取りの能力を向上させましょう。",
   startDictation: "聞き取りを開始",
 };
 
@@ -263,7 +263,7 @@ const koTranslations = {
   information: "개인 정보",
   dictationProgress: "듣기 진행 상황",
   homePageDescription:
-    "매일 받아쓰기 연습을 통해 영어 듣기와 쓰기 능력을 향상시키세요.",
+    "매일 듣기 연습을 통해 영어 듣기와 쓰기 능력을 향상하세요.",
   startDictation: "듣기 시작",
 };
 
