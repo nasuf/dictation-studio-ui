@@ -551,7 +551,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
-        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl">
+        {/* Left column (video player, controls, etc.) */}
+        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl h-full overflow-y-auto">
           <div className="w-full max-w-xl mb-4">
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full z-10" />
@@ -612,21 +613,23 @@ const VideoMain: React.ForwardRefRenderFunction<
             </div>
           </div>
         </div>
+
+        {/* Right column (progress bar and subtitles) */}
         <div className="flex-1 flex flex-col h-full max-w-2xl">
-          {isLoading || !isVideoReady ? (
-            <div className="flex justify-center items-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
-              <Spin size="large" tip="Loading subtitles..." />
-            </div>
-          ) : (
-            <>
-              <DualProgressBar
-                completionPercentage={overallCompletion}
-                accuracyPercentage={overallAccuracy}
-                isCompleted={isCompleted}
-              />
+          <DualProgressBar
+            completionPercentage={overallCompletion}
+            accuracyPercentage={overallAccuracy}
+            isCompleted={isCompleted}
+          />
+          <div className="flex-grow mt-4 overflow-hidden">
+            {isLoading || !isVideoReady ? (
+              <div className="h-full flex justify-center items-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+                <Spin size="large" tip="Loading subtitles..." />
+              </div>
+            ) : (
               <div
                 ref={subtitlesRef}
-                className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mt-4 custom-scrollbar"
+                className="h-full overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 custom-scrollbar"
               >
                 {transcript.map((item, index) => (
                   <div
@@ -705,8 +708,8 @@ const VideoMain: React.ForwardRefRenderFunction<
                   </div>
                 ))}
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
