@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Alert, Input, Spin, Button, Space, message, Modal } from "antd";
+import { Spin, message, Modal } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -18,11 +18,7 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
-  StyledVideoColumn,
-  StyledYouTubeWrapper,
   ProgressCircle,
-  HideYouTubeControls,
-  ButtonContainer,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
 import { ProgressData, TranscriptItem } from "@/utils/type";
@@ -173,12 +169,6 @@ const VideoMain: React.ForwardRefRenderFunction<
         playCurrentSentence();
       } else if (event.key === "Enter") {
         event.preventDefault();
-        if (currentInterval) {
-          clearInterval(currentInterval);
-          setCurrentInterval(null);
-        }
-        playerRef.current.pauseVideo();
-
         saveUserInput();
         revealCurrentSentence();
         updateOverallProgress();
@@ -196,17 +186,12 @@ const VideoMain: React.ForwardRefRenderFunction<
     window.addEventListener("keydown", handleKeyPress);
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
-      if (currentInterval) {
-        clearInterval(currentInterval);
-      }
     };
-  }, [
-    transcript,
-    currentSentenceIndex,
-    userInput,
-    isFirstEnterAfterRestore,
-    currentInterval,
-  ]);
+  }, [transcript, userInput, currentSentenceIndex, isFirstEnterAfterRestore]);
+
+  const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserInput(e.target.value);
+  };
 
   const scrollToCurrentSentence = useCallback(() => {
     if (subtitlesRef.current) {
@@ -302,6 +287,17 @@ const VideoMain: React.ForwardRefRenderFunction<
       }, 50);
 
       setCurrentInterval(checkInterval);
+
+      // 添加一个额外的安全检查，以确保在句子结束时停止播放
+      setTimeout(() => {
+        if (!hasEnded) {
+          console.log("Safety check: pausing video");
+          playerRef.current?.pauseVideo();
+          clearInterval(checkInterval);
+          setCurrentInterval(null);
+          hasEnded = true;
+        }
+      }, duration + 500); // 给予额外的500毫秒作为缓冲
     });
   };
 
@@ -605,7 +601,7 @@ const VideoMain: React.ForwardRefRenderFunction<
             </div>
             <input
               value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
+              onChange={handleUserInput}
               placeholder={t("inputPlaceHolder")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
             />
