@@ -5,6 +5,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useLayoutEffect,
 } from "react";
 import { Alert, Input, Spin, Button, Space, message, Modal } from "antd";
 import {
@@ -133,7 +134,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     setIsFirstEnterAfterRestore(true);
 
     setTimeout(() => {
-      scrollToSentence(lastInputIndex);
+      scrollToCurrentSentence();
     }, 1000);
 
     if (progress.overallCompletion === 100) {
@@ -159,25 +160,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
     }
     setIsInitialLoad(false);
-  };
-
-  const scrollToSentence = (index: number) => {
-    if (subtitlesRef.current) {
-      const sentenceElements =
-        subtitlesRef.current.getElementsByClassName("subtitle-item");
-      if (sentenceElements[index]) {
-        const sentenceElement = sentenceElements[index] as HTMLElement;
-        const containerHeight = subtitlesRef.current.clientHeight;
-        const scrollPosition =
-          sentenceElement.offsetTop -
-          containerHeight / 2 +
-          sentenceElement.clientHeight / 2;
-        subtitlesRef.current.scrollTo({
-          top: scrollPosition,
-          behavior: "smooth",
-        });
-      }
-    }
   };
 
   useEffect(() => {
@@ -215,11 +197,15 @@ const VideoMain: React.ForwardRefRenderFunction<
         const sentenceElement = sentenceElements[
           currentSentenceIndex
         ] as HTMLElement;
-        const containerHeight = subtitlesRef.current.clientHeight;
-        const sentenceHeight = sentenceElement.offsetHeight;
+        const containerRect = subtitlesRef.current.getBoundingClientRect();
+        const sentenceRect = sentenceElement.getBoundingClientRect();
 
         const scrollPosition =
-          sentenceElement.offsetTop - containerHeight / 2 + sentenceHeight / 2;
+          sentenceRect.top +
+          subtitlesRef.current.scrollTop -
+          containerRect.top -
+          containerRect.height / 2 +
+          sentenceRect.height / 2;
 
         subtitlesRef.current.scrollTo({
           top: Math.max(0, scrollPosition),
@@ -229,8 +215,11 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
   }, [currentSentenceIndex]);
 
-  useEffect(() => {
-    scrollToCurrentSentence();
+  useLayoutEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToCurrentSentence();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [currentSentenceIndex, scrollToCurrentSentence]);
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
