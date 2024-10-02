@@ -11,14 +11,6 @@ export const VideoColumn = styled.div`
   max-height: 80vh;
 `;
 
-export const SubtitlesColumn = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 640px;
-  max-height: 80vh;
-`;
-
 export const YouTubeWrapper = styled.div`
   width: 100%;
   max-width: 640px;
@@ -89,11 +81,6 @@ export const SubtitleContent = styled.div`
   margin-right: 20px;
 `;
 
-export const ProgressCircleWrapper = styled.div`
-  flex-shrink: 0;
-  width: 40px;
-`;
-
 export const CenteredContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -117,14 +104,6 @@ export const StyledVideoColumn = styled(VideoColumn)`
   flex-direction: column;
   align-items: center;
   padding-right: 20px;
-`;
-
-export const StyledSubtitlesColumn = styled(SubtitlesColumn)`
-  flex: 1;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 `;
 
 export const ScrollableSubtitles = styled(ScrollingSubtitles)`
@@ -165,59 +144,6 @@ export const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 20px;
-`;
-
-const ProgressBarBase = styled.div`
-  width: 100%;
-  height: 20px;
-  background: #f0f0f0;
-  margin-bottom: 10px;
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-`;
-
-const ProgressBarFill = styled.div<{
-  width: number;
-  color: string;
-  isCompleted: boolean;
-}>`
-  width: ${(props) => props.width}%;
-  height: 100%;
-  background: ${(props) => props.color};
-  position: absolute;
-  left: 0;
-  top: 0;
-  transition: width 0.5s ease-in-out;
-  animation: ${(props) => (props.isCompleted ? "flash 0.5s linear 5" : "none")};
-
-  @keyframes flash {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-`;
-
-const ProgressBarText = styled.div`
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #fff;
-  font-size: 12px;
-  z-index: 1;
-  width: 100%;
-  text-align: left;
-  padding: 0 5px;
-  box-sizing: border-box;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 `;
 
 export const ProgressCircle: React.FC<{ percentage: number }> = ({

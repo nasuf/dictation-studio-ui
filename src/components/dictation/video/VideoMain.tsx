@@ -541,57 +541,65 @@ const VideoMain: React.ForwardRefRenderFunction<
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
         <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl">
-          <StyledVideoColumn>
-            <StyledYouTubeWrapper>
-              <HideYouTubeControls>
-                <YouTube
-                  videoId={videoId}
-                  opts={{
-                    width: "100%",
-                    height: "360",
-                    playerVars: {
-                      autoplay: 0,
-                      modestbranding: 1,
-                      rel: 0,
-                      showinfo: 0,
-                      controls: 1,
-                      disablekb: 1,
-                      iv_load_policy: 3,
-                      fs: 0,
-                    },
-                  }}
-                  onReady={onVideoReady}
-                />
-              </HideYouTubeControls>
-            </StyledYouTubeWrapper>
-            <ButtonContainer>
-              <Space>
-                <Button
-                  icon={<StepBackwardOutlined />}
-                  onClick={playPreviousSentence}
-                  disabled={currentSentenceIndex === 0}
-                />
-                <Button icon={<RedoOutlined />} onClick={playCurrentSentence} />
-                <Button
-                  icon={<StepForwardOutlined />}
-                  onClick={playNextSentence}
-                  disabled={currentSentenceIndex === transcript.length - 1}
-                />
-              </Space>
-            </ButtonContainer>
-            <Input
-              style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}
+          <div className="w-full max-w-xl mb-4">
+            <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full z-10" />
+              <YouTube
+                videoId={videoId}
+                opts={{
+                  width: "100%",
+                  height: "100%",
+                  playerVars: {
+                    autoplay: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    controls: 1,
+                    disablekb: 1,
+                    iv_load_policy: 3,
+                    fs: 0,
+                  },
+                }}
+                onReady={onVideoReady}
+                className="absolute top-0 left-0 w-full h-full"
+              />
+            </div>
+          </div>
+          <div className="w-full max-w-xl space-y-4">
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={playPreviousSentence}
+                disabled={currentSentenceIndex === 0}
+                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+              >
+                <StepBackwardOutlined className="text-lg" />
+              </button>
+              <button
+                onClick={playCurrentSentence}
+                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+              >
+                <RedoOutlined className="text-lg" />
+              </button>
+              <button
+                onClick={playNextSentence}
+                disabled={currentSentenceIndex === transcript.length - 1}
+                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+              >
+                <StepForwardOutlined className="text-lg" />
+              </button>
+            </div>
+            <input
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder={t("inputPlaceHolder")}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
             />
-            <Alert
-              style={{ marginTop: "10px", width: "100%", maxWidth: "640px" }}
-              message={t("videoDictationKeyboardInstructions")}
-              type="info"
-              showIcon
-            />
-          </StyledVideoColumn>
+            <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 dark:bg-blue-900 dark:border-blue-400 dark:text-blue-200 rounded-md">
+              <p className="font-bold">
+                {t("videoDictationKeyboardInstructions")}
+              </p>
+            </div>
+          </div>
         </div>
         <div className="flex-1 flex flex-col h-full max-w-2xl">
           {isLoading || !isVideoReady ? (
