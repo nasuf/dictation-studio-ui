@@ -220,37 +220,6 @@ const ProgressBarText = styled.div`
   text-overflow: ellipsis;
 `;
 
-export const DualProgressBar: React.FC<{
-  completionPercentage: number;
-  accuracyPercentage: number;
-  isCompleted: boolean;
-}> = ({ completionPercentage, accuracyPercentage, isCompleted }) => {
-  const { t } = useTranslation();
-  const completionColor = "#1890ff";
-  const accuracyColor = "#52c41a";
-
-  return (
-    <ProgressBarBase>
-      <ProgressBarFill
-        width={completionPercentage}
-        color={completionColor}
-        isCompleted={isCompleted}
-      />
-      <ProgressBarFill
-        width={accuracyPercentage}
-        color={accuracyColor}
-        style={{ opacity: 0.7 }}
-        isCompleted={false}
-      />
-      <ProgressBarText>
-        {`${t("completionRate")}: ${Math.round(completionPercentage)}% ${t(
-          "accuracyRate"
-        )}: ${Math.round(accuracyPercentage)}%`}
-      </ProgressBarText>
-    </ProgressBarBase>
-  );
-};
-
 export const ProgressCircle: React.FC<{ percentage: number }> = ({
   percentage,
 }) => {
@@ -452,3 +421,36 @@ export const SkeletonImage = styled(Skeleton.Image)`
     height: 100% !important;
   }
 `;
+
+export const DualProgressBar: React.FC<{
+  completionPercentage: number;
+  accuracyPercentage: number;
+  isCompleted: boolean;
+}> = ({ completionPercentage, accuracyPercentage, isCompleted }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="w-full mb-4">
+      <div className="relative h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className={`absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500 ease-in-out ${
+            isCompleted ? "animate-pulse" : ""
+          }`}
+          style={{ width: `${completionPercentage}%` }}
+        ></div>
+        <div
+          className="absolute top-0 left-0 h-full bg-green-500 opacity-70 transition-all duration-500 ease-in-out"
+          style={{ width: `${accuracyPercentage}%` }}
+        ></div>
+        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-between px-2 text-xs font-medium">
+          <span className="text-gray-700 dark:text-gray-200 drop-shadow-md">
+            {`${t("completionRate")}: ${Math.round(completionPercentage)}%`}
+          </span>
+          <span className="text-gray-700 dark:text-gray-200 drop-shadow-md">
+            {`${t("accuracyRate")}: ${Math.round(accuracyPercentage)}%`}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};

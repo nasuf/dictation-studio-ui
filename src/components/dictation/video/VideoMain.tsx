@@ -20,10 +20,10 @@ import { api } from "@/api/api";
 import {
   StyledVideoColumn,
   StyledYouTubeWrapper,
-  DualProgressBar,
   ProgressCircle,
   HideYouTubeControls,
   ButtonContainer,
+  DualProgressBar,
 } from "@/components/dictation/video/Widget";
 import { ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch } from "react-redux";
