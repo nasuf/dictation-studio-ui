@@ -1,7 +1,12 @@
 import React, { useRef, useState, useMemo } from "react";
-import { Breadcrumb, Layout, Button, Modal, Tag, Checkbox } from "antd";
+import { Layout, Button, Modal, Tag, Checkbox } from "antd";
 import { Route, Routes, useLocation, Link } from "react-router-dom";
-import { CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
+import {
+  CloudUploadOutlined,
+  FileTextOutlined,
+  HomeOutlined,
+} from "@ant-design/icons";
+import { ChevronRightIcon } from "@heroicons/react/20/solid";
 
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
@@ -209,42 +214,61 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-64px)]">
-      {" "}
-      <Content className="p-6 bg-white bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 h-full">
+      <Content className="p-6 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 h-full">
         <div className="flex justify-between items-center mb-6">
-          <Breadcrumb
-            className="text-gray-600 dark:text-gray-400"
-            separator={
-              <span className="text-gray-600 dark:text-gray-400">/</span>
-            }
-          >
-            {getBreadcrumbItems().map((item, index) => (
-              <Breadcrumb.Item key={index}>
-                <Link
-                  to={item.path}
-                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
-                >
-                  {item.title}
-                </Link>
-              </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
+          <nav className="flex" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-md px-4 py-2">
+              {getBreadcrumbItems().map((item, index) => (
+                <li key={index} className="inline-flex items-center">
+                  {index > 0 && (
+                    <ChevronRightIcon
+                      className="w-5 h-5 text-gray-400 mx-2"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Link
+                    to={item.path}
+                    className={`inline-flex items-center text-sm font-medium transition-colors duration-200 ease-in-out
+                      ${
+                        index === getBreadcrumbItems().length - 1
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                      }`}
+                  >
+                    {index === 0 ? (
+                      <HomeOutlined className="mr-2 h-5 w-5" />
+                    ) : (
+                      <span
+                        className={`w-2 h-2 rounded-full mr-2
+                          ${
+                            index === getBreadcrumbItems().length - 1
+                              ? "bg-blue-600 dark:bg-blue-400"
+                              : "bg-gray-300 dark:bg-gray-600"
+                          }`}
+                      ></span>
+                    )}
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </nav>
           {isVideoPage && (
             <div className="space-x-4">
               <Button
                 onClick={showMissedWordsModal}
                 disabled={!isDictationCompleted}
-                className="bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
               >
-                <FileTextOutlined />
+                <FileTextOutlined className="mr-2" />
                 {t("missedWordsSummary")}
               </Button>
               <Button
                 onClick={handleSaveProgress}
                 disabled={!isDictationStarted}
-                className="bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white dark:from-green-600 dark:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
               >
-                <CloudUploadOutlined />
+                <CloudUploadOutlined className="mr-2" />
                 {t("saveProgressBtnText")}
               </Button>
             </div>
@@ -253,7 +277,7 @@ const AppContent: React.FC = () => {
         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md h-full">
           <Layout className="bg-transparent h-full">
             <AppSider />
-            <Content className="p-6 min-h-[80vh] h-full bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 ">
+            <Content className="p-6 min-h-[80vh] h-full bg-gradient-to-r from-gray-100 via-gray-50 to-gray-0 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 ">
               <Routes>
                 <Route path="/" element={<ChannelList />} />
                 <Route path="/dictation" element={<ChannelList />} />

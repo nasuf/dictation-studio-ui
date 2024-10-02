@@ -58,6 +58,7 @@ const VideoList: React.FC = () => {
           <Link
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
+            state={{ name: video.title }}
           >
             <CustomHoverCard
               hoverable

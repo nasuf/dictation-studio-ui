@@ -30,7 +30,11 @@ const ChannelList: React.FC = () => {
     <div className="h-full overflow-y-auto custom-scrollbar">
       <ChannelGrid>
         {channels.map((channel) => (
-          <Link key={channel.id} to={`/dictation/video/${channel.id}`}>
+          <Link
+            key={channel.id}
+            to={`/dictation/video/${channel.id}`}
+            state={{ name: channel.name }}
+          >
             <ChannelCard
               hoverable
               cover={
