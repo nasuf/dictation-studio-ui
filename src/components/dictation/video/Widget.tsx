@@ -254,38 +254,41 @@ export const DualProgressBar: React.FC<{
 export const ProgressCircle: React.FC<{ percentage: number }> = ({
   percentage,
 }) => {
-  const radius = 15;
+  const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40">
+    <svg width="48" height="48" viewBox="0 0 48 48">
       <circle
-        cx="20"
-        cy="20"
+        cx="24"
+        cy="24"
         r={radius}
         fill="transparent"
         stroke="#e6e6e6"
-        strokeWidth="5"
+        strokeWidth="4"
+        className="dark:stroke-gray-700"
       />
       <circle
-        cx="20"
-        cy="20"
+        cx="24"
+        cy="24"
         r={radius}
         fill="transparent"
-        stroke="#7CEECE"
-        strokeWidth="5"
+        stroke="#1890ff"
+        strokeWidth="4"
         strokeDasharray={circumference}
         strokeDashoffset={strokeDashoffset}
-        transform="rotate(-90 20 20)"
+        transform="rotate(-90 24 24)"
+        className="dark:stroke-blue-400"
       />
       <text
-        className="progress-circle-text"
-        x="20"
-        y="20"
+        x="24"
+        y="24"
         textAnchor="middle"
         dy=".3em"
-        fontSize="10"
+        fontSize="12"
+        fill="#1890ff"
+        className="dark:fill-blue-400"
       >
         {`${Math.round(percentage)}%`}
       </text>

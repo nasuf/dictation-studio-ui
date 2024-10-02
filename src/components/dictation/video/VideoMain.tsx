@@ -17,20 +17,9 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
-  CenteredContainer,
-  ContentWrapper,
   StyledVideoColumn,
   StyledYouTubeWrapper,
-  StyledSubtitlesColumn,
-  LoadingContainer,
   DualProgressBar,
-  ScrollableSubtitles,
-  SubtitlesContainer,
-  BlurredText,
-  SubtitleRow,
-  SubtitleContent,
-  HighlightedText,
-  ProgressCircleWrapper,
   ProgressCircle,
   HideYouTubeControls,
   ButtonContainer,
@@ -218,9 +207,31 @@ const VideoMain: React.ForwardRefRenderFunction<
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [transcript, currentSentenceIndex, userInput, isFirstEnterAfterRestore]);
 
+  const scrollToCurrentSentence = useCallback(() => {
+    if (subtitlesRef.current) {
+      const sentenceElements =
+        subtitlesRef.current.getElementsByClassName("subtitle-item");
+      if (sentenceElements[currentSentenceIndex]) {
+        const sentenceElement = sentenceElements[
+          currentSentenceIndex
+        ] as HTMLElement;
+        const containerHeight = subtitlesRef.current.clientHeight;
+        const sentenceHeight = sentenceElement.offsetHeight;
+
+        const scrollPosition =
+          sentenceElement.offsetTop - containerHeight / 2 + sentenceHeight / 2;
+
+        subtitlesRef.current.scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [currentSentenceIndex]);
+
   useEffect(() => {
     scrollToCurrentSentence();
-  }, [currentSentenceIndex]);
+  }, [currentSentenceIndex, scrollToCurrentSentence]);
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
@@ -389,27 +400,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const revealCurrentSentence = () => {
     setRevealedSentences((prev) => [...prev, currentSentenceIndex]);
-  };
-
-  const scrollToCurrentSentence = () => {
-    if (subtitlesRef.current) {
-      const sentenceElements =
-        subtitlesRef.current.getElementsByClassName("subtitle-item");
-      if (sentenceElements[currentSentenceIndex]) {
-        const sentenceElement = sentenceElements[
-          currentSentenceIndex
-        ] as HTMLElement;
-        const containerHeight = subtitlesRef.current.clientHeight;
-        const scrollPosition =
-          sentenceElement.offsetTop -
-          containerHeight / 2 +
-          sentenceElement.clientHeight / 2;
-        subtitlesRef.current.scrollTo({
-          top: scrollPosition,
-          behavior: "smooth",
-        });
-      }
-    }
   };
 
   const compareInputWithTranscript = (input: string, transcript: string) => {
@@ -601,64 +591,66 @@ const VideoMain: React.ForwardRefRenderFunction<
   }
 
   return (
-    <CenteredContainer>
-      <ContentWrapper>
-        <StyledVideoColumn>
-          <StyledYouTubeWrapper>
-            <HideYouTubeControls>
-              <YouTube
-                videoId={videoId}
-                opts={{
-                  width: "100%",
-                  height: "360",
-                  playerVars: {
-                    autoplay: 0,
-                    modestbranding: 1,
-                    rel: 0,
-                    showinfo: 0,
-                    controls: 1,
-                    disablekb: 1,
-                    iv_load_policy: 3,
-                    fs: 0,
-                  },
-                }}
-                onReady={onVideoReady}
-              />
-            </HideYouTubeControls>
-          </StyledYouTubeWrapper>
-          <ButtonContainer>
-            <Space>
-              <Button
-                icon={<StepBackwardOutlined />}
-                onClick={playPreviousSentence}
-                disabled={currentSentenceIndex === 0}
-              />
-              <Button icon={<RedoOutlined />} onClick={playCurrentSentence} />
-              <Button
-                icon={<StepForwardOutlined />}
-                onClick={playNextSentence}
-                disabled={currentSentenceIndex === transcript.length - 1}
-              />
-            </Space>
-          </ButtonContainer>
-          <Input
-            style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder={t("inputPlaceHolder")}
-          />
-          <Alert
-            style={{ marginTop: "10px", width: "100%", maxWidth: "640px" }}
-            message={t("videoDictationKeyboardInstructions")}
-            type="info"
-            showIcon
-          />
-        </StyledVideoColumn>
-        <StyledSubtitlesColumn>
+    <div className="flex justify-center items-start h-full w-full p-5">
+      <div className="flex justify-between w-full max-w-7xl h-full">
+        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl">
+          <StyledVideoColumn>
+            <StyledYouTubeWrapper>
+              <HideYouTubeControls>
+                <YouTube
+                  videoId={videoId}
+                  opts={{
+                    width: "100%",
+                    height: "360",
+                    playerVars: {
+                      autoplay: 0,
+                      modestbranding: 1,
+                      rel: 0,
+                      showinfo: 0,
+                      controls: 1,
+                      disablekb: 1,
+                      iv_load_policy: 3,
+                      fs: 0,
+                    },
+                  }}
+                  onReady={onVideoReady}
+                />
+              </HideYouTubeControls>
+            </StyledYouTubeWrapper>
+            <ButtonContainer>
+              <Space>
+                <Button
+                  icon={<StepBackwardOutlined />}
+                  onClick={playPreviousSentence}
+                  disabled={currentSentenceIndex === 0}
+                />
+                <Button icon={<RedoOutlined />} onClick={playCurrentSentence} />
+                <Button
+                  icon={<StepForwardOutlined />}
+                  onClick={playNextSentence}
+                  disabled={currentSentenceIndex === transcript.length - 1}
+                />
+              </Space>
+            </ButtonContainer>
+            <Input
+              style={{ marginTop: "20px", width: "100%", maxWidth: "640px" }}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder={t("inputPlaceHolder")}
+            />
+            <Alert
+              style={{ marginTop: "10px", width: "100%", maxWidth: "640px" }}
+              message={t("videoDictationKeyboardInstructions")}
+              type="info"
+              showIcon
+            />
+          </StyledVideoColumn>
+        </div>
+        <div className="flex-1 flex flex-col h-full max-w-2xl">
           {isLoading || !isVideoReady ? (
-            <LoadingContainer>
+            <div className="flex justify-center items-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
               <Spin size="large" tip="Loading subtitles..." />
-            </LoadingContainer>
+            </div>
           ) : (
             <>
               <DualProgressBar
@@ -666,78 +658,92 @@ const VideoMain: React.ForwardRefRenderFunction<
                 accuracyPercentage={overallAccuracy}
                 isCompleted={isCompleted}
               />
-              <ScrollableSubtitles ref={subtitlesRef}>
-                <SubtitlesContainer>
-                  {transcript.map((item, index) => (
-                    <BlurredText
-                      key={index}
-                      className="subtitle-item"
-                      isBlurred={!revealedSentences.includes(index)}
-                    >
-                      <SubtitleRow>
-                        <SubtitleContent className="subtitle-content dark:text-white">
-                          {revealedSentences.includes(index) ? (
-                            <>
-                              <p>
+              <div
+                ref={subtitlesRef}
+                className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mt-4 custom-scrollbar"
+              >
+                {transcript.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`mb-6 subtitle-item ${
+                      !revealedSentences.includes(index)
+                        ? "filter blur-sm opacity-50"
+                        : ""
+                    } ${
+                      index === currentSentenceIndex
+                        ? "bg-blue-100 dark:bg-blue-900"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 mr-4">
+                        {revealedSentences.includes(index) ? (
+                          <>
+                            <p className="text-gray-800 dark:text-gray-200 mb-2">
+                              {compareInputWithTranscript(
+                                item.userInput || "",
+                                item.transcript
+                              ).transcriptResult.map((word, wordIndex) => (
+                                <span
+                                  key={wordIndex}
+                                  className={`${
+                                    word.highlight === "#7CEECE"
+                                      ? "bg-green-200 dark:bg-green-700"
+                                      : "bg-red-200 dark:bg-red-700"
+                                  } px-1 py-0.5 rounded`}
+                                >
+                                  {word.word}{" "}
+                                </span>
+                              ))}
+                            </p>
+                            {item.userInput && (
+                              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                {t("yourInput")}:{" "}
                                 {compareInputWithTranscript(
-                                  item.userInput || "",
+                                  item.userInput,
                                   item.transcript
-                                ).transcriptResult.map((word, wordIndex) => (
-                                  <HighlightedText
+                                ).inputResult.map((word, wordIndex) => (
+                                  <span
                                     key={wordIndex}
-                                    backgroundColor={word.highlight}
+                                    className={
+                                      word.isCorrect
+                                        ? "text-green-600 dark:text-green-400"
+                                        : "text-red-600 dark:text-red-400"
+                                    }
                                   >
                                     {word.word}{" "}
-                                  </HighlightedText>
+                                  </span>
                                 ))}
                               </p>
-                              {item.userInput && (
-                                <p className="user-input-text dark:text-gray-300">
-                                  {t("yourInput")}:{" "}
-                                  {compareInputWithTranscript(
-                                    item.userInput,
-                                    item.transcript
-                                  ).inputResult.map((word, wordIndex) => (
-                                    <span
-                                      key={wordIndex}
-                                      className={
-                                        word.isCorrect
-                                          ? "comparison-text-correct"
-                                          : "comparison-text-incorrect"
-                                      }
-                                    >
-                                      {word.word}{" "}
-                                    </span>
-                                  ))}
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <p className="dark:text-white">{item.transcript}</p>
-                          )}
-                        </SubtitleContent>
-                        {revealedSentences.includes(index) && (
-                          <ProgressCircleWrapper>
-                            <ProgressCircle
-                              percentage={
-                                compareInputWithTranscript(
-                                  item.userInput || "",
-                                  item.transcript
-                                ).completionPercentage
-                              }
-                            />
-                          </ProgressCircleWrapper>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-gray-800 dark:text-gray-200">
+                            {item.transcript}
+                          </p>
                         )}
-                      </SubtitleRow>
-                    </BlurredText>
-                  ))}
-                </SubtitlesContainer>
-              </ScrollableSubtitles>
+                      </div>
+                      {revealedSentences.includes(index) && (
+                        <div className="flex-shrink-0">
+                          <ProgressCircle
+                            percentage={
+                              compareInputWithTranscript(
+                                item.userInput || "",
+                                item.transcript
+                              ).completionPercentage
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </>
           )}
-        </StyledSubtitlesColumn>
-      </ContentWrapper>
-    </CenteredContainer>
+        </div>
+      </div>
+    </div>
   );
 };
 
