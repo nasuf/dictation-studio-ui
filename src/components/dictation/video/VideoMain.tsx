@@ -248,18 +248,21 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const clearIntervalIfExists = () => {
     if (currentInterval) {
+      console.log("Clearing interval");
       clearInterval(currentInterval);
       setCurrentInterval(null);
     }
   };
 
   const playSentence = (sentence: TranscriptItem) => {
+    console.log(`Playing sentence: ${sentence.transcript}`);
     clearIntervalIfExists();
     playerRef.current.pauseVideo();
     playerRef.current.seekTo(sentence.start, true);
 
     const playPromise = new Promise<void>((resolve) => {
       const onStateChange = (event: { data: number }) => {
+        console.log("Video event:", event.data);
         if (event.data === YouTube.PlayerState.PLAYING) {
           playerRef.current?.removeEventListener(
             "onStateChange",
@@ -271,24 +274,32 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       playerRef.current?.addEventListener("onStateChange", onStateChange);
       playerRef.current?.playVideo();
+      console.log("Ready to play video");
     });
 
     playPromise.then(() => {
+      console.log("Video started playing");
       const duration = (sentence.end - sentence.start) * 1000;
       const startTime = Date.now();
+      let hasEnded = false;
 
       const checkInterval = setInterval(() => {
-        if (playerRef.current) {
+        if (playerRef.current && !hasEnded) {
           const currentTime = playerRef.current.getCurrentTime();
           const elapsedTime = Date.now() - startTime;
+          console.log(
+            `Current time: ${currentTime}, Elapsed time: ${elapsedTime}, End time: ${sentence.end}`
+          );
 
-          if (currentTime >= sentence.end || elapsedTime >= duration) {
+          if (currentTime >= sentence.end - 0.1 || elapsedTime >= duration) {
+            console.log("Sentence finished, pausing video");
             playerRef.current.pauseVideo();
             clearInterval(checkInterval);
             setCurrentInterval(null);
+            hasEnded = true;
           }
         }
-      }, 100);
+      }, 50);
 
       setCurrentInterval(checkInterval);
     });
@@ -307,7 +318,11 @@ const VideoMain: React.ForwardRefRenderFunction<
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     setCurrentSentenceIndex(nextIndex);
     const nextSentence = transcript[nextIndex];
-    playSentence(nextSentence);
+    console.log("going to play next sentence: " + nextSentence);
+    playerRef.current.pauseVideo();
+    setTimeout(() => {
+      playSentence(nextSentence);
+    }, 100);
   };
 
   const playPreviousSentence = () => {
