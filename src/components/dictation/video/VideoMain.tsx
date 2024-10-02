@@ -91,7 +91,6 @@ const VideoMain: React.ForwardRefRenderFunction<
           dispatch(setIsDictationStarted(false));
         }
       } catch (error: any) {
-        console.error("Error fetching data:", error);
         if (error.response && error.response.status === 401) {
           setIsUnauthorized(true);
           window.dispatchEvent(new CustomEvent("unauthorized"));
@@ -123,7 +122,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     const lastInputIndex = Math.max(
       ...Object.keys(progress.userInput).map(Number)
     );
-    setCurrentSentenceIndex(lastInputIndex);
+    setCurrentSentenceIndex(lastInputIndex + 1);
 
     setRevealedSentences(Object.keys(progress.userInput).map(Number));
 
@@ -261,9 +260,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
     const playPromise = new Promise<void>((resolve) => {
       const onStateChange = (event: { data: number }) => {
-        console.log("onStateChange", event.data);
         if (event.data === YouTube.PlayerState.PLAYING) {
-          console.log("state => PLAYING, playing right now");
           playerRef.current?.removeEventListener(
             "onStateChange",
             onStateChange
@@ -274,7 +271,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       playerRef.current?.addEventListener("onStateChange", onStateChange);
       playerRef.current?.playVideo();
-      console.log("ready to play now");
     });
 
     playPromise.then(() => {
@@ -282,14 +278,12 @@ const VideoMain: React.ForwardRefRenderFunction<
       const startTime = Date.now();
 
       const checkInterval = setInterval(() => {
-        console.log("start counting time");
         if (playerRef.current) {
           const currentTime = playerRef.current.getCurrentTime();
           const elapsedTime = Date.now() - startTime;
 
           if (currentTime >= sentence.end || elapsedTime >= duration) {
             playerRef.current.pauseVideo();
-            console.log("timeup, video paused");
             clearInterval(checkInterval);
             setCurrentInterval(null);
           }
@@ -304,7 +298,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     if (!playerRef.current || transcript.length === 0) return;
     clearIntervalIfExists();
     const currentSentence = transcript[currentSentenceIndex];
-    console.log("play current sentence");
     playSentence(currentSentence);
   };
 
@@ -314,7 +307,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     setCurrentSentenceIndex(nextIndex);
     const nextSentence = transcript[nextIndex];
-    console.log("play next sentence");
     playSentence(nextSentence);
   };
 
@@ -325,7 +317,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       (currentSentenceIndex - 1 + transcript.length) % transcript.length;
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
-    console.log("play previous sentence");
     playSentence(prevSentence);
   };
 
@@ -528,7 +519,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       await api.saveProgress(progressData);
       message.success(t("progressSaved"));
     } catch (error) {
-      console.error("Error saving progress:", error);
       message.error(t("progressSaveFailed"));
     }
   }, [channelId, videoId, transcript, overallCompletion, t]);
@@ -627,12 +617,12 @@ const VideoMain: React.ForwardRefRenderFunction<
                         ? "filter blur-sm opacity-50"
                         : ""
                     } ${
-                      index === currentSentenceIndex
-                        ? "bg-blue-100 dark:bg-blue-900"
+                      index === currentSentenceIndex - 1
+                        ? "bg-gray-100 dark:bg-gray-700 rounded-lg"
                         : ""
                     }`}
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start p-2">
                       <div className="flex-1 mr-4">
                         {revealedSentences.includes(index) ? (
                           <>
