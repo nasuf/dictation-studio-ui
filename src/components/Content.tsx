@@ -214,7 +214,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-64px)]">
-      <Content className="p-6 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 h-full">
+      <Content className="p-6 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 h-full">
         <div className="flex justify-between items-center mb-6">
           <nav className="flex" aria-label="Breadcrumb">
             <ol className="inline-flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-md px-4 py-2">
