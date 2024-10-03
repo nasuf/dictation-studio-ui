@@ -258,7 +258,7 @@ const AppContent: React.FC = () => {
               <Route path="/admin/video" element={<VideoManagement />} />
               <Route path="/admin/user" element={<UserManagement />} />
               <Route path="/profile" element={<Information />} />
-              <Route path="/profile/infomation" element={<Information />} />
+              <Route path="/profile/information" element={<Information />} />
               <Route path="/profile/progress" element={<UserProgress />} />
             </Routes>
           </Content>

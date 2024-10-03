@@ -103,7 +103,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     <Menu className="header-menu">
       <Menu.Item
         key="profile"
-        onClick={() => navigate("/profile")}
+        onClick={() => navigate("/profile/information")}
         className="header-menu-item"
       >
         {t("userProfile")}
