@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Progress, Layout, theme, Menu } from "antd";
+import { Progress, Layout, Menu } from "antd";
 import { api } from "@/api/api";
 import {
   CustomCardMeta,
@@ -18,7 +18,6 @@ const { Content, Sider } = Layout;
 const UserProgress: React.FC = () => {
   const [allProgress, setAllProgress] = useState<UserProgressData[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
-  const { token } = theme.useToken();
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
   );
@@ -32,7 +31,6 @@ const UserProgress: React.FC = () => {
         if (data.progress.length > 0) {
           setSelectedChannel(data.progress[0].channelId);
         }
-        // Initialize all images as not loaded
         setLoadedImages(
           data.progress.reduce(
             (acc: { [key: string]: boolean }, item: UserProgressData) => {
@@ -63,34 +61,25 @@ const UserProgress: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh", paddingLeft: "0px" }}>
-      <Sider
-        width={200}
-        theme="light"
-        style={{ background: token.colorBgContainer }}
-      >
+    <Layout className="h-full bg-transparent">
+      <Sider className="bg-white dark:bg-gray-800 dark:text-white" width={200}>
         <Menu
           mode="inline"
           selectedKeys={[selectedChannel || ""]}
           style={{ height: "100%", borderRight: 0 }}
           onSelect={({ key }) => setSelectedChannel(key)}
+          className="bg-white dark:bg-gray-800 dark:text-white"
         >
           {channels.map((channelId) => (
-            <Menu.Item key={channelId}>
+            <Menu.Item key={channelId} className="dark:text-white">
               {allProgress.find((item) => item.channelId === channelId)
                 ?.channelName || channelId}
             </Menu.Item>
           ))}
         </Menu>
       </Sider>
-      <Content
-        style={{
-          padding: "0 24px",
-          minHeight: 280,
-          background: token.colorBgContainer,
-        }}
-      >
-        <ScrollableContainer>
+      <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+        <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
           <VideoCardGrid>
             {filteredVideos.map((video) => (
               <Link
@@ -98,8 +87,9 @@ const UserProgress: React.FC = () => {
                 to={`/dictation/video/${selectedChannel}/${video.videoId}`}
               >
                 <CustomHoverCard
-                  key={video.videoId}
                   hoverable
+                  className="video-card"
+                  key={video.videoId}
                   cover={
                     <div style={{ position: "relative", paddingTop: "56.25%" }}>
                       {!loadedImages[video.videoId] && <SkeletonImage active />}
@@ -117,7 +107,7 @@ const UserProgress: React.FC = () => {
                           display: loadedImages[video.videoId]
                             ? "block"
                             : "none",
-                          borderRadius: "10px 10px 0 0",
+                          borderRadius: "8px 8px 0 0",
                         }}
                       />
                     </div>
