@@ -88,7 +88,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         English
       </Menu.Item>
       <Menu.Item key="zh" className="header-menu-item">
-        中文
+        简体中文
+      </Menu.Item>
+      <Menu.Item key="zhTraditional" className="header-menu-item">
+        繁體中文
       </Menu.Item>
       <Menu.Item key="ja" className="header-menu-item">
         日本語
@@ -148,7 +151,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {i18n.language === "en"
                 ? "English"
                 : i18n.language === "zh"
-                ? "中文"
+                ? "简体中文"
+                : i18n.language === "zhTraditional"
+                ? "繁體中文"
                 : i18n.language === "ja"
                 ? "日本語"
                 : "한국어"}
