@@ -551,7 +551,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
-        {/* 左列 (视频播放器, 控制按钮等) */}
         <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl h-full overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-xl mb-4">
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
@@ -614,7 +613,6 @@ const VideoMain: React.ForwardRefRenderFunction<
           </div>
         </div>
 
-        {/* 右列 (进度条和字幕) */}
         <div className="flex-1 flex flex-col h-full max-w-2xl">
           <DualProgressBar
             completionPercentage={overallCompletion}

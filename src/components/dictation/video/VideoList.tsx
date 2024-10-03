@@ -12,9 +12,12 @@ import {
   SkeletonImage,
 } from "./Widget";
 import { resetScrollPosition } from "@/utils/util";
+import { useDispatch } from "react-redux";
+import { setVideoName } from "@/redux/navigationSlice";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
+  const dispatch = useDispatch();
   const [videos, setVideos] = useState<Video[]>([]);
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
@@ -58,6 +61,7 @@ const VideoList: React.FC = () => {
           <Link
             key={video.video_id}
             to={`/dictation/video/${channelId}/${video.video_id}`}
+            onClick={() => dispatch(setVideoName(video.title))}
             state={{ name: video.title }}
           >
             <CustomHoverCard

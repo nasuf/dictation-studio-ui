@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userSlice";
+import navigationReducer from "./navigationSlice";
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
+    navigation: navigationReducer,
   },
 });
 

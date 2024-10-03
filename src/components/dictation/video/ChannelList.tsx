@@ -9,11 +9,15 @@ import {
   ChannelInfo,
   ChannelName,
 } from "@/components/dictation/video/Widget";
+import { useDispatch } from "react-redux";
+import { setChannelName, resetNavigation } from "@/redux/navigationSlice";
 
 const ChannelList: React.FC = () => {
+  const dispatch = useDispatch();
   const [channels, setChannels] = useState<Channel[]>([]);
 
   useEffect(() => {
+    dispatch(resetNavigation());
     const fetchChannels = async () => {
       try {
         const response = await api.getChannels();
@@ -24,7 +28,7 @@ const ChannelList: React.FC = () => {
     };
 
     fetchChannels();
-  }, []);
+  }, [dispatch]);
 
   return (
     <div className="h-full overflow-y-auto custom-scrollbar">
@@ -33,6 +37,7 @@ const ChannelList: React.FC = () => {
           <Link
             key={channel.id}
             to={`/dictation/video/${channel.id}`}
+            onClick={() => dispatch(setChannelName(channel.name))}
             state={{ name: channel.name }}
           >
             <ChannelCard
