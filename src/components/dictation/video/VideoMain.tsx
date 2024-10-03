@@ -551,8 +551,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
-        {/* Left column (video player, controls, etc.) */}
-        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl h-full overflow-y-auto">
+        {/* 左列 (视频播放器, 控制按钮等) */}
+        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl h-full overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-xl mb-4">
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full z-10" />
@@ -614,99 +614,103 @@ const VideoMain: React.ForwardRefRenderFunction<
           </div>
         </div>
 
-        {/* Right column (progress bar and subtitles) */}
+        {/* 右列 (进度条和字幕) */}
         <div className="flex-1 flex flex-col h-full max-w-2xl">
           <DualProgressBar
             completionPercentage={overallCompletion}
             accuracyPercentage={overallAccuracy}
             isCompleted={isCompleted}
           />
-          <div className="flex-grow mt-4 overflow-hidden">
+          <div className="flex-grow mt-4 flex flex-col overflow-hidden">
             {isLoading || !isVideoReady ? (
               <div className="h-full flex justify-center items-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
                 <Spin size="large" tip="Loading subtitles..." />
               </div>
             ) : (
-              <div
-                ref={subtitlesRef}
-                className="h-full overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 custom-scrollbar"
-              >
-                {transcript.map((item, index) => (
-                  <div
-                    key={index}
-                    className={`mb-6 subtitle-item ${
-                      !revealedSentences.includes(index)
-                        ? "filter blur-sm opacity-50"
-                        : ""
-                    } ${
-                      index === currentSentenceIndex - 1
-                        ? "bg-gray-100 dark:bg-gray-700 rounded-lg"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex justify-between items-start p-2">
-                      <div className="flex-1 mr-4">
-                        {revealedSentences.includes(index) ? (
-                          <>
-                            <p className="text-gray-800 dark:text-gray-200 mb-2">
-                              {compareInputWithTranscript(
-                                item.userInput || "",
-                                item.transcript
-                              ).transcriptResult.map((word, wordIndex) => (
-                                <span
-                                  key={wordIndex}
-                                  className={`${
-                                    word.highlight === "#7CEECE"
-                                      ? "bg-green-200 dark:bg-green-700"
-                                      : "bg-red-200 dark:bg-red-700"
-                                  } px-1 py-0.5 rounded`}
-                                >
-                                  {word.word}{" "}
-                                </span>
-                              ))}
-                            </p>
-                            {item.userInput && (
-                              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                {t("yourInput")}:{" "}
-                                {compareInputWithTranscript(
-                                  item.userInput,
-                                  item.transcript
-                                ).inputResult.map((word, wordIndex) => (
-                                  <span
-                                    key={wordIndex}
-                                    className={
-                                      word.isCorrect
-                                        ? "text-green-600 dark:text-green-400"
-                                        : "text-red-600 dark:text-red-400"
-                                    }
-                                  >
-                                    {word.word}{" "}
-                                  </span>
-                                ))}
+              <div className="flex-grow flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <div
+                  ref={subtitlesRef}
+                  className="flex-grow overflow-y-auto custom-scrollbar"
+                >
+                  <div className="p-4 pb-20">
+                    {transcript.map((item, index) => (
+                      <div
+                        key={index}
+                        className={`subtitle-item mb-6 ${
+                          !revealedSentences.includes(index)
+                            ? "filter blur-sm opacity-50"
+                            : ""
+                        } ${
+                          index === currentSentenceIndex - 1
+                            ? "bg-gray-100 dark:bg-gray-700 rounded-lg"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex justify-between items-start p-2">
+                          <div className="flex-1 mr-4">
+                            {revealedSentences.includes(index) ? (
+                              <>
+                                <p className="text-gray-800 dark:text-gray-200 mb-2">
+                                  {compareInputWithTranscript(
+                                    item.userInput || "",
+                                    item.transcript
+                                  ).transcriptResult.map((word, wordIndex) => (
+                                    <span
+                                      key={wordIndex}
+                                      className={`${
+                                        word.highlight === "#7CEECE"
+                                          ? "bg-green-200 dark:bg-green-700"
+                                          : "bg-red-200 dark:bg-red-700"
+                                      } px-1 py-0.5 rounded`}
+                                    >
+                                      {word.word}{" "}
+                                    </span>
+                                  ))}
+                                </p>
+                                {item.userInput && (
+                                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    {t("yourInput")}:{" "}
+                                    {compareInputWithTranscript(
+                                      item.userInput,
+                                      item.transcript
+                                    ).inputResult.map((word, wordIndex) => (
+                                      <span
+                                        key={wordIndex}
+                                        className={
+                                          word.isCorrect
+                                            ? "text-green-600 dark:text-green-400"
+                                            : "text-red-600 dark:text-red-400"
+                                        }
+                                      >
+                                        {word.word}{" "}
+                                      </span>
+                                    ))}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-gray-800 dark:text-gray-200">
+                                {item.transcript}
                               </p>
                             )}
-                          </>
-                        ) : (
-                          <p className="text-gray-800 dark:text-gray-200">
-                            {item.transcript}
-                          </p>
-                        )}
-                      </div>
-                      {revealedSentences.includes(index) && (
-                        <div className="flex-shrink-0">
-                          <ProgressCircle
-                            percentage={
-                              compareInputWithTranscript(
-                                item.userInput || "",
-                                item.transcript
-                              ).completionPercentage
-                            }
-                          />
+                          </div>
+                          {revealedSentences.includes(index) && (
+                            <div className="flex-shrink-0">
+                              <ProgressCircle
+                                percentage={
+                                  compareInputWithTranscript(
+                                    item.userInput || "",
+                                    item.transcript
+                                  ).completionPercentage
+                                }
+                              />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             )}
           </div>
