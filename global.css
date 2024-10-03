@@ -187,3 +187,112 @@ body {
 .dark .ant-dropdown-menu-item:hover {
   background-color: #4b5563 !important;
 }
+
+/* dark mode - antd modal */
+.dark .ant-modal-content,
+.dark .ant-modal-header {
+  @apply bg-gray-800 text-white border-gray-700;
+}
+
+.dark .ant-modal-title,
+.dark .ant-modal-confirm-paragraph,
+.dark .ant-modal-confirm-title,
+.dark .ant-modal-confirm-content {
+  @apply text-white;
+}
+
+.dark .ant-modal-close {
+  @apply text-gray-400 hover:text-white;
+}
+
+.dark .ant-modal-body {
+  @apply bg-gray-800 text-white;
+}
+
+.dark .ant-modal-footer {
+  @apply border-t border-gray-700;
+}
+
+.dark .ant-modal-footer button {
+  @apply bg-gray-700 text-white border-gray-600 hover:bg-gray-600;
+}
+
+/* dark mode - antd checkbox */
+.dark .ant-checkbox-wrapper {
+  @apply text-white;
+}
+
+.dark .ant-checkbox-inner {
+  @apply bg-gray-700 border-gray-600;
+}
+
+.dark .ant-checkbox-wrapper {
+  @apply text-gray-300 !important;
+}
+
+.dark .ant-checkbox-wrapper-checked {
+  @apply text-white !important;
+}
+
+.dark .ant-checkbox-checked .ant-checkbox-inner {
+  @apply bg-blue-500 border-blue-500 text-white;
+}
+
+/* dark mode - antd tag */
+.dark .ant-tag {
+  @apply bg-gray-700 text-white border-gray-600;
+}
+
+/* dark mode - antd input */
+.dark .ant-input,
+.dark .ant-input-password {
+  @apply bg-gray-700 text-white border-gray-600;
+}
+
+.dark .ant-input-password-icon {
+  @apply text-gray-400;
+}
+
+/* dark mode - antd button */
+.dark .ant-btn-primary {
+  @apply bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600 !important;
+}
+
+.dark .ant-btn-default {
+  @apply bg-gray-700 text-white border-gray-600 hover:bg-gray-600 hover:border-gray-500 !important;
+}
+
+/* dark mode - antd select */
+.dark .ant-select-selector {
+  @apply bg-gray-700 text-white border-gray-600 !important;
+}
+
+.dark .ant-select-arrow {
+  @apply text-gray-400;
+}
+
+.dark .ant-select-dropdown {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .ant-select-item {
+  @apply text-white;
+}
+
+.dark .ant-select-item-option-selected {
+  @apply bg-gray-700;
+}
+
+.dark .ant-select-item-option-active {
+  @apply bg-gray-600;
+}
+
+/* dark mode - antd message */
+.dark .ant-message-notice-content {
+  @apply bg-gray-700 text-white !important;
+}
+
+/* dark mode - antd tag */
+.dark .ant-tag-close-icon {
+  @apply bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200;
+}

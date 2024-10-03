@@ -284,14 +284,14 @@ const AppContent: React.FC = () => {
         onCancel={() => setIsMissedWordsModalVisible(false)}
         footer={null}
         width={800}
-        bodyStyle={{ maxHeight: "calc(100vh - 200px)", padding: 0 }}
+        styles={{ body: { maxHeight: "calc(100vh - 200px)", padding: 0 } }}
         className="dark:bg-gray-800 dark:text-white"
       >
         <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
           <Checkbox
             checked={selectAll}
             onChange={(e) => handleSelectAll(e.target.checked)}
-            className="mb-2 font-bold dark:text-white"
+            className="mb-2 font-bold"
           >
             {t("selectAll")}
           </Checkbox>
@@ -301,20 +301,20 @@ const AppContent: React.FC = () => {
               key={option.key}
               checked={option.checked}
               onChange={(e) => handleFilterChange(option.key, e.target.checked)}
-              className="mr-4 mb-2 dark:text-gray-300"
+              className="mr-4 mb-2"
             >
               {t(option.translationKey)}
             </Checkbox>
           ))}
         </div>
-        <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)] dark:bg-gray-800">
+        <div className="p-4 overflow-y-auto max-h-[calc(100vh-400px)] dark:bg-gray-800 custom-scrollbar">
           <div className="flex flex-wrap gap-2">
             {filteredMissedWords.map((word) => (
               <Tag
                 key={word}
                 closable
                 onClose={() => handleRemoveMissedWord(word)}
-                className="text-base py-1 px-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                className="text-base py-1 px-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
               >
                 {word}
               </Tag>
