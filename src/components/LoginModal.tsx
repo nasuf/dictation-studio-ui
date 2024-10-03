@@ -34,6 +34,19 @@ const StyledDrawer = styled(Drawer)`
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(5px);
   }
+
+  .dark & {
+    .ant-drawer-content {
+      background: rgba(31, 41, 55, 0.8);
+      color: #e5e7eb;
+    }
+    .ant-drawer-title {
+      color: #e5e7eb;
+    }
+    .ant-drawer-close {
+      color: #e5e7eb;
+    }
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -72,13 +85,20 @@ const LoginForm: React.FC<{
           },
         ]}
       >
-        <Input placeholder={t("loginFormUsernameOrEmailPrompt")} />
+        <input
+          placeholder={t("loginFormUsernameOrEmailPrompt")}
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
+        />
       </Form.Item>
       <Form.Item
         name="password"
         rules={[{ required: true, message: t("loginFormPasswordPrompt") }]}
       >
-        <Input.Password placeholder={t("loginFormPasswordPrompt")} />
+        <input
+          type="password"
+          placeholder={t("loginFormPasswordPrompt")}
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
+        />
       </Form.Item>
       <Form.Item>
         <Button
@@ -144,7 +164,10 @@ const RegisterForm: React.FC<{
           { validator: checkEmail },
         ]}
       >
-        <Input placeholder={t("registerFormEmailPrompt")} />
+        <input
+          placeholder={t("registerFormEmailPrompt")}
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
+        />
       </Form.Item>
       <Form.Item
         name="password"
@@ -153,7 +176,11 @@ const RegisterForm: React.FC<{
           { min: 6, message: t("registerFormPasswordInvalidPrompt") },
         ]}
       >
-        <Input.Password placeholder={t("registerFormPasswordPrompt")} />
+        <input
+          type="password"
+          placeholder={t("registerFormPasswordPrompt")}
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
+        />
       </Form.Item>
       <Form.Item
         name="confirmPassword"
@@ -172,7 +199,10 @@ const RegisterForm: React.FC<{
           }),
         ]}
       >
-        <Input.Password placeholder={t("registerFormConfirmPasswordPrompt")} />
+        <input
+          placeholder={t("registerFormConfirmPasswordPrompt")}
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
+        />
       </Form.Item>
       <Form.Item>
         <Button
@@ -327,6 +357,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       <StyledDrawer
         title={isRegistering ? t("signUp") : t("signIn")}
         placement="right"
+        className="dark:bg-gray-800 dark:text-gray-200"
         onClose={onClose}
         visible={visible}
         mask={false}
@@ -350,6 +381,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 icon={<GoogleOutlined />}
                 onClick={() => googleLogin()}
                 style={{ width: "100%", marginBottom: "10px" }}
+                className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
               >
                 {t("signInWithGoogle")}
               </Button>
@@ -358,6 +390,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               type="link"
               onClick={() => setIsRegistering(!isRegistering)}
               style={{ width: "100%" }}
+              className="dark:text-blue-400"
             >
               {isRegistering ? t("haveAnAccount") : t("noAccount")}
             </Button>
@@ -370,14 +403,23 @@ const LoginModal: React.FC<LoginModalProps> = ({
         onCancel={() => setIsAvatarModalVisible(false)}
         footer={[
           avatarOptions.length === initialAvatarCount && (
-            <Button key="load-more" onClick={loadMoreAvatars}>
+            <Button
+              key="load-more"
+              onClick={loadMoreAvatars}
+              className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+            >
               {t("loadMore")}
             </Button>
           ),
-          <Button key="cancel" onClick={() => setIsAvatarModalVisible(false)}>
+          <Button
+            key="cancel"
+            onClick={() => setIsAvatarModalVisible(false)}
+            className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+          >
             {t("cancel")}
           </Button>,
         ]}
+        className="dark:bg-gray-800 dark:text-gray-200"
       >
         <AvatarGrid>
           {avatarOptions.map((avatarUrl, index) => (
