@@ -74,6 +74,7 @@ const enTranslations = {
   filterNumbers: "Remove Numbers",
   filterArticlesAndDeterminers: "Remove Articles and Determiners",
   filterConjunctions: "Remove Conjunctions",
+  goBack: "Go Back",
 };
 
 const zhTranslations = {
@@ -145,6 +146,7 @@ const zhTranslations = {
   filterNumbers: "移除数字",
   filterArticlesAndDeterminers: "移除冠词和限定词",
   filterConjunctions: "移除连词",
+  goBack: "返回",
 };
 
 const zhTraditionalTranslations = {
@@ -216,6 +218,7 @@ const zhTraditionalTranslations = {
   filterNumbers: "移除數字",
   filterArticlesAndDeterminers: "移除冠詞和限定詞",
   filterConjunctions: "移除連詞",
+  goBack: "返回",
 };
 
 const jaTranslations = {
@@ -290,6 +293,7 @@ const jaTranslations = {
   filterNumbers: "数字を除外",
   filterArticlesAndDeterminers: "冠詞と限定詞を除外",
   filterConjunctions: "接続詞を除外",
+  goBack: "戻る",
 };
 
 const koTranslations = {
@@ -364,6 +368,7 @@ const koTranslations = {
   filterNumbers: "숫자 제외",
   filterArticlesAndDeterminers: "관사와 한정사 제외",
   filterConjunctions: "접속사 제외",
+  goBack: "戻る",
 };
 
 i18n.use(initReactI18next).init({

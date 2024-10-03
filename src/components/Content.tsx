@@ -1,12 +1,14 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
 import { Layout, Button, Modal, Tag, Checkbox } from "antd";
-import { Route, Routes, useLocation } from "react-router-dom";
-import { CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import {
+  CloudUploadOutlined,
+  FileTextOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { resetNavigation } from "@/redux/navigationSlice";
-
-import Breadcrumb from "@/components/Breadcrumb";
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/Word";
 import VideoMain, {
@@ -65,6 +67,7 @@ const removePunctuation = (word: string) => {
 
 const AppContent: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const videoMainRef = useRef<VideoMainRef>(null);
   const { t } = useTranslation();
@@ -199,11 +202,22 @@ const AppContent: React.FC = () => {
     });
   }, [missedWords, filterOptions]);
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-6">
         <div className="flex justify-between items-center mb-6">
-          <Breadcrumb />
+          <button
+            onClick={handleGoBack}
+            className="flex items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
+             dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600"
+          >
+            <ArrowLeftOutlined className="mr-2" />
+            <span>{t("goBack")}</span>
+          </button>
           {isVideoPage && (
             <div className="space-x-4">
               <Button
