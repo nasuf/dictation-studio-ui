@@ -86,24 +86,24 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
+    <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col`}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route
           path="*"
           element={
-            <Layout style={{ height: "100vh", overflow: "hidden" }}>
-              <Header style={{ padding: 0, overflow: "hidden" }}>
+            <Layout className="flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
+              <Header className="flex-shrink-0 p-0 h-auto leading-normal bg-transparent">
                 <AppHeader
                   showLoginModal={() => setIsLoginModalVisible(true)}
                   isDarkMode={isDarkMode}
                   toggleDarkMode={toggleDarkMode}
                 />
               </Header>
-              <Content style={{ padding: 0, overflow: "hidden" }}>
+              <Content className="flex-grow overflow-hidden bg-transparent">
                 <AppContent />
               </Content>
-              <Footer style={{ padding: 0, overflow: "hidden" }}>
+              <Footer className="flex-shrink-0 p-0 bg-transparent">
                 <AppFooter />
               </Footer>
               <LoginModal

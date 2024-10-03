@@ -124,7 +124,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   );
 
   return (
-    <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white py-2 px-4 md:px-6 flex items-center justify-between shadow-lg">
+    <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-gray-300 dark:text-gray-300 py-2 px-4 md:px-6 flex items-center justify-between shadow-lg h-16">
       <div className="flex items-center">
         <h1
           className="text-xl md:text-2xl font-bold cursor-pointer"
@@ -134,7 +134,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </h1>
       </div>
       <div className="flex items-center space-x-4">
-        {" "}
         <Switch
           checked={isDarkMode}
           onChange={toggleDarkMode}

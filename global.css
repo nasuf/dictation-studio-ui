@@ -16,12 +16,8 @@
   }
 }
 
-html,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+body {
+  @apply bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800;
 }
 
 @keyframes blink-cursor {
@@ -46,7 +42,7 @@ html,
 .dark .ant-menu-item-selected,
 .dark .ant-menu-item:active,
 .dark .ant-menu-submenu-active > .ant-menu-submenu-title {
-  background-color: #1e3a8a !important;
+  background-color: #374151 !important;
 }
 
 .dark .ant-menu-item-selected a,
@@ -77,13 +73,13 @@ html,
 
 /* 视频卡片深色模式样式 */
 .dark .video-card.ant-card {
-  background-color: transparent;
+  background-color: rgba(31, 41, 55, 0.5);
   border: none;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .dark .video-card .ant-card-body {
-  background-color: #1f2937;
+  background-color: rgba(31, 41, 55, 0.5);
   padding: 12px;
 }
 

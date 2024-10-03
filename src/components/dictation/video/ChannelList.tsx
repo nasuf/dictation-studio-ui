@@ -8,6 +8,7 @@ import {
   ChannelImage,
   ChannelInfo,
   ChannelName,
+  ScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { useDispatch } from "react-redux";
 import { setChannelName, resetNavigation } from "@/redux/navigationSlice";
@@ -31,7 +32,7 @@ const ChannelList: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar">
+    <ScrollableContainer>
       <ChannelGrid>
         {channels.map((channel) => (
           <Link
@@ -54,7 +55,7 @@ const ChannelList: React.FC = () => {
           </Link>
         ))}
       </ChannelGrid>
-    </div>
+    </ScrollableContainer>
   );
 };
 

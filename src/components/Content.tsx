@@ -200,8 +200,8 @@ const AppContent: React.FC = () => {
   }, [missedWords, filterOptions]);
 
   return (
-    <div className="h-[calc(100vh-64px)]">
-      <Content className="p-6 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 h-full">
+    <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
+      <div className="flex-shrink-0 p-6">
         <div className="flex justify-between items-center mb-6">
           <Breadcrumb />
           {isVideoPage && (
@@ -225,94 +225,89 @@ const AppContent: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md h-full">
-          <Layout className="bg-transparent h-full">
-            <AppSider />
-            <Content className="p-6 min-h-[80vh] h-full bg-gradient-to-r from-gray-100 via-gray-50 to-gray-0 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 ">
-              <Routes>
-                <Route path="/" element={<ChannelList />} />
-                <Route path="/dictation" element={<ChannelList />} />
-                <Route path="/dictation/video" element={<ChannelList />} />
-                <Route
-                  path="/dictation/video/:channelId"
-                  element={<VideoList />}
-                />
-                <Route
-                  path="/dictation/video/:channelId/:videoId"
-                  element={
-                    <VideoMain
-                      ref={videoMainRef}
-                      onComplete={() => setIsDictationCompleted(true)}
-                    />
-                  }
-                />
-                <Route
-                  path="/dictation/word"
-                  element={<Word style={componentStyle} />}
-                />
-                <Route path="/collection/video" element={<div>文章收藏</div>} />
-                <Route path="/collection/word" element={<div>单词收藏</div>} />
-                <Route
-                  path="/radio"
-                  element={<Radio style={componentStyle} />}
-                />
-                <Route path="/admin/channel" element={<ChannelManagement />} />
-                <Route path="/admin/video" element={<VideoManagement />} />
-                <Route path="/admin/user" element={<UserManagement />} />
-                <Route path="/profile" element={<Information />} />
-                <Route path="/profile/infomation" element={<Information />} />
-                <Route path="/profile/progress" element={<UserProgress />} />
-              </Routes>
-            </Content>
-          </Layout>
-        </div>
-        <Modal
-          title={t("missedWordsSummary")}
-          open={isMissedWordsModalVisible}
-          onCancel={() => setIsMissedWordsModalVisible(false)}
-          footer={null}
-          width={800}
-          bodyStyle={{ maxHeight: "calc(100vh - 200px)", padding: 0 }}
-          className="dark:bg-gray-800 dark:text-white"
-        >
-          <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
-            <Checkbox
-              checked={selectAll}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="mb-2 font-bold dark:text-white"
-            >
-              {t("selectAll")}
-            </Checkbox>
-            <br />
-            {filterOptions.map((option) => (
-              <Checkbox
-                key={option.key}
-                checked={option.checked}
-                onChange={(e) =>
-                  handleFilterChange(option.key, e.target.checked)
+      </div>
+      <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-6 mb-6">
+        <Layout className="h-full bg-transparent">
+          <AppSider />
+          <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 custom-scrollbar">
+            <Routes>
+              <Route path="/" element={<ChannelList />} />
+              <Route path="/dictation" element={<ChannelList />} />
+              <Route path="/dictation/video" element={<ChannelList />} />
+              <Route
+                path="/dictation/video/:channelId"
+                element={<VideoList />}
+              />
+              <Route
+                path="/dictation/video/:channelId/:videoId"
+                element={
+                  <VideoMain
+                    ref={videoMainRef}
+                    onComplete={() => setIsDictationCompleted(true)}
+                  />
                 }
-                className="mr-4 mb-2 dark:text-gray-300"
+              />
+              <Route
+                path="/dictation/word"
+                element={<Word style={componentStyle} />}
+              />
+              <Route path="/collection/video" element={<div>文章收藏</div>} />
+              <Route path="/collection/word" element={<div>单词收藏</div>} />
+              <Route path="/radio" element={<Radio style={componentStyle} />} />
+              <Route path="/admin/channel" element={<ChannelManagement />} />
+              <Route path="/admin/video" element={<VideoManagement />} />
+              <Route path="/admin/user" element={<UserManagement />} />
+              <Route path="/profile" element={<Information />} />
+              <Route path="/profile/infomation" element={<Information />} />
+              <Route path="/profile/progress" element={<UserProgress />} />
+            </Routes>
+          </Content>
+        </Layout>
+      </div>
+      <Modal
+        title={t("missedWordsSummary")}
+        open={isMissedWordsModalVisible}
+        onCancel={() => setIsMissedWordsModalVisible(false)}
+        footer={null}
+        width={800}
+        bodyStyle={{ maxHeight: "calc(100vh - 200px)", padding: 0 }}
+        className="dark:bg-gray-800 dark:text-white"
+      >
+        <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
+          <Checkbox
+            checked={selectAll}
+            onChange={(e) => handleSelectAll(e.target.checked)}
+            className="mb-2 font-bold dark:text-white"
+          >
+            {t("selectAll")}
+          </Checkbox>
+          <br />
+          {filterOptions.map((option) => (
+            <Checkbox
+              key={option.key}
+              checked={option.checked}
+              onChange={(e) => handleFilterChange(option.key, e.target.checked)}
+              className="mr-4 mb-2 dark:text-gray-300"
+            >
+              {t(option.translationKey)}
+            </Checkbox>
+          ))}
+        </div>
+        <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)] dark:bg-gray-800">
+          <div className="flex flex-wrap gap-2">
+            {filteredMissedWords.map((word) => (
+              <Tag
+                key={word}
+                closable
+                onClose={() => handleRemoveMissedWord(word)}
+                className="text-base py-1 px-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
               >
-                {t(option.translationKey)}
-              </Checkbox>
+                {word}
+              </Tag>
             ))}
           </div>
-          <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)] dark:bg-gray-800">
-            <div className="flex flex-wrap gap-2">
-              {filteredMissedWords.map((word) => (
-                <Tag
-                  key={word}
-                  closable
-                  onClose={() => handleRemoveMissedWord(word)}
-                  className="text-base py-1 px-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                  {word}
-                </Tag>
-              ))}
-            </div>
-          </div>
-        </Modal>
-      </Content>
+        </div>
+      </Modal>
     </div>
   );
 };
