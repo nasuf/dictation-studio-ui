@@ -296,3 +296,49 @@ body {
 .dark .ant-tag-close-icon {
   @apply bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200;
 }
+
+/* dark mode - antd card */
+.dark .ant-card {
+  @apply bg-gray-800 text-white border-gray-600;
+}
+
+.dark .ant-card-head {
+  @apply bg-gray-800 text-gray-400;
+}
+
+.dark .ant-card-body {
+  @apply bg-gray-700 text-white;
+}
+
+/* dark mode - antd table */
+.dark .ant-table-container {
+  @apply bg-gray-700 text-white;
+}
+
+.dark .ant-table-header {
+  @apply bg-gray-700 text-gray-400;
+}
+
+.dark .ant-table-thead > tr > th {
+  @apply bg-gray-800 text-gray-400;
+}
+
+.dark .ant-table-thead > tr > th::before {
+  width: 0px !important;
+}
+
+.dark .ant-table-tbody > tr > td {
+  @apply bg-gray-700 text-gray-200;
+}
+
+.dark .ant-table-tbody > tr:hover > td {
+  @apply bg-gray-600 !important;
+}
+
+.dark .ant-table-cell {
+  @apply border-gray-600 !important;
+}
+
+.dark .ant-table-cell-scrollbar:not(:first-child) {
+  box-shadow: 0 1px 0 0px #fafafa;
+}
