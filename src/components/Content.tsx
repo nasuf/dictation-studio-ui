@@ -209,7 +209,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center">
           <button
             onClick={handleGoBack}
             className="flex items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
