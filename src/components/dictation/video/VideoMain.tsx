@@ -34,6 +34,7 @@ export interface VideoMainRef {
   saveProgress: () => Promise<void>;
   getMissedWords: () => string[];
   removeMissedWord: (word: string) => void;
+  resetProgress: () => void; // 新添加的方法
 }
 
 const VideoMain: React.ForwardRefRenderFunction<
@@ -144,14 +145,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           title: t("dictationCompleted"),
           content: t("startOverOrNot"),
           onOk() {
-            setTranscript(
-              transcriptData.map((item) => ({ ...item, userInput: "" }))
-            );
-            setRevealedSentences([]);
-            setCurrentSentenceIndex(0);
-            setOverallCompletion(0);
-            setOverallAccuracy(0);
-            setIsCompleted(false);
+            resetProgress();
           },
           onCancel() {},
         });
@@ -538,10 +532,20 @@ const VideoMain: React.ForwardRefRenderFunction<
     setMissedWords((prev) => prev.filter((w) => w !== word));
   };
 
+  const resetProgress = () => {
+    setTranscript(transcript.map((item) => ({ ...item, userInput: "" })));
+    setRevealedSentences([]);
+    setCurrentSentenceIndex(0);
+    setOverallCompletion(0);
+    setOverallAccuracy(0);
+    setIsCompleted(false);
+  };
+
   useImperativeHandle(ref, () => ({
     saveProgress,
     getMissedWords: () => missedWords,
     removeMissedWord,
+    resetProgress, // 新添加的方法
   }));
 
   if (isUnauthorized) {

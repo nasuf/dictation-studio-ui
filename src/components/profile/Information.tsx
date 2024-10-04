@@ -23,13 +23,15 @@ const Information: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-        <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+        <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600 rounded-t-lg">
           <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-            <img
-              src={userInfo?.avatar}
-              alt="User Avatar"
-              className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800"
-            />
+            <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg">
+              <img
+                src={userInfo?.avatar}
+                alt="User Avatar"
+                className="w-full h-full rounded-full object-cover"
+              />
+            </div>
           </div>
         </div>
         <div className="pt-20 pb-8 px-8 text-center">

@@ -5,6 +5,7 @@ import {
   CloudUploadOutlined,
   FileTextOutlined,
   ArrowLeftOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -93,6 +94,12 @@ const AppContent: React.FC = () => {
   const handleSaveProgress = () => {
     if (videoMainRef.current) {
       videoMainRef.current.saveProgress();
+    }
+  };
+
+  const handleResetProgress = () => {
+    if (videoMainRef.current) {
+      videoMainRef.current.resetProgress();
     }
   };
 
@@ -227,6 +234,14 @@ const AppContent: React.FC = () => {
               >
                 <FileTextOutlined className="mr-2" />
                 {t("missedWordsSummary")}
+              </Button>
+              <Button
+                onClick={handleResetProgress}
+                disabled={!isDictationStarted}
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white dark:from-yellow-600 dark:to-yellow-700 dark:hover:from-yellow-700 dark:hover:to-yellow-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
+              >
+                <ReloadOutlined className="mr-2" />
+                {t("resetProgress")}
               </Button>
               <Button
                 onClick={handleSaveProgress}

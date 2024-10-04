@@ -408,7 +408,9 @@ body {
 }
 
 /* Jump and total */
-.dark .ant-pagination-options {
+.dark .ant-pagination-options,
+.dark .ant-pagination-item-ellipsis,
+.dark .anticon-double-right {
   @apply text-gray-300;
 }
 
