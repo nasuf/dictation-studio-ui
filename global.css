@@ -71,7 +71,7 @@ body {
   color: #1890ff !important;
 }
 
-/* 视频卡片深色模式样式 */
+/* Existing dark mode styles for video card */
 .dark .video-card.ant-card {
   background-color: rgba(31, 41, 55, 0.5);
   border: none;
@@ -262,6 +262,10 @@ body {
   @apply bg-gray-700 text-white border-gray-600 hover:bg-gray-600 hover:border-gray-500 !important;
 }
 
+.dark .ant-btn-color-default {
+  @apply bg-gray-600 border-gray-600 text-white hover:bg-gray-500 hover:border-gray-500 !important;
+}
+
 /* dark mode - antd select */
 .dark .ant-select-selector {
   @apply bg-gray-700 text-white border-gray-600 !important;
@@ -347,11 +351,116 @@ body {
   box-shadow: 0 1px 0 0px #fafafa;
 }
 
-/* dark mode - antd pagination */
+/* Dark mode - antd pagination */
 .dark .ant-pagination-item {
   @apply bg-gray-700 text-white border-gray-600 !important;
 }
 
 .dark .ant-pagination-item-active {
   @apply bg-gray-500 text-white border-gray-500 !important;
+}
+
+/* Pagination items */
+.dark .ant-pagination-item {
+  @apply bg-gray-700 border-gray-600 !important;
+}
+
+.dark .ant-pagination-item a {
+  @apply text-gray-300 !important;
+}
+
+.dark .ant-pagination-item:hover {
+  @apply border-blue-500 !important;
+}
+
+.dark .ant-pagination-item:hover a {
+  @apply text-blue-500 !important;
+}
+
+/* Active page */
+.dark .ant-pagination-item-active {
+  @apply bg-blue-500 border-blue-500 !important;
+}
+
+.dark .ant-pagination-item-active a {
+  @apply text-white !important;
+}
+
+.dark .ant-pagination-item-active:hover a {
+  @apply text-white !important;
+}
+
+/* Previous and next buttons */
+.dark .ant-pagination-prev button,
+.dark .ant-pagination-next button {
+  @apply bg-gray-700 border-gray-600 text-gray-300 !important;
+}
+
+.dark .ant-pagination-prev:hover button,
+.dark .ant-pagination-next:hover button {
+  @apply border-blue-500 text-blue-500 !important;
+}
+
+/* Disabled state */
+.dark .ant-pagination-disabled button,
+.dark .ant-pagination-disabled:hover button {
+  @apply bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed !important;
+}
+
+/* Jump and total */
+.dark .ant-pagination-options {
+  @apply text-gray-300;
+}
+
+.dark .ant-pagination-options-quick-jumper input {
+  @apply bg-gray-700 border-gray-600 text-gray-300;
+}
+
+.dark .ant-pagination-options-quick-jumper input:hover,
+.dark .ant-pagination-options-quick-jumper input:focus {
+  @apply border-blue-500;
+}
+
+/* Page size selector */
+.dark .ant-select-selector {
+  @apply bg-gray-700 border-gray-600 text-gray-300 !important;
+}
+
+.dark .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  @apply border-blue-500 !important;
+}
+
+.dark .ant-select-arrow {
+  @apply text-gray-400;
+}
+
+/* Dark mode - antd form */
+.dark .ant-form-item-control-input-content > input {
+  @apply bg-gray-700 text-white border-gray-600 !important;
+}
+
+.dark .ant-form-item-control-input-content > input::placeholder {
+  @apply text-gray-400 !important;
+}
+
+.dark .ant-input::placeholder,
+.dark .ant-input-password input::placeholder {
+  @apply text-gray-400 !important;
+}
+
+.dark .ant-form-item-label > label {
+  @apply text-gray-400;
+}
+
+/* Dark mode - icon */
+.dark .anticon-minus-circle {
+  @apply text-gray-400 hover:text-gray-500;
+}
+
+.dark .anticon-plus-circle {
+  @apply text-gray-400 hover:text-gray-500;
+}
+
+.dark .anticon-close-circle {
+  @apply text-gray-400 hover:text-gray-500;
 }

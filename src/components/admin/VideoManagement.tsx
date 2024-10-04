@@ -524,12 +524,14 @@ const VideoManagement: React.FC = () => {
       dataIndex: "video_id",
       key: "video_id",
       editable: true,
+      width: "10%",
     },
     {
       title: "Title",
       dataIndex: "title",
       key: "title",
       editable: true,
+      width: "30%",
     },
     {
       title: "Link",
@@ -552,6 +554,7 @@ const VideoManagement: React.FC = () => {
           </a>
         );
       },
+      width: "30%",
     },
     {
       title: "Actions",
@@ -592,6 +595,7 @@ const VideoManagement: React.FC = () => {
           </Space>
         );
       },
+      width: "30%",
     },
   ];
 

@@ -421,7 +421,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         ]}
         className="dark:bg-gray-800 dark:text-gray-200"
       >
-        <AvatarGrid>
+        <AvatarGrid className="custom-scrollbar">
           {avatarOptions.map((avatarUrl, index) => (
             <Avatar
               key={index}
