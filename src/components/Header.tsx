@@ -133,7 +133,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           className="text-xl md:text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
-          Daily Dictation
+          Dictation Studio
         </h1>
       </div>
       <div className="flex items-center space-x-4">

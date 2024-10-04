@@ -335,10 +335,23 @@ body {
   @apply bg-gray-600 !important;
 }
 
+.dark .ant-table-tbody > tr.ant-table-row-selected > td {
+  @apply bg-gray-600 !important;
+}
+
 .dark .ant-table-cell {
   @apply border-gray-600 !important;
 }
 
 .dark .ant-table-cell-scrollbar:not(:first-child) {
   box-shadow: 0 1px 0 0px #fafafa;
+}
+
+/* dark mode - antd pagination */
+.dark .ant-pagination-item {
+  @apply bg-gray-700 text-white border-gray-600 !important;
+}
+
+.dark .ant-pagination-item-active {
+  @apply bg-gray-500 text-white border-gray-500 !important;
 }

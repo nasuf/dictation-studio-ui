@@ -61,7 +61,7 @@ const HomePage: React.FC = () => {
         </Canvas>
       </div>
       <div className="z-10 text-center">
-        <TypewriterEffect text="Daily Dictation" />
+        <TypewriterEffect text="Dictation Studio" />
         <p className="text-xl mb-12 animate-fade-in-up max-w-2xl">
           {t("homePageDescription")}
         </p>

@@ -369,10 +369,10 @@ export const DualProgressBar: React.FC<{
           style={{ width: `${accuracyPercentage}%` }}
         ></div>
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-between px-2 text-xs font-medium">
-          <span className="text-gray-700 dark:text-gray-200 drop-shadow-md">
+          <span className="text-white dark:text-gray-200 drop-shadow-md">
             {`${t("completionRate")}: ${Math.round(completionPercentage)}%`}
           </span>
-          <span className="text-gray-700 dark:text-gray-200 drop-shadow-md">
+          <span className="text-white dark:text-gray-200 drop-shadow-md">
             {`${t("accuracyRate")}: ${Math.round(accuracyPercentage)}%`}
           </span>
         </div>
