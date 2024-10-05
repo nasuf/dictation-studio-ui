@@ -5,7 +5,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
 
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/daily-dictation`,
+  baseURL: `${API_BASE_URL}/dictation-studio`,
 });
 
 axiosInstance.interceptors.request.use(
