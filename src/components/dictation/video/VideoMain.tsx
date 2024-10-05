@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal } from "antd";
+import { Spin, message, Modal, Popover } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -750,18 +750,33 @@ const VideoMain: React.ForwardRefRenderFunction<
                                   {compareInputWithTranscript(
                                     item.userInput || "",
                                     item.transcript
-                                  ).transcriptResult.map((word, wordIndex) => (
-                                    <span
-                                      key={wordIndex}
-                                      className={`${
-                                        word.highlight === "#7CEECE"
-                                          ? "bg-green-200 dark:bg-green-700"
-                                          : "bg-red-200 dark:bg-red-700"
-                                      } px-1 py-0.5 rounded`}
-                                    >
-                                      {word.word}{" "}
-                                    </span>
-                                  ))}
+                                  ).transcriptResult.map((word, wordIndex) =>
+                                    word.isCorrect ? (
+                                      <span
+                                        key={wordIndex}
+                                        className={`${
+                                          word.isCorrect
+                                            ? "bg-green-200 dark:bg-green-700"
+                                            : "bg-red-200 dark:bg-red-700"
+                                        } px-1 py-0.5 rounded`}
+                                      >
+                                        {word.word}{" "}
+                                      </span>
+                                    ) : (
+                                      <Popover content={"Mark as correct ?"}>
+                                        <span
+                                          key={wordIndex}
+                                          className={`${
+                                            word.isCorrect
+                                              ? "bg-green-200 dark:bg-green-700"
+                                              : "bg-red-200 dark:bg-red-700"
+                                          } px-1 py-0.5 rounded cursor-pointer`}
+                                        >
+                                          {word.word}{" "}
+                                        </span>
+                                      </Popover>
+                                    )
+                                  )}
                                 </p>
                                 {item.userInput && (
                                   <p className="text-gray-600 dark:text-gray-400 text-sm">
