@@ -534,6 +534,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       userInput: userInputJson,
       currentTime: new Date().getTime(),
       overallCompletion: Number(overallCompletion.toFixed(2)),
+      duration: totalTime,
     };
 
     try {
@@ -542,7 +543,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     } catch (error) {
       message.error(t("progressSaveFailed"));
     }
-  }, [channelId, videoId, transcript, overallCompletion, t]);
+  }, [channelId, videoId, transcript, overallCompletion, t, totalTime]);
 
   const removeMissedWord = (word: string) => {
     setMissedWords((prev) => prev.filter((w) => w !== word));

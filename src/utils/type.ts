@@ -23,6 +23,7 @@ export interface ProgressData {
   userInput: { [key: number]: string };
   currentTime: number;
   overallCompletion: number;
+  duration: number;
 }
 
 export interface UserProgressData {
