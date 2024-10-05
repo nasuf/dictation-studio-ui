@@ -57,7 +57,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
   const dispatch = useDispatch();
   const [isFirstEnterAfterRestore, setIsFirstEnterAfterRestore] =
     useState(true);
@@ -100,7 +99,6 @@ const VideoMain: React.ForwardRefRenderFunction<
         }
       } catch (error: any) {
         if (error.response && error.response.status === 401) {
-          setIsUnauthorized(true);
           window.dispatchEvent(new CustomEvent("unauthorized"));
         }
       } finally {
@@ -638,10 +636,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
     };
   }, [stopTimer]);
-
-  if (isUnauthorized) {
-    return null;
-  }
 
   return (
     <div className="flex justify-center items-start h-full w-full p-5">

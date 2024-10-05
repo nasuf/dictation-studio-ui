@@ -24,6 +24,7 @@ const VideoList: React.FC = () => {
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
   );
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,8 +44,11 @@ const VideoList: React.FC = () => {
             {}
           )
         );
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch (error: any) {
+        if (error.response && error.response.status === 401) {
+          setIsUnauthorized(true);
+          window.dispatchEvent(new CustomEvent("unauthorized"));
+        }
       }
     };
 
@@ -59,7 +63,9 @@ const VideoList: React.FC = () => {
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
       {videos.length === 0 ? (
         <div className="flex justify-center items-center h-full w-full">
-          <Empty description="Coming Soon..." />
+          <Empty
+            description={isUnauthorized ? t("unauthorized") : t("comingSoon")}
+          />
         </div>
       ) : (
         <VideoCardGrid>

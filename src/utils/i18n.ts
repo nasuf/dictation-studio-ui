@@ -81,6 +81,8 @@ const enTranslations = {
   seconds: "seconds",
   total_dictation_time: "Total Dictation Time",
   loading: "Loading...",
+  unauthorized: "Unauthorized",
+  comingSoon: "Coming Soon...",
 };
 
 const zhTranslations = {
@@ -159,6 +161,8 @@ const zhTranslations = {
   hours: "小时",
   minutes: "分钟",
   seconds: "秒",
+  unauthorized: "未授权",
+  comingSoon: "即将推出...",
 };
 
 const zhTraditionalTranslations = {
@@ -237,6 +241,8 @@ const zhTraditionalTranslations = {
   hours: "小時",
   minutes: "分鐘",
   seconds: "秒",
+  unauthorized: "未授權",
+  comingSoon: "即將推出...",
 };
 
 const jaTranslations = {
@@ -313,11 +319,14 @@ const jaTranslations = {
   filterConjunctions: "接続詞を除外",
   goBack: "戻る",
   resetProgress: "進捗をリセット",
-  total_dictation_time: "總聽寫時間",
-  loading: "加載中...",
-  hours: "小時",
-  minutes: "分鐘",
+  total_dictation_time: "総聴写時間",
+  loading: "読み込み中...",
+  hours: "時間",
+  minutes: "分",
   seconds: "秒",
+  unauthorized: "未承認",
+  comingSoon: "近日公開...",
+  no_videos_available: "利用可能なビデオはありません",
 };
 
 const koTranslations = {
@@ -399,6 +408,8 @@ const koTranslations = {
   hours: "시간",
   minutes: "분",
   seconds: "초",
+  unauthorized: "미승인",
+  comingSoon: "준비중...",
 };
 
 i18n.use(initReactI18next).init({
