@@ -131,7 +131,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center">
         <h1
           className="text-xl md:text-2xl font-bold cursor-pointer"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dictation/video")}
         >
           Dictation Studio
         </h1>

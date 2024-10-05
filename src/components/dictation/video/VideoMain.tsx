@@ -35,7 +35,7 @@ export interface VideoMainRef {
   saveProgress: () => Promise<void>;
   getMissedWords: () => string[];
   removeMissedWord: (word: string) => void;
-  resetProgress: (transcriptData: TranscriptItem[]) => void;
+  resetProgress: (transcriptData?: TranscriptItem[]) => void;
 }
 
 const VideoMain: React.ForwardRefRenderFunction<
