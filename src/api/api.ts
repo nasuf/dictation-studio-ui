@@ -108,3 +108,10 @@ export const api = {
   saveDictationTime: (channelId: string, videoId: string, time: number) =>
     axios.post(`/api/dictation/time`, { channelId, videoId, time }),
 };
+
+export const getUserDuration = async (): Promise<number> => {
+  const response = await axiosInstance.get<{ totalDuration: number }>(
+    "/user/duration"
+  );
+  return response.data.totalDuration;
+};

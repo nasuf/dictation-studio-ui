@@ -76,6 +76,11 @@ const enTranslations = {
   filterConjunctions: "Remove Conjunctions",
   goBack: "Go Back",
   resetProgress: "Reset Progress",
+  hours: "hours",
+  minutes: "minutes",
+  seconds: "seconds",
+  total_dictation_time: "Total Dictation Time",
+  loading: "Loading...",
 };
 
 const zhTranslations = {
@@ -149,6 +154,11 @@ const zhTranslations = {
   filterConjunctions: "移除连词",
   goBack: "返回",
   resetProgress: "重置进度",
+  total_dictation_time: "总听写时间",
+  loading: "加载中...",
+  hours: "小时",
+  minutes: "分钟",
+  seconds: "秒",
 };
 
 const zhTraditionalTranslations = {
@@ -222,6 +232,11 @@ const zhTraditionalTranslations = {
   filterConjunctions: "移除連詞",
   goBack: "返回",
   resetProgress: "重置進度",
+  total_dictation_time: "總聽寫時間",
+  loading: "加載中...",
+  hours: "小時",
+  minutes: "分鐘",
+  seconds: "秒",
 };
 
 const jaTranslations = {
@@ -298,6 +313,11 @@ const jaTranslations = {
   filterConjunctions: "接続詞を除外",
   goBack: "戻る",
   resetProgress: "進捗をリセット",
+  total_dictation_time: "總聽寫時間",
+  loading: "加載中...",
+  hours: "小時",
+  minutes: "分鐘",
+  seconds: "秒",
 };
 
 const koTranslations = {
@@ -374,6 +394,11 @@ const koTranslations = {
   filterConjunctions: "접속사 제외",
   goBack: "뒤로가기",
   resetProgress: "진행 상황 초기화",
+  total_dictation_time: "총 듣기 시간",
+  loading: "로딩중...",
+  hours: "시간",
+  minutes: "분",
+  seconds: "초",
 };
 
 i18n.use(initReactI18next).init({

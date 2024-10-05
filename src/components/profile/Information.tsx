@@ -1,16 +1,46 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { getUserDuration } from "@/api/api";
+import { useTranslation } from "react-i18next";
 
 const Information: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [loading, setLoading] = useState(true);
+  const [totalDuration, setTotalDuration] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    if (userInfo) {
-      setLoading(false);
-    }
+    const fetchData = async () => {
+      try {
+        const duration = await getUserDuration();
+        setTotalDuration(duration);
+      } catch (error) {
+        console.error("Error fetching user duration:", error);
+      }
+      if (userInfo) {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [userInfo]);
+
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours} ${t("hours")} ${minutes} ${t(
+        "minutes"
+      )} ${remainingSeconds} ${t("seconds")}`;
+    } else if (minutes > 0) {
+      return `${minutes} ${t("minutes")} ${remainingSeconds} ${t("seconds")}`;
+    } else {
+      return `${remainingSeconds} ${t("seconds")}`;
+    }
+  };
 
   if (loading) {
     return (
@@ -80,6 +110,28 @@ const Information: React.FC = () => {
               </svg>
               <span className="text-gray-700 dark:text-gray-300">
                 {userInfo?.role}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <svg
+                className="w-6 h-6 text-gray-500 dark:text-gray-400 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <span className="text-gray-700 dark:text-gray-300">
+                {t("total_dictation_time")}:{" "}
+                {totalDuration !== null
+                  ? formatDuration(totalDuration)
+                  : t("loading")}
               </span>
             </div>
           </div>
