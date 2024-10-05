@@ -6,7 +6,6 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useLayoutEffect,
-  useMemo,
 } from "react";
 import { Spin, message, Modal } from "antd";
 import {
@@ -15,7 +14,7 @@ import {
   RedoOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
@@ -27,7 +26,6 @@ import { useDispatch } from "react-redux";
 import { setIsDictationStarted } from "@/redux/userSlice";
 import nlp from "compromise";
 import Timer from "./Timer";
-import { debounce } from "lodash";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -37,7 +35,7 @@ export interface VideoMainRef {
   saveProgress: () => Promise<void>;
   getMissedWords: () => string[];
   removeMissedWord: (word: string) => void;
-  resetProgress: () => void;
+  resetProgress: (transcriptData: TranscriptItem[]) => void;
 }
 
 const VideoMain: React.ForwardRefRenderFunction<
@@ -73,9 +71,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [totalTime, setTotalTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
-  const navigate = useNavigate();
-  const [isUserActive, setIsUserActive] = useState(false);
-  const lastActivityTimeRef = useRef(Date.now());
   const [isUserTyping, setIsUserTyping] = useState(false);
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -143,10 +138,10 @@ const VideoMain: React.ForwardRefRenderFunction<
       playerRef.current.seekTo(transcriptData[lastInputIndex].start, true);
     }
 
+    setIsFirstEnterAfterRestore(true);
     updateOverallProgress();
 
     dispatch(setIsDictationStarted(true));
-    setIsFirstEnterAfterRestore(true);
 
     setTimeout(() => {
       scrollToCurrentSentence();
@@ -161,13 +156,26 @@ const VideoMain: React.ForwardRefRenderFunction<
           title: t("dictationCompleted"),
           content: t("startOverOrNot"),
           onOk() {
-            resetProgress();
+            resetProgress(transcriptData);
           },
           onCancel() {},
         });
       }
     }
     setIsInitialLoad(false);
+  };
+
+  const resetProgress = (transcriptData?: TranscriptItem[]) => {
+    if (transcriptData) {
+      setTranscript(transcriptData.map((item) => ({ ...item, userInput: "" })));
+    } else {
+      setTranscript(transcript.map((item) => ({ ...item, userInput: "" })));
+    }
+    setRevealedSentences([]);
+    setCurrentSentenceIndex(0);
+    setOverallCompletion(0);
+    setOverallAccuracy(0);
+    setIsCompleted(false);
   };
 
   useEffect(() => {
@@ -294,7 +302,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       setCurrentInterval(checkInterval);
 
-      // 添加一个额外的安全检查，以确保在句子结束时停止播放
       setTimeout(() => {
         if (!hasEnded) {
           console.log("Safety check: pausing video");
@@ -303,7 +310,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           setCurrentInterval(null);
           hasEnded = true;
         }
-      }, duration + 500); // 给予额外的500毫秒作为缓冲
+      }, duration + 500);
     });
   };
 
@@ -498,7 +505,12 @@ const VideoMain: React.ForwardRefRenderFunction<
     setOverallCompletion(newOverallCompletion);
     setOverallAccuracy(newOverallAccuracy);
 
-    if (newOverallCompletion === 100 && !isCompleted && !isInitialLoad) {
+    if (
+      newOverallCompletion === 100 &&
+      !isCompleted &&
+      !isInitialLoad &&
+      !isFirstEnterAfterRestore
+    ) {
       populateMissedWords();
       setIsCompleted(true);
       onComplete();
@@ -547,15 +559,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const removeMissedWord = (word: string) => {
     setMissedWords((prev) => prev.filter((w) => w !== word));
-  };
-
-  const resetProgress = () => {
-    setTranscript(transcript.map((item) => ({ ...item, userInput: "" })));
-    setRevealedSentences([]);
-    setCurrentSentenceIndex(0);
-    setOverallCompletion(0);
-    setOverallAccuracy(0);
-    setIsCompleted(false);
   };
 
   useImperativeHandle(ref, () => ({
