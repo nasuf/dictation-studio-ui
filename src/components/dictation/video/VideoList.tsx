@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Progress } from "antd";
+import { Empty, Progress } from "antd";
 import { api } from "@/api/api";
 import { Video } from "@/utils/type";
 import {
@@ -14,6 +14,7 @@ import {
 import { resetScrollPosition } from "@/utils/util";
 import { useDispatch } from "react-redux";
 import { setVideoName } from "@/redux/navigationSlice";
+import { t } from "i18next";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
@@ -56,55 +57,63 @@ const VideoList: React.FC = () => {
 
   return (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
-      <VideoCardGrid>
-        {videos.map((video) => (
-          <Link
-            key={video.video_id}
-            to={`/dictation/video/${channelId}/${video.video_id}`}
-            onClick={() => dispatch(setVideoName(video.title))}
-            state={{ name: video.title }}
-          >
-            <CustomHoverCard
-              hoverable
-              className="video-card"
-              cover={
-                <div style={{ position: "relative", paddingTop: "56.25%" }}>
-                  {!loadedImages[video.video_id] && <SkeletonImage active />}
-                  <img
-                    alt={video.title}
-                    src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
-                    onLoad={() => handleImageLoad(video.video_id)}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: loadedImages[video.video_id] ? "block" : "none",
-                      borderRadius: "8px 8px 0 0",
-                    }}
-                  />
-                </div>
-              }
+      {videos.length === 0 ? (
+        <div className="flex justify-center items-center h-full w-full">
+          <Empty description="Coming Soon..." />
+        </div>
+      ) : (
+        <VideoCardGrid>
+          {videos.map((video) => (
+            <Link
+              key={video.video_id}
+              to={`/dictation/video/${channelId}/${video.video_id}`}
+              onClick={() => dispatch(setVideoName(video.title))}
+              state={{ name: video.title }}
             >
-              <CustomCardMeta
-                title={
-                  <ScrollingTitle onMouseLeave={resetScrollPosition}>
-                    <div className="inner-text">{video.title}</div>
-                  </ScrollingTitle>
+              <CustomHoverCard
+                hoverable
+                className="video-card"
+                cover={
+                  <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                    {!loadedImages[video.video_id] && <SkeletonImage active />}
+                    <img
+                      alt={video.title}
+                      src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
+                      onLoad={() => handleImageLoad(video.video_id)}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: loadedImages[video.video_id]
+                          ? "block"
+                          : "none",
+                        borderRadius: "8px 8px 0 0",
+                      }}
+                    />
+                  </div>
                 }
-              />
-              <Progress
-                percent={progress[video.video_id] || 0}
-                size="small"
-                status="active"
-                style={{ marginTop: "10px" }}
-              />
-            </CustomHoverCard>
-          </Link>
-        ))}
-      </VideoCardGrid>
+              >
+                <CustomCardMeta
+                  title={
+                    <ScrollingTitle onMouseLeave={resetScrollPosition}>
+                      <div className="inner-text">{video.title}</div>
+                    </ScrollingTitle>
+                  }
+                />
+                <Progress
+                  percent={progress[video.video_id] || 0}
+                  size="small"
+                  status="active"
+                  style={{ marginTop: "10px" }}
+                />
+              </CustomHoverCard>
+            </Link>
+          ))}
+        </VideoCardGrid>
+      )}
     </ScrollableContainer>
   );
 };
