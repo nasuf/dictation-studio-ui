@@ -356,8 +356,8 @@ export const DualProgressBar: React.FC<{
   const { t } = useTranslation();
 
   return (
-    <div className="w-full mb-4">
-      <div className="relative h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+    <div className="w-full h-12 flex items-center">
+      <div className="relative w-full h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <div
           className={`absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500 ease-in-out ${
             isCompleted ? "animate-pulse" : ""

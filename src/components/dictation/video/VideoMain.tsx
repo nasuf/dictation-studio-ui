@@ -6,6 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
 } from "react";
 import { Spin, message, Modal } from "antd";
 import {
@@ -14,7 +15,7 @@ import {
   RedoOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
@@ -25,6 +26,8 @@ import { ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch } from "react-redux";
 import { setIsDictationStarted } from "@/redux/userSlice";
 import nlp from "compromise";
+import Timer from "./Timer";
+import { debounce } from "lodash";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -34,7 +37,7 @@ export interface VideoMainRef {
   saveProgress: () => Promise<void>;
   getMissedWords: () => string[];
   removeMissedWord: (word: string) => void;
-  resetProgress: () => void; // 新添加的方法
+  resetProgress: () => void;
 }
 
 const VideoMain: React.ForwardRefRenderFunction<
@@ -66,6 +69,15 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [currentInterval, setCurrentInterval] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+  const navigate = useNavigate();
+  const [isUserActive, setIsUserActive] = useState(false);
+  const lastActivityTimeRef = useRef(Date.now());
+  const [isUserTyping, setIsUserTyping] = useState(false);
+  const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,7 +90,11 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         setTranscript(transcriptResponse.data.transcript);
 
-        if (progressResponse.data && progressResponse.data.userInput) {
+        if (
+          progressResponse.data &&
+          progressResponse.data.userInput &&
+          Object.keys(progressResponse.data.userInput).length > 0
+        ) {
           restoreUserProgress(
             progressResponse.data,
             transcriptResponse.data.transcript
@@ -182,10 +198,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       window.removeEventListener("keydown", handleKeyPress);
     };
   }, [transcript, userInput, currentSentenceIndex, isFirstEnterAfterRestore]);
-
-  const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInput(e.target.value);
-  };
 
   const scrollToCurrentSentence = useCallback(() => {
     if (subtitlesRef.current) {
@@ -300,6 +312,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     clearIntervalIfExists();
     const currentSentence = transcript[currentSentenceIndex];
     playSentence(currentSentence);
+    startTimer();
   };
 
   const playNextSentence = () => {
@@ -313,6 +326,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     setTimeout(() => {
       playSentence(nextSentence);
     }, 100);
+    lastActivityRef.current = Date.now();
   };
 
   const playPreviousSentence = () => {
@@ -323,6 +337,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
     playSentence(prevSentence);
+    lastActivityRef.current = Date.now();
   };
 
   const saveUserInput = () => {
@@ -349,6 +364,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         )
       )
     );
+    lastActivityRef.current = Date.now();
   };
 
   const revealCurrentSentence = () => {
@@ -545,8 +561,79 @@ const VideoMain: React.ForwardRefRenderFunction<
     saveProgress,
     getMissedWords: () => missedWords,
     removeMissedWord,
-    resetProgress, // 新添加的方法
+    resetProgress,
   }));
+
+  const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserInput(e.target.value);
+    resetUserTypingTimer();
+    if (!isTimerRunning) {
+      startTimer();
+    }
+  };
+
+  const stopTimer = useCallback(() => {
+    if (isTimerRunning) {
+      setIsTimerRunning(false);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+  }, [isTimerRunning]);
+
+  const startTimer = useCallback(() => {
+    if (!isTimerRunning) {
+      setIsTimerRunning(true);
+      timerIntervalRef.current = setInterval(() => {
+        setTotalTime((prev) => prev + 1);
+      }, 1000);
+    }
+  }, [isTimerRunning]);
+
+  const resetUserTypingTimer = useCallback(() => {
+    if (userTypingTimerRef.current) {
+      clearTimeout(userTypingTimerRef.current);
+    }
+    setIsUserTyping(true);
+    userTypingTimerRef.current = setTimeout(() => {
+      setIsUserTyping(false);
+      if (playerRef.current) {
+        const playerState = playerRef.current.getPlayerState();
+        if (
+          playerState === YouTube.PlayerState.PAUSED ||
+          playerState === YouTube.PlayerState.ENDED
+        ) {
+          stopTimer();
+        }
+      }
+    }, 30000);
+  }, [stopTimer]);
+
+  const onVideoStateChange = useCallback(
+    (event: { data: number }) => {
+      if (event.data === YouTube.PlayerState.PLAYING) {
+        if (!isTimerRunning) {
+          startTimer();
+        }
+      } else if (
+        event.data === YouTube.PlayerState.PAUSED ||
+        event.data === YouTube.PlayerState.ENDED
+      ) {
+        resetUserTypingTimer();
+      }
+    },
+    [isTimerRunning, isUserTyping, startTimer, stopTimer]
+  );
+
+  useEffect(() => {
+    return () => {
+      stopTimer();
+      if (userTypingTimerRef.current) {
+        clearTimeout(userTypingTimerRef.current);
+      }
+    };
+  }, [stopTimer]);
 
   if (isUnauthorized) {
     return null;
@@ -576,6 +663,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                   },
                 }}
                 onReady={onVideoReady}
+                onStateChange={onVideoStateChange}
                 className="absolute top-0 left-0 w-full h-full"
               />
             </div>
@@ -618,11 +706,19 @@ const VideoMain: React.ForwardRefRenderFunction<
         </div>
 
         <div className="flex-1 flex flex-col h-full max-w-2xl">
-          <DualProgressBar
-            completionPercentage={overallCompletion}
-            accuracyPercentage={overallAccuracy}
-            isCompleted={isCompleted}
-          />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-grow mr-4">
+              <DualProgressBar
+                completionPercentage={overallCompletion}
+                accuracyPercentage={overallAccuracy}
+                isCompleted={isCompleted}
+              />
+            </div>
+            <Timer
+              time={totalTime}
+              isRunning={isTimerRunning && isUserTyping}
+            />
+          </div>
           <div className="flex-grow mt-4 flex flex-col overflow-hidden">
             {isLoading || !isVideoReady ? (
               <div className="h-full flex justify-center items-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">

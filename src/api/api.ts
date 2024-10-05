@@ -105,4 +105,6 @@ export const api = {
     axiosInstance.put(`/service/video-list/${channelId}/${videoId}`, videoData),
 
   getAllProgress: () => axiosInstance.get("/user/all-progress"),
+  saveDictationTime: (channelId: string, videoId: string, time: number) =>
+    axios.post(`/api/dictation/time`, { channelId, videoId, time }),
 };
