@@ -466,3 +466,8 @@ body {
 .dark .anticon-close-circle {
   @apply text-gray-400 hover:text-gray-500;
 }
+
+/* Dark mode - antd empty */
+.dark .ant-empty-description {
+  @apply text-gray-400;
+}
