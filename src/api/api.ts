@@ -40,7 +40,7 @@ export const api = {
   },
   verifyGoogleToken: (token: string) =>
     axiosInstance.post("/auth/verify-google-token", { token }),
-  checkLogin: () => axiosInstance.get("/auth/check-login"),
+  refreshLoginStatus: () => axiosInstance.get("/auth/refresh-login-status"),
   logout: () => axiosInstance.post("/auth/logout"),
   register: (
     username: string,

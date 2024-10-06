@@ -22,8 +22,8 @@ import {
   ProgressCircle,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
-import { ProgressData, TranscriptItem, UserConfig } from "@/utils/type";
-import { useDispatch } from "react-redux";
+import { ProgressData, TranscriptItem, UserInfo } from "@/utils/type";
+import { useDispatch, useSelector } from "react-redux";
 import {
   increaseRepeatCount,
   resetRepeatCount,
@@ -79,15 +79,20 @@ const VideoMain: React.ForwardRefRenderFunction<
   const lastActivityRef = useRef<number>(Date.now());
   const [isUserTyping, setIsUserTyping] = useState(false);
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [autoRepeat, setAutoRepeat] = useState(0);
-  const [shortcutKeys, setShortcutKeys] = useState({
-    "Repeat / Play": "Tab",
-    Next: "Enter",
-    Previous: "Shift",
-  });
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
   const [configChanged, setConfigChanged] = useState(false);
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const [autoRepeat, setAutoRepeat] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [shortcutKeys, setShortcutKeys] = useState<{
+    repeat: string;
+    prev: string;
+    next: string;
+  }>({
+    repeat: "Tab",
+    prev: "Shift",
+    next: "Enter",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,8 +127,22 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
     };
 
+    const loadDictationConfig = async () => {
+      const dictationConfig = userInfo?.dictation_config;
+      if (dictationConfig) {
+        setAutoRepeat(dictationConfig.auto_repeat || 0);
+        setPlaybackSpeed(dictationConfig.playback_speed || 1);
+        setShortcutKeys({
+          repeat: dictationConfig?.shortcuts?.repeat ?? "Tab",
+          prev: dictationConfig?.shortcuts?.prev ?? "Shift",
+          next: dictationConfig?.shortcuts?.next ?? "Enter",
+        });
+      }
+    };
+
     fetchData();
-  }, [videoId, channelId, dispatch]);
+    loadDictationConfig();
+  }, [videoId, channelId, userInfo, dispatch]);
 
   useEffect(() => {
     populateMissedWords();
@@ -648,13 +667,15 @@ const VideoMain: React.ForwardRefRenderFunction<
   const saveUserConfig = useCallback(async () => {
     if (!configChanged) return;
 
-    const config: UserConfig = {
-      playback_speed: playbackSpeed,
-      auto_repeat: autoRepeat,
-      shortcuts: {
-        repeat: shortcutKeys["Repeat / Play"],
-        next: shortcutKeys.Next,
-        prev: shortcutKeys.Previous,
+    const config: UserInfo = {
+      dictation_config: {
+        playback_speed: playbackSpeed,
+        auto_repeat: autoRepeat,
+        shortcuts: {
+          repeat: shortcutKeys?.repeat,
+          next: shortcutKeys?.next,
+          prev: shortcutKeys?.prev,
+        },
       },
     };
 
@@ -700,15 +721,15 @@ const VideoMain: React.ForwardRefRenderFunction<
         setSettingShortcut(null);
       } else {
         switch (e.code) {
-          case shortcutKeys["Repeat / Play"]:
+          case shortcutKeys?.repeat:
             e.preventDefault();
             playCurrentSentence();
             break;
-          case shortcutKeys.Previous:
+          case shortcutKeys?.prev:
             e.preventDefault();
             playPreviousSentence();
             break;
-          case shortcutKeys.Next:
+          case shortcutKeys?.next:
             e.preventDefault();
             saveUserInput();
             revealCurrentSentence();
@@ -777,15 +798,16 @@ const VideoMain: React.ForwardRefRenderFunction<
           Shortcut Keys
         </h6>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(shortcutKeys).map(([key, value]) => (
-            <Button
-              key={key}
-              onClick={() => handleShortcutSet(key)}
-              className="w-full text-left"
-            >
-              {key}: {value || "Not set"}
-            </Button>
-          ))}
+          {shortcutKeys &&
+            Object.entries(shortcutKeys).map(([key, value]) => (
+              <Button
+                key={key}
+                onClick={() => handleShortcutSet(key)}
+                className="w-full text-left"
+              >
+                {key}: {value || "Not set"}
+              </Button>
+            ))}
         </div>
       </div>
     </div>

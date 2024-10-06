@@ -1,10 +1,22 @@
 export interface UserInfo {
-  username: string;
-  email: string;
-  avatar: string;
-  role: string;
+  username?: string;
+  email?: string;
+  avatar?: string;
+  role?: string;
+  language?: string;
+  theme?: string;
+  dictation_config?: DictationConfig;
 }
 
+export interface DictationConfig {
+  playback_speed?: number;
+  auto_repeat?: number;
+  shortcuts?: {
+    repeat?: string;
+    next?: string;
+    prev?: string;
+  };
+}
 export interface Channel {
   id: string;
   name: string;
@@ -54,16 +66,4 @@ export interface FilterOption {
   key: string;
   translationKey: string;
   checked: boolean;
-}
-
-export interface UserConfig {
-  language?: string;
-  theme?: string;
-  playback_speed?: number;
-  auto_repeat?: number;
-  shortcuts?: {
-    repeat?: string;
-    next?: string;
-    prev?: string;
-  };
 }

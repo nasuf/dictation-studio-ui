@@ -40,11 +40,12 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    const refreshLoginStatus = async () => {
       try {
-        const response = await api.checkLogin();
+        const response = await api.refreshLoginStatus();
         if (response.status === 200) {
           dispatch(setUser(response.data.user));
+          localStorage.setItem("user", JSON.stringify(response.data.user));
         } else {
           dispatch(clearUser());
           localStorage.removeItem("jwt_token");
@@ -56,7 +57,9 @@ const App: React.FC = () => {
       }
     };
 
-    checkLoginStatus();
+    // refresh login status every 30 minutes
+    refreshLoginStatus();
+    setInterval(refreshLoginStatus, 30 * 60 * 1000);
 
     const handleUnauthorized = () => {
       setIsLoginModalVisible(true);
@@ -73,12 +76,13 @@ const App: React.FC = () => {
     try {
       const response = await api.verifyGoogleToken(tokenResponse.access_token);
       localStorage.setItem("jwt_token", response.data.jwt_token);
-      dispatch(setUser(response.data));
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      dispatch(setUser(response.data.user));
       setIsLoginModalVisible(false);
       message.success(t("loginSuccessful"));
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Login failed:", error);
       message.error(t("loginFailed"));
