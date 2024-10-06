@@ -497,3 +497,23 @@ body {
 .dark .ant-popover-inner-content p {
   @apply text-gray-200;
 }
+
+.custom-popover .ant-popover-inner {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg;
+}
+
+.custom-popover .ant-popover-inner-content {
+  @apply p-0;
+}
+
+.custom-slider .ant-slider-rail {
+  @apply bg-gray-300 dark:bg-gray-600;
+}
+
+.custom-slider .ant-slider-track {
+  @apply bg-blue-500 dark:bg-blue-400;
+}
+
+.custom-slider .ant-slider-handle {
+  @apply border-blue-500 dark:border-blue-400;
+}

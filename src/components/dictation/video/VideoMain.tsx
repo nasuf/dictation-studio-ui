@@ -7,11 +7,12 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal } from "antd";
+import { Spin, message, Modal, Popover, Slider, Select, Button } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
   RedoOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { useParams } from "react-router-dom";
@@ -23,9 +24,15 @@ import {
 } from "@/components/dictation/video/Widget";
 import { ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch } from "react-redux";
-import { setIsDictationStarted } from "@/redux/userSlice";
+import {
+  increaseRepeatCount,
+  resetRepeatCount,
+  setIsDictationStarted,
+} from "@/redux/userSlice";
 import nlp from "compromise";
 import Timer from "./Timer";
+import { RootState } from "@/redux/store";
+import { store } from "@/redux/store";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -72,6 +79,14 @@ const VideoMain: React.ForwardRefRenderFunction<
   const lastActivityRef = useRef<number>(Date.now());
   const [isUserTyping, setIsUserTyping] = useState(false);
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [autoRepeat, setAutoRepeat] = useState(0);
+  const [shortcutKeys, setShortcutKeys] = useState({
+    "Repeat / Play": "Tab",
+    Next: "Enter",
+    Previous: "Shift",
+  });
+  const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,7 +143,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     const lastInputIndex = Math.max(
       ...Object.keys(progress.userInput).map(Number)
     );
-    setCurrentSentenceIndex(lastInputIndex + 1);
+    setCurrentSentenceIndex(lastInputIndex);
 
     setRevealedSentences(Object.keys(progress.userInput).map(Number));
 
@@ -221,6 +236,25 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
   };
 
+  const stopTimer = useCallback(() => {
+    if (isTimerRunning) {
+      setIsTimerRunning(false);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+  }, [isTimerRunning]);
+
+  const startTimer = useCallback(() => {
+    if (!isTimerRunning) {
+      setIsTimerRunning(true);
+      timerIntervalRef.current = setInterval(() => {
+        setTotalTime((prev) => prev + 1);
+      }, 1000);
+    }
+  }, [isTimerRunning]);
+
   const stopCurrentSentence = useCallback(() => {
     if (playerRef.current) {
       playerRef.current.pauseVideo();
@@ -228,55 +262,65 @@ const VideoMain: React.ForwardRefRenderFunction<
     clearIntervalIfExists();
   }, [clearIntervalIfExists]);
 
-  const playSentence = (sentence: TranscriptItem) => {
-    clearIntervalIfExists();
-    playerRef.current.pauseVideo();
-    playerRef.current.seekTo(sentence.start, true);
+  const playSentence = useCallback(
+    (sentence: TranscriptItem, onComplete?: () => void) => {
+      clearIntervalIfExists();
+      playerRef.current.pauseVideo();
+      playerRef.current.seekTo(sentence.start, true);
 
-    const playPromise = new Promise<void>((resolve) => {
-      const onStateChange = (event: { data: number }) => {
-        if (event.data === YouTube.PlayerState.PLAYING) {
-          playerRef.current?.removeEventListener(
-            "onStateChange",
-            onStateChange
-          );
-          resolve();
-        }
-      };
-
-      playerRef.current?.addEventListener("onStateChange", onStateChange);
-      playerRef.current?.playVideo();
-    });
-
-    playPromise.then(() => {
-      const duration = (sentence.end - sentence.start) * 1000;
-      const startTime = Date.now();
-      let hasEnded = false;
-
-      const checkInterval = setInterval(() => {
-        if (playerRef.current && !hasEnded) {
-          const currentTime = playerRef.current.getCurrentTime();
-          const elapsedTime = Date.now() - startTime;
-          if (currentTime >= sentence.end - 0.1 || elapsedTime >= duration) {
-            playerRef.current.pauseVideo();
-            clearInterval(checkInterval);
-            setCurrentInterval(null);
-            hasEnded = true;
+      const playPromise = new Promise<void>((resolve) => {
+        const onStateChange = (event: { data: number }) => {
+          if (event.data === YouTube.PlayerState.PLAYING) {
+            playerRef.current?.removeEventListener(
+              "onStateChange",
+              onStateChange
+            );
+            resolve();
           }
-        }
-      }, 50);
+        };
 
-      setCurrentInterval(checkInterval);
-    });
-  };
+        playerRef.current?.addEventListener("onStateChange", onStateChange);
+        playerRef.current?.playVideo();
+      });
 
-  const playCurrentSentence = () => {
+      playPromise.then(() => {
+        const duration = (sentence.end - sentence.start) * 1000;
+        const startTime = Date.now();
+        let hasEnded = false;
+
+        const checkInterval = setInterval(() => {
+          if (playerRef.current && !hasEnded) {
+            const currentTime = playerRef.current.getCurrentTime();
+            const elapsedTime = Date.now() - startTime;
+            if (currentTime >= sentence.end - 0.1 || elapsedTime >= duration) {
+              playerRef.current.pauseVideo();
+              clearInterval(checkInterval);
+              setCurrentInterval(null);
+              hasEnded = true;
+              if (onComplete) {
+                onComplete();
+              }
+            }
+          }
+        }, 50);
+
+        setCurrentInterval(checkInterval);
+      });
+    },
+    [clearIntervalIfExists]
+  );
+
+  const playCurrentSentence = useCallback(() => {
     if (!playerRef.current || transcript.length === 0) return;
     clearIntervalIfExists();
     const currentSentence = transcript[currentSentenceIndex];
-    playSentence(currentSentence);
-    startTimer();
-  };
+    if (autoRepeat > 0) {
+      repeatSentence(currentSentence);
+    } else {
+      playSentence(currentSentence);
+    }
+    lastActivityRef.current = Date.now();
+  }, [clearIntervalIfExists, currentSentenceIndex, playSentence, transcript]);
 
   const playNextSentence = useCallback(() => {
     if (!playerRef.current || transcript.length === 0) return;
@@ -284,20 +328,48 @@ const VideoMain: React.ForwardRefRenderFunction<
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     setCurrentSentenceIndex(nextIndex);
     const nextSentence = transcript[nextIndex];
-    playSentence(nextSentence);
+    if (autoRepeat > 0) {
+      repeatSentence(nextSentence);
+    } else {
+      playSentence(nextSentence);
+    }
     lastActivityRef.current = Date.now();
   }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
 
-  const playPreviousSentence = () => {
+  const playPreviousSentence = useCallback(() => {
     if (!playerRef.current || transcript.length === 0) return;
     clearIntervalIfExists();
     const prevIndex =
       (currentSentenceIndex - 1 + transcript.length) % transcript.length;
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
-    playSentence(prevSentence);
+    if (autoRepeat > 0) {
+      repeatSentence(prevSentence);
+    } else {
+      playSentence(prevSentence);
+    }
     lastActivityRef.current = Date.now();
-  };
+  }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
+
+  const repeatSentence = useCallback(
+    (transcriptItem: TranscriptItem) => {
+      dispatch(resetRepeatCount());
+      const repeat = () => {
+        const currentRepeatCount = (store.getState() as RootState).user
+          .repeatCount;
+        if (currentRepeatCount <= autoRepeat) {
+          playSentence(transcriptItem, () => {
+            dispatch(increaseRepeatCount());
+            setTimeout(() => {
+              repeat();
+            }, 1000);
+          });
+        }
+      };
+      repeat();
+    },
+    [autoRepeat, playSentence, dispatch]
+  );
 
   const saveUserInput = () => {
     if (userInput.trim() !== "") {
@@ -325,49 +397,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     );
     lastActivityRef.current = Date.now();
   };
-
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!playerRef.current || transcript.length === 0) return;
-
-      if (event.key === "Tab") {
-        event.preventDefault();
-        playCurrentSentence();
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        saveUserInput();
-        revealCurrentSentence();
-        updateOverallProgress();
-
-        if (isFirstEnterAfterRestore) {
-          setIsFirstEnterAfterRestore(false);
-        }
-
-        stopCurrentSentence();
-        requestAnimationFrame(() => {
-          playNextSentence();
-        });
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [
-    transcript,
-    userInput,
-    currentSentenceIndex,
-    isFirstEnterAfterRestore,
-    stopCurrentSentence,
-    playNextSentence,
-    playCurrentSentence,
-    playNextSentence,
-    saveUserInput,
-    stopCurrentSentence,
-    isFirstEnterAfterRestore,
-    transcript,
-  ]);
 
   const revealCurrentSentence = () => {
     setRevealedSentences((prev) => [...prev, currentSentenceIndex]);
@@ -571,25 +600,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
   };
 
-  const stopTimer = useCallback(() => {
-    if (isTimerRunning) {
-      setIsTimerRunning(false);
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-    }
-  }, [isTimerRunning]);
-
-  const startTimer = useCallback(() => {
-    if (!isTimerRunning) {
-      setIsTimerRunning(true);
-      timerIntervalRef.current = setInterval(() => {
-        setTotalTime((prev) => prev + 1);
-      }, 1000);
-    }
-  }, [isTimerRunning]);
-
   const resetUserTypingTimer = useCallback(() => {
     if (userTypingTimerRef.current) {
       clearTimeout(userTypingTimerRef.current);
@@ -634,6 +644,121 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
   }, [stopTimer]);
 
+  const handleSpeedChange = (newSpeed: number) => {
+    setPlaybackSpeed(newSpeed);
+    if (playerRef.current) {
+      playerRef.current.setPlaybackRate(newSpeed);
+    }
+  };
+
+  const handleAutoRepeatChange = (value: number) => {
+    setAutoRepeat(value);
+  };
+
+  const handleShortcutSet = (key: string) => {
+    setSettingShortcut(key);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!playerRef.current || transcript.length === 0) return;
+      if (settingShortcut) {
+        e.preventDefault();
+        setShortcutKeys((prev) => ({ ...prev, [settingShortcut]: e.code }));
+        setSettingShortcut(null);
+      } else {
+        switch (e.code) {
+          case shortcutKeys["Repeat / Play"]:
+            e.preventDefault();
+            playCurrentSentence();
+            break;
+          case shortcutKeys.Previous:
+            e.preventDefault();
+            playPreviousSentence();
+            break;
+          case shortcutKeys.Next:
+            e.preventDefault();
+            saveUserInput();
+            revealCurrentSentence();
+            updateOverallProgress();
+
+            if (isFirstEnterAfterRestore) {
+              setIsFirstEnterAfterRestore(false);
+            }
+
+            stopCurrentSentence();
+            requestAnimationFrame(() => {
+              playNextSentence();
+            });
+            break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    userInput,
+    currentSentenceIndex,
+    isFirstEnterAfterRestore,
+    transcript,
+    autoRepeat,
+    stopCurrentSentence,
+    playNextSentence,
+    playCurrentSentence,
+    playNextSentence,
+    saveUserInput,
+    stopCurrentSentence,
+  ]);
+
+  const settingsContent = (
+    <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div>
+        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          Playback Speed
+        </h6>
+        <Slider
+          min={0.5}
+          max={2}
+          step={0.1}
+          value={playbackSpeed}
+          onChange={handleSpeedChange}
+          className="custom-slider"
+        />
+      </div>
+      <div>
+        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          Auto Repeat
+        </h6>
+        <Select
+          value={autoRepeat}
+          onChange={handleAutoRepeatChange}
+          className="w-full"
+        >
+          <Select.Option value={1}>1 time</Select.Option>
+          <Select.Option value={2}>2 times</Select.Option>
+          <Select.Option value={3}>3 times</Select.Option>
+        </Select>
+      </div>
+      <div>
+        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          Shortcut Keys
+        </h6>
+        <div className="grid grid-cols-2 gap-4">
+          {Object.entries(shortcutKeys).map(([key, value]) => (
+            <Button
+              key={key}
+              onClick={() => handleShortcutSet(key)}
+              className="w-full text-left"
+            >
+              {key}: {value || "Not set"}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
@@ -661,6 +786,17 @@ const VideoMain: React.ForwardRefRenderFunction<
                 onStateChange={onVideoStateChange}
                 className="absolute top-0 left-0 w-full h-full"
               />
+              <Popover
+                content={settingsContent}
+                trigger="click"
+                placement="bottomLeft"
+                overlayClassName="custom-popover"
+              >
+                <Button
+                  icon={<SettingOutlined />}
+                  className="absolute top-2 left-2 z-20 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300"
+                />
+              </Popover>
             </div>
           </div>
           <div className="w-full max-w-xl space-y-4">
