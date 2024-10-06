@@ -55,3 +55,15 @@ export interface FilterOption {
   translationKey: string;
   checked: boolean;
 }
+
+export interface UserConfig {
+  language?: string;
+  theme?: string;
+  playback_speed?: number;
+  auto_repeat?: number;
+  shortcuts?: {
+    repeat?: string;
+    next?: string;
+    prev?: string;
+  };
+}

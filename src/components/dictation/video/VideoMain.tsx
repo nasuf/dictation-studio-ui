@@ -22,7 +22,7 @@ import {
   ProgressCircle,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
-import { ProgressData, TranscriptItem } from "@/utils/type";
+import { ProgressData, TranscriptItem, UserConfig } from "@/utils/type";
 import { useDispatch } from "react-redux";
 import {
   increaseRepeatCount,
@@ -87,6 +87,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     Previous: "Shift",
   });
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
+  const [configChanged, setConfigChanged] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -644,8 +645,37 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
   }, [stopTimer]);
 
+  const saveUserConfig = useCallback(async () => {
+    if (!configChanged) return;
+
+    const config: UserConfig = {
+      playback_speed: playbackSpeed,
+      auto_repeat: autoRepeat,
+      shortcuts: {
+        repeat: shortcutKeys["Repeat / Play"],
+        next: shortcutKeys.Next,
+        prev: shortcutKeys.Previous,
+      },
+    };
+
+    try {
+      await api.saveUserConfig(config);
+      message.success(t("configSaved"));
+      setConfigChanged(false);
+    } catch (error) {
+      message.error(t("configSaveFailed"));
+    }
+  }, [playbackSpeed, autoRepeat, shortcutKeys, configChanged]);
+
+  const handlePopoverVisibleChange = (visible: boolean) => {
+    if (!visible && configChanged) {
+      saveUserConfig();
+    }
+  };
+
   const handleSpeedChange = (newSpeed: number) => {
     setPlaybackSpeed(newSpeed);
+    setConfigChanged(true);
     if (playerRef.current) {
       playerRef.current.setPlaybackRate(newSpeed);
     }
@@ -653,10 +683,12 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const handleAutoRepeatChange = (value: number) => {
     setAutoRepeat(value);
+    setConfigChanged(true);
   };
 
   const handleShortcutSet = (key: string) => {
     setSettingShortcut(key);
+    setConfigChanged(true);
   };
 
   useEffect(() => {
@@ -791,6 +823,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                 trigger="click"
                 placement="bottomLeft"
                 overlayClassName="custom-popover"
+                onOpenChange={handlePopoverVisibleChange}
               >
                 <Button
                   icon={<SettingOutlined />}

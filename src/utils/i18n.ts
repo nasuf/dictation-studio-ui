@@ -84,6 +84,8 @@ const enTranslations = {
   unauthorized: "Unauthorized",
   comingSoon: "Coming Soon...",
   markAsCorrect: "Mark as correct",
+  configSaved: "Config saved",
+  configSaveFailed: "Config save failed",
 };
 
 const zhTranslations = {
@@ -165,6 +167,8 @@ const zhTranslations = {
   unauthorized: "未授权",
   comingSoon: "即将推出...",
   markAsCorrect: "标记为正确",
+  configSaved: "配置已保存",
+  configSaveFailed: "配置保存失败",
 };
 
 const zhTraditionalTranslations = {
@@ -246,6 +250,8 @@ const zhTraditionalTranslations = {
   unauthorized: "未授權",
   comingSoon: "即將推出...",
   markAsCorrect: "標記為正確",
+  configSaved: "配置已保存",
+  configSaveFailed: "配置保存失敗",
 };
 
 const jaTranslations = {
@@ -331,6 +337,8 @@ const jaTranslations = {
   comingSoon: "近日公開...",
   no_videos_available: "利用可能なビデオはありません",
   markAsCorrect: "正しいとしてマーク",
+  configSaved: "設定が保存されました",
+  configSaveFailed: "設定の保存に失敗しました",
 };
 
 const koTranslations = {
@@ -415,6 +423,8 @@ const koTranslations = {
   unauthorized: "미승인",
   comingSoon: "준비중...",
   markAsCorrect: "정확하다고 표시",
+  configSaved: "설정이 저장되었습니다",
+  configSaveFailed: "설정 저장에 실패했습니다",
 };
 
 i18n.use(initReactI18next).init({

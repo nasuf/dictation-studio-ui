@@ -107,6 +107,7 @@ export const api = {
   getAllProgress: () => axiosInstance.get("/user/all-progress"),
   saveDictationTime: (channelId: string, videoId: string, time: number) =>
     axios.post(`/api/dictation/time`, { channelId, videoId, time }),
+  saveUserConfig: (config: any) => axiosInstance.post("/user/config", config),
 };
 
 export const getUserDuration = async (): Promise<number> => {
