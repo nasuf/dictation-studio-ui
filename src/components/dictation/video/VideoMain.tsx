@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal, Popover } from "antd";
+import { Spin, message, Modal, Popover, Button } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -640,7 +640,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
-        <div className="flex-1 flex flex-col items-center pr-5 max-w-2xl h-full overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-xl mb-4">
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full z-10" />
@@ -763,7 +763,16 @@ const VideoMain: React.ForwardRefRenderFunction<
                                         {word.word}{" "}
                                       </span>
                                     ) : (
-                                      <Popover content={"Mark as correct ?"}>
+                                      <Popover
+                                        content={
+                                          <Button
+                                            type="link"
+                                            className="dark:text-blue-400"
+                                          >
+                                            {t("markAsCorrect")}
+                                          </Button>
+                                        }
+                                      >
                                         <span
                                           key={wordIndex}
                                           className={`${

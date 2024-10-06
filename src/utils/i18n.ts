@@ -83,6 +83,7 @@ const enTranslations = {
   loading: "Loading...",
   unauthorized: "Unauthorized",
   comingSoon: "Coming Soon...",
+  markAsCorrect: "Mark as correct",
 };
 
 const zhTranslations = {
@@ -163,6 +164,7 @@ const zhTranslations = {
   seconds: "秒",
   unauthorized: "未授权",
   comingSoon: "即将推出...",
+  markAsCorrect: "标记为正确",
 };
 
 const zhTraditionalTranslations = {
@@ -243,6 +245,7 @@ const zhTraditionalTranslations = {
   seconds: "秒",
   unauthorized: "未授權",
   comingSoon: "即將推出...",
+  markAsCorrect: "標記為正確",
 };
 
 const jaTranslations = {
@@ -327,6 +330,7 @@ const jaTranslations = {
   unauthorized: "未承認",
   comingSoon: "近日公開...",
   no_videos_available: "利用可能なビデオはありません",
+  markAsCorrect: "正しいとしてマーク",
 };
 
 const koTranslations = {
@@ -410,6 +414,7 @@ const koTranslations = {
   seconds: "초",
   unauthorized: "미승인",
   comingSoon: "준비중...",
+  markAsCorrect: "정확하다고 표시",
 };
 
 i18n.use(initReactI18next).init({

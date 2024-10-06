@@ -471,3 +471,29 @@ body {
 .dark .ant-empty-description {
   @apply text-gray-400;
 }
+
+/* Dark mode - antd popover */
+.dark .ant-popover {
+  @apply bg-gray-700 border-gray-700;
+  border-radius: 0.5rem !important;
+}
+
+.dark .ant-popover-inner {
+  @apply bg-gray-700 border-gray-600;
+}
+
+.dark .ant-popover-arrow {
+  @apply border-gray-700;
+}
+
+.dark .ant-popover-arrow::after {
+  @apply bg-gray-700 border-gray-700;
+}
+
+.dark .ant-popover-inner-content {
+  @apply text-gray-200;
+}
+
+.dark .ant-popover-inner-content p {
+  @apply text-gray-200;
+}
