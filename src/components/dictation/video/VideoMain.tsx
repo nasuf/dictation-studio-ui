@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal, Popover, Button } from "antd";
+import { Spin, message, Modal } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -737,7 +737,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                             ? "filter blur-sm opacity-50"
                             : ""
                         } ${
-                          index === currentSentenceIndex - 1
+                          index === currentSentenceIndex
                             ? "bg-gray-100 dark:bg-gray-700 rounded-lg"
                             : ""
                         }`}
