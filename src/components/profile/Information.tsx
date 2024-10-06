@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { getUserDuration } from "@/api/api";
+import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 
 const Information: React.FC = () => {
@@ -13,8 +13,8 @@ const Information: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const duration = await getUserDuration();
-        setTotalDuration(duration);
+        const duration = await api.getUserDuration();
+        setTotalDuration(duration.data.totalDuration);
       } catch (error) {
         console.error("Error fetching user duration:", error);
       }
