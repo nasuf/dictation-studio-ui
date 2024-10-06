@@ -750,42 +750,18 @@ const VideoMain: React.ForwardRefRenderFunction<
                                   {compareInputWithTranscript(
                                     item.userInput || "",
                                     item.transcript
-                                  ).transcriptResult.map((word, wordIndex) =>
-                                    word.isCorrect ? (
-                                      <span
-                                        key={wordIndex}
-                                        className={`${
-                                          word.isCorrect
-                                            ? "bg-green-200 dark:bg-green-700"
-                                            : "bg-red-200 dark:bg-red-700"
-                                        } px-1 py-0.5 rounded`}
-                                      >
-                                        {word.word}{" "}
-                                      </span>
-                                    ) : (
-                                      <Popover
-                                        content={
-                                          <Button
-                                            type="link"
-                                            className="dark:text-blue-400"
-                                          >
-                                            {t("markAsCorrect")}
-                                          </Button>
-                                        }
-                                      >
-                                        <span
-                                          key={wordIndex}
-                                          className={`${
-                                            word.isCorrect
-                                              ? "bg-green-200 dark:bg-green-700"
-                                              : "bg-red-200 dark:bg-red-700"
-                                          } px-1 py-0.5 rounded cursor-pointer`}
-                                        >
-                                          {word.word}{" "}
-                                        </span>
-                                      </Popover>
-                                    )
-                                  )}
+                                  ).transcriptResult.map((word, wordIndex) => (
+                                    <span
+                                      key={wordIndex}
+                                      className={`${
+                                        word.isCorrect
+                                          ? "bg-green-200 dark:bg-green-700"
+                                          : "bg-red-200 dark:bg-red-700"
+                                      } px-1 py-0.5 rounded`}
+                                    >
+                                      {word.word}{" "}
+                                    </span>
+                                  ))}
                                 </p>
                                 {item.userInput && (
                                   <p className="text-gray-600 dark:text-gray-400 text-sm">
