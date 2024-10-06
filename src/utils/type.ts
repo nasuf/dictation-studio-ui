@@ -1,22 +1,25 @@
 export interface UserInfo {
-  username?: string;
-  email?: string;
-  avatar?: string;
-  role?: string;
-  language?: string;
-  theme?: string;
-  dictation_config?: DictationConfig;
+  username: string;
+  email: string;
+  avatar: string;
+  role: string;
+  language: string;
+  theme: string;
+  dictation_config: DictationConfig;
 }
 
 export interface DictationConfig {
-  playback_speed?: number;
-  auto_repeat?: number;
-  shortcuts?: {
-    repeat?: string;
-    next?: string;
-    prev?: string;
-  };
+  playback_speed: number;
+  auto_repeat: number;
+  shortcuts: ShortcutKeys;
 }
+
+export interface ShortcutKeys {
+  repeat: string;
+  next: string;
+  prev: string;
+}
+
 export interface Channel {
   id: string;
   name: string;

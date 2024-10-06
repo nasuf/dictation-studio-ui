@@ -22,11 +22,14 @@ import {
   ProgressCircle,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
-import { ProgressData, TranscriptItem, UserInfo } from "@/utils/type";
+import { DictationConfig, ProgressData, TranscriptItem } from "@/utils/type";
 import { useDispatch, useSelector } from "react-redux";
 import {
   increaseRepeatCount,
   resetRepeatCount,
+  setDictationAutoRepeat,
+  setDictationPlaybackSpeed,
+  setDictationShortcutKeys,
   setIsDictationStarted,
 } from "@/redux/userSlice";
 import nlp from "compromise";
@@ -133,9 +136,9 @@ const VideoMain: React.ForwardRefRenderFunction<
         setAutoRepeat(dictationConfig.auto_repeat || 0);
         setPlaybackSpeed(dictationConfig.playback_speed || 1);
         setShortcutKeys({
-          repeat: dictationConfig?.shortcuts?.repeat ?? "Tab",
-          prev: dictationConfig?.shortcuts?.prev ?? "Shift",
-          next: dictationConfig?.shortcuts?.next ?? "Enter",
+          repeat: dictationConfig.shortcuts.repeat,
+          prev: dictationConfig.shortcuts.prev,
+          next: dictationConfig.shortcuts.next,
         });
       }
     };
@@ -667,20 +670,18 @@ const VideoMain: React.ForwardRefRenderFunction<
   const saveUserConfig = useCallback(async () => {
     if (!configChanged) return;
 
-    const config: UserInfo = {
-      dictation_config: {
-        playback_speed: playbackSpeed,
-        auto_repeat: autoRepeat,
-        shortcuts: {
-          repeat: shortcutKeys?.repeat,
-          next: shortcutKeys?.next,
-          prev: shortcutKeys?.prev,
-        },
+    const config: DictationConfig = {
+      playback_speed: playbackSpeed,
+      auto_repeat: autoRepeat,
+      shortcuts: {
+        repeat: shortcutKeys?.repeat,
+        next: shortcutKeys?.next,
+        prev: shortcutKeys?.prev,
       },
     };
 
     try {
-      await api.saveUserConfig(config);
+      await api.saveUserConfig({ dictation_config: config });
       message.success(t("configSaved"));
       setConfigChanged(false);
     } catch (error) {
@@ -695,7 +696,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const handleSpeedChange = (newSpeed: number) => {
-    setPlaybackSpeed(newSpeed);
+    dispatch(setDictationPlaybackSpeed(newSpeed));
     setConfigChanged(true);
     if (playerRef.current) {
       playerRef.current.setPlaybackRate(newSpeed);
@@ -703,7 +704,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const handleAutoRepeatChange = (value: number) => {
-    setAutoRepeat(value);
+    dispatch(setDictationAutoRepeat(value));
     setConfigChanged(true);
   };
 
@@ -717,7 +718,12 @@ const VideoMain: React.ForwardRefRenderFunction<
       if (!playerRef.current || transcript.length === 0) return;
       if (settingShortcut) {
         e.preventDefault();
-        setShortcutKeys((prev) => ({ ...prev, [settingShortcut]: e.code }));
+        dispatch(
+          setDictationShortcutKeys({
+            ...userInfo?.dictation_config.shortcuts,
+            [settingShortcut]: e.code || "",
+          })
+        );
         setSettingShortcut(null);
       } else {
         switch (e.code) {
@@ -767,8 +773,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   const settingsContent = (
     <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div>
-        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          Playback Speed
+        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          {t("playbackSpeed")}
         </h6>
         <Slider
           min={0.5}
@@ -780,8 +786,8 @@ const VideoMain: React.ForwardRefRenderFunction<
         />
       </div>
       <div>
-        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          Auto Repeat
+        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          {t("autoRepeat")}
         </h6>
         <Select
           value={autoRepeat}
@@ -794,8 +800,8 @@ const VideoMain: React.ForwardRefRenderFunction<
         </Select>
       </div>
       <div>
-        <h6 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          Shortcut Keys
+        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
+          {t("shortcutKeys")}
         </h6>
         <div className="grid grid-cols-2 gap-4">
           {shortcutKeys &&
@@ -805,7 +811,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                 onClick={() => handleShortcutSet(key)}
                 className="w-full text-left"
               >
-                {key}: {value || "Not set"}
+                {t(key)}: {value || "Not set"}
               </Button>
             ))}
         </div>

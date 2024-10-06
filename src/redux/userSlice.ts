@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserInfo } from "@/utils/type";
+import { ShortcutKeys, UserInfo } from "@/utils/type";
 
 interface UserState {
   userInfo: UserInfo | null;
@@ -35,6 +35,27 @@ const userSlice = createSlice({
     increaseRepeatCount: (state) => {
       state.repeatCount += 1;
     },
+    setDictationShortcutKeys: (
+      state,
+      action: PayloadAction<Partial<ShortcutKeys>>
+    ) => {
+      if (state.userInfo) {
+        state.userInfo.dictation_config.shortcuts = {
+          ...state.userInfo.dictation_config.shortcuts,
+          ...action.payload,
+        };
+      }
+    },
+    setDictationPlaybackSpeed: (state, action: PayloadAction<number>) => {
+      if (state.userInfo) {
+        state.userInfo.dictation_config.playback_speed = action.payload;
+      }
+    },
+    setDictationAutoRepeat: (state, action: PayloadAction<number>) => {
+      if (state.userInfo) {
+        state.userInfo.dictation_config.auto_repeat = action.payload;
+      }
+    },
   },
 });
 
@@ -45,5 +66,8 @@ export const {
   setRepeatCount,
   resetRepeatCount,
   increaseRepeatCount,
+  setDictationShortcutKeys,
+  setDictationPlaybackSpeed,
+  setDictationAutoRepeat,
 } = userSlice.actions;
 export default userSlice.reducer;

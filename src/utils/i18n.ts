@@ -86,6 +86,12 @@ const enTranslations = {
   markAsCorrect: "Mark as correct",
   configSaved: "Config saved",
   configSaveFailed: "Config save failed",
+  playbackSpeed: "Playback Speed",
+  autoRepeat: "Auto Repeat",
+  shortcutKeys: "Shortcut Keys",
+  repeat: "Repeat",
+  next: "Next",
+  prev: "Previous",
 };
 
 const zhTranslations = {
@@ -169,6 +175,12 @@ const zhTranslations = {
   markAsCorrect: "标记为正确",
   configSaved: "配置已保存",
   configSaveFailed: "配置保存失败",
+  playbackSpeed: "播放速度",
+  autoRepeat: "自动重复",
+  shortcutKeys: "快捷键",
+  repeat: "重复",
+  next: "下一句",
+  prev: "上一句",
 };
 
 const zhTraditionalTranslations = {
@@ -252,6 +264,12 @@ const zhTraditionalTranslations = {
   markAsCorrect: "標記為正確",
   configSaved: "配置已保存",
   configSaveFailed: "配置保存失敗",
+  playbackSpeed: "播放速度",
+  autoRepeat: "自動重複",
+  shortcutKeys: "快捷鍵",
+  repeat: "重複",
+  next: "下一句",
+  prev: "上一句",
 };
 
 const jaTranslations = {
@@ -339,6 +357,12 @@ const jaTranslations = {
   markAsCorrect: "正しいとしてマーク",
   configSaved: "設定が保存されました",
   configSaveFailed: "設定の保存に失敗しました",
+  playbackSpeed: "再生速度",
+  autoRepeat: "自動繰り返し",
+  shortcutKeys: "ショートカットキー",
+  repeat: "繰り返す",
+  next: "次へ",
+  prev: "前へ",
 };
 
 const koTranslations = {
@@ -425,6 +449,12 @@ const koTranslations = {
   markAsCorrect: "정확하다고 표시",
   configSaved: "설정이 저장되었습니다",
   configSaveFailed: "설정 저장에 실패했습니다",
+  playbackSpeed: "재생 속도",
+  autoRepeat: "자동 반복",
+  shortcutKeys: "단축키",
+  repeat: "반복",
+  next: "다음",
+  prev: "이전",
 };
 
 i18n.use(initReactI18next).init({
