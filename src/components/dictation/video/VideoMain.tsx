@@ -220,7 +220,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   useLayoutEffect(() => {
     const timer = setTimeout(() => {
       scrollToCurrentSentence();
-    }, 0);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [currentSentenceIndex, scrollToCurrentSentence]);
 
@@ -284,7 +284,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       });
 
       playPromise.then(() => {
-        const duration = (sentence.end - sentence.start) * 1000;
+        const duration = playbackSpeed * (sentence.end - sentence.start) * 1000;
         const startTime = Date.now();
         let hasEnded = false;
 
