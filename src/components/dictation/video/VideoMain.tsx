@@ -176,35 +176,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     setIsCompleted(false);
   };
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!playerRef.current || transcript.length === 0) return;
-
-      if (event.key === "Tab") {
-        event.preventDefault();
-        playCurrentSentence();
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        saveUserInput();
-        revealCurrentSentence();
-        updateOverallProgress();
-
-        if (isFirstEnterAfterRestore) {
-          setIsFirstEnterAfterRestore(false);
-        }
-
-        requestAnimationFrame(() => {
-          playNextSentence();
-        });
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [transcript, userInput, currentSentenceIndex, isFirstEnterAfterRestore]);
-
   const scrollToCurrentSentence = useCallback(() => {
     if (subtitlesRef.current) {
       const sentenceElements =
@@ -245,21 +216,25 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const clearIntervalIfExists = () => {
     if (currentInterval) {
-      console.log("Clearing interval");
       clearInterval(currentInterval);
       setCurrentInterval(null);
     }
   };
 
+  const stopCurrentSentence = useCallback(() => {
+    if (playerRef.current) {
+      playerRef.current.pauseVideo();
+    }
+    clearIntervalIfExists();
+  }, [clearIntervalIfExists]);
+
   const playSentence = (sentence: TranscriptItem) => {
-    console.log(`Playing sentence: ${sentence.transcript}`);
     clearIntervalIfExists();
     playerRef.current.pauseVideo();
     playerRef.current.seekTo(sentence.start, true);
 
     const playPromise = new Promise<void>((resolve) => {
       const onStateChange = (event: { data: number }) => {
-        console.log("Video event:", event.data);
         if (event.data === YouTube.PlayerState.PLAYING) {
           playerRef.current?.removeEventListener(
             "onStateChange",
@@ -271,11 +246,9 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       playerRef.current?.addEventListener("onStateChange", onStateChange);
       playerRef.current?.playVideo();
-      console.log("Ready to play video");
     });
 
     playPromise.then(() => {
-      console.log("Video started playing");
       const duration = (sentence.end - sentence.start) * 1000;
       const startTime = Date.now();
       let hasEnded = false;
@@ -284,12 +257,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         if (playerRef.current && !hasEnded) {
           const currentTime = playerRef.current.getCurrentTime();
           const elapsedTime = Date.now() - startTime;
-          console.log(
-            `Current time: ${currentTime}, Elapsed time: ${elapsedTime}, End time: ${sentence.end}`
-          );
-
           if (currentTime >= sentence.end - 0.1 || elapsedTime >= duration) {
-            console.log("Sentence finished, pausing video");
             playerRef.current.pauseVideo();
             clearInterval(checkInterval);
             setCurrentInterval(null);
@@ -299,16 +267,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       }, 50);
 
       setCurrentInterval(checkInterval);
-
-      setTimeout(() => {
-        if (!hasEnded) {
-          console.log("Safety check: pausing video");
-          playerRef.current?.pauseVideo();
-          clearInterval(checkInterval);
-          setCurrentInterval(null);
-          hasEnded = true;
-        }
-      }, duration + 500);
     });
   };
 
@@ -320,19 +278,15 @@ const VideoMain: React.ForwardRefRenderFunction<
     startTimer();
   };
 
-  const playNextSentence = () => {
+  const playNextSentence = useCallback(() => {
     if (!playerRef.current || transcript.length === 0) return;
     clearIntervalIfExists();
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     setCurrentSentenceIndex(nextIndex);
     const nextSentence = transcript[nextIndex];
-    console.log("going to play next sentence: " + nextSentence);
-    playerRef.current.pauseVideo();
-    setTimeout(() => {
-      playSentence(nextSentence);
-    }, 100);
+    playSentence(nextSentence);
     lastActivityRef.current = Date.now();
-  };
+  }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
 
   const playPreviousSentence = () => {
     if (!playerRef.current || transcript.length === 0) return;
@@ -371,6 +325,49 @@ const VideoMain: React.ForwardRefRenderFunction<
     );
     lastActivityRef.current = Date.now();
   };
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (!playerRef.current || transcript.length === 0) return;
+
+      if (event.key === "Tab") {
+        event.preventDefault();
+        playCurrentSentence();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        saveUserInput();
+        revealCurrentSentence();
+        updateOverallProgress();
+
+        if (isFirstEnterAfterRestore) {
+          setIsFirstEnterAfterRestore(false);
+        }
+
+        stopCurrentSentence();
+        requestAnimationFrame(() => {
+          playNextSentence();
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [
+    transcript,
+    userInput,
+    currentSentenceIndex,
+    isFirstEnterAfterRestore,
+    stopCurrentSentence,
+    playNextSentence,
+    playCurrentSentence,
+    playNextSentence,
+    saveUserInput,
+    stopCurrentSentence,
+    isFirstEnterAfterRestore,
+    transcript,
+  ]);
 
   const revealCurrentSentence = () => {
     setRevealedSentences((prev) => [...prev, currentSentenceIndex]);
