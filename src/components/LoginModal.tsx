@@ -8,6 +8,7 @@ import { api } from "@/api/api";
 import { encryptPassword } from "@/utils/encryption";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
+import { JWT_TOKEN_KEY } from "@/utils/const";
 
 interface LoginModalProps {
   visible: boolean;
@@ -280,7 +281,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           message.success(t("registerFormSuccessMessage"));
           setIsRegistering(false);
           dispatch(setUser(response.data));
-          localStorage.setItem("jwt_token", response.data.jwt_token);
+          localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
           onClose();
           setTimeout(() => {
             window.location.reload();
@@ -293,7 +294,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         try {
           const response = await api.login(values.username, encryptedPassword);
           if (response.status === 200) {
-            localStorage.setItem("jwt_token", response.data.jwt_token);
+            localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
             dispatch(setUser(response.data));
             message.success(t("loginSuccessful"));
             onClose();

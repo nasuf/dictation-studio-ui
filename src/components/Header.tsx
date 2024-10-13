@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
+import { JWT_TOKEN_KEY } from "@/utils/const";
 
 interface AppHeaderProps {
   showLoginModal: () => void;
@@ -42,7 +43,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         const response = await api.verifyGoogleToken(
           tokenResponse.access_token
         );
-        localStorage.setItem("jwt_token", response.data.jwt_token);
+        localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
         dispatch(setUser(response.data));
         message.success(t("loginSuccessfulWithGoogle"));
         setIsLoginModalVisible(false);
@@ -52,13 +53,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       } catch (error) {
         console.error("Login failed:", error);
         message.error(t("loginFailedWithGoogle"));
-        localStorage.removeItem("jwt_token");
+        localStorage.removeItem(JWT_TOKEN_KEY);
       }
     },
     onError: () => {
       console.log("Login Failed");
       message.error(t("loginFailedWithGoogle"));
-      localStorage.removeItem("jwt_token");
+      localStorage.removeItem(JWT_TOKEN_KEY);
     },
   });
 
@@ -67,7 +68,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       const response = await api.logout();
       if (response.status === 200) {
         dispatch(clearUser());
-        localStorage.removeItem("jwt_token");
+        localStorage.removeItem(JWT_TOKEN_KEY);
         message.success(t("logoutSuccessful"));
       } else {
         message.error(t("logoutFailed"));

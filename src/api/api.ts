@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ProgressData, TranscriptItem, UserInfo, Video } from "@/utils/type";
+import { JWT_TOKEN_KEY } from "@/utils/const";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("jwt_token");
+    const token = localStorage.getItem(JWT_TOKEN_KEY);
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

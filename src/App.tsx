@@ -18,6 +18,7 @@ import {
   DARK_THEME_CLASS_NAME,
   DEFAULT_DARK_MODE,
   DEFAULT_LANGUAGE,
+  JWT_TOKEN_KEY,
 } from "@/utils/const";
 
 const { Header, Content, Footer } = Layout;
@@ -56,12 +57,12 @@ const App: React.FC = () => {
           dispatch(setUser(response.data.user));
         } else {
           dispatch(clearUser());
-          localStorage.removeItem("jwt_token");
+          localStorage.removeItem(JWT_TOKEN_KEY);
         }
       } catch (error) {
         console.error("Error checking login status:", error);
         dispatch(clearUser());
-        localStorage.removeItem("jwt_token");
+        localStorage.removeItem(JWT_TOKEN_KEY);
       }
     };
 
@@ -83,7 +84,7 @@ const App: React.FC = () => {
   const handleGoogleLogin = async (tokenResponse: any) => {
     try {
       const response = await api.verifyGoogleToken(tokenResponse.access_token);
-      localStorage.setItem("jwt_token", response.data.jwt_token);
+      localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
       dispatch(setUser(response.data.user));
       setIsLoginModalVisible(false);
       message.success(t("loginSuccessful"));
