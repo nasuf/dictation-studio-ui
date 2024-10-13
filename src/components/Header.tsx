@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Menu, Dropdown, message, Switch } from "antd";
 import {
   GlobalOutlined,
@@ -20,12 +20,14 @@ interface AppHeaderProps {
   showLoginModal: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  language: string;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
   showLoginModal,
   isDarkMode,
   toggleDarkMode,
+  language,
 }) => {
   const { i18n, t } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
@@ -78,9 +80,29 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     }
   };
 
+  // Modify toggleDarkMode to save the config
+  const handleToggleDarkMode = useCallback(() => {
+    const newDarkMode = !isDarkMode;
+    toggleDarkMode();
+    api.saveUserConfig({ darkMode: newDarkMode });
+  }, [isDarkMode, toggleDarkMode]);
+
+  // Modify toggleLanguage to save the config
+  const handleToggleLanguage = useCallback(
+    (lang: string) => {
+      toggleLanguage(lang);
+      api.saveUserConfig({ language: lang });
+    },
+    [toggleLanguage]
+  );
+
+  useEffect(() => {
+    toggleLanguage(language);
+  }, [language, toggleLanguage]);
+
   const languageMenu = (
     <Menu
-      onClick={({ key }) => toggleLanguage(key as string)}
+      onClick={({ key }) => handleToggleLanguage(key as string)}
       selectedKeys={[currentLanguage]}
       className="header-menu"
     >
@@ -139,7 +161,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center space-x-4">
         <Switch
           checked={isDarkMode}
-          onChange={toggleDarkMode}
+          onChange={handleToggleDarkMode}
           checkedChildren={<MoonOutlined />}
           unCheckedChildren={<SunOutlined />}
           className="bg-purple-500 dark:bg-gray-600"

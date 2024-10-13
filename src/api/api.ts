@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ProgressData, TranscriptItem, Video } from "@/utils/type";
+import { ProgressData, TranscriptItem, UserInfo, Video } from "@/utils/type";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -107,6 +107,7 @@ export const api = {
   getAllProgress: () => axiosInstance.get("/user/all-progress"),
   saveDictationTime: (channelId: string, videoId: string, time: number) =>
     axios.post(`/api/dictation/time`, { channelId, videoId, time }),
-  saveUserConfig: (config: any) => axiosInstance.post("/user/config", config),
+  saveUserConfig: (config: Partial<UserInfo>) =>
+    axiosInstance.post("/user/config", config),
   getUserDuration: () => axiosInstance.get("/user/duration"),
 };

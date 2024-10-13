@@ -4,7 +4,7 @@ export interface UserInfo {
   avatar: string;
   role: string;
   language: string;
-  theme: string;
+  darkMode: boolean;
   dictation_config: DictationConfig;
 }
 

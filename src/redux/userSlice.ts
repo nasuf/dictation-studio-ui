@@ -56,6 +56,16 @@ const userSlice = createSlice({
         state.userInfo.dictation_config.auto_repeat = action.payload;
       }
     },
+    setDarkMode: (state, action: PayloadAction<boolean>) => {
+      if (state.userInfo) {
+        state.userInfo.darkMode = action.payload;
+      }
+    },
+    setLanguage: (state, action: PayloadAction<string>) => {
+      if (state.userInfo) {
+        state.userInfo.language = action.payload;
+      }
+    },
   },
 });
 
@@ -69,5 +79,7 @@ export const {
   setDictationShortcutKeys,
   setDictationPlaybackSpeed,
   setDictationAutoRepeat,
+  setDarkMode,
+  setLanguage,
 } = userSlice.actions;
 export default userSlice.reducer;
