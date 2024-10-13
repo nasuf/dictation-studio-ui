@@ -54,7 +54,6 @@ const App: React.FC = () => {
         const response = await api.refreshLoginStatus();
         if (response.status === 200) {
           dispatch(setUser(response.data.user));
-          localStorage.setItem("user", JSON.stringify(response.data.user));
         } else {
           dispatch(clearUser());
           localStorage.removeItem("jwt_token");
@@ -85,7 +84,6 @@ const App: React.FC = () => {
     try {
       const response = await api.verifyGoogleToken(tokenResponse.access_token);
       localStorage.setItem("jwt_token", response.data.jwt_token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
       dispatch(setUser(response.data.user));
       setIsLoginModalVisible(false);
       message.success(t("loginSuccessful"));
