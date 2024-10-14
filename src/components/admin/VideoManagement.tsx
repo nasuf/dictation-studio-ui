@@ -665,7 +665,7 @@ const VideoManagement: React.FC = () => {
       </Card>
       <Modal
         title="Add Videos"
-        visible={isAddVideoModalVisible}
+        open={isAddVideoModalVisible}
         onCancel={() => setIsAddVideoModalVisible(false)}
         footer={null}
         width={800}
@@ -680,7 +680,7 @@ const VideoManagement: React.FC = () => {
       </Modal>
       <Modal
         title="Video Transcript"
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
           <Button

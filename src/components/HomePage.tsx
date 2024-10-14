@@ -29,7 +29,6 @@ const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
 
     const typingInterval = setInterval(() => {
       if (i < text.length) {
-        console.log(text.charAt(i));
         textElement.textContent += text.charAt(i);
         i++;
       } else {

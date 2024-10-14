@@ -346,7 +346,7 @@ const ChannelManagement: React.FC = () => {
       </Card>
       <Modal
         title="Add Channels"
-        visible={isAddChannelModalVisible}
+        open={isAddChannelModalVisible}
         onCancel={() => setIsAddChannelModalVisible(false)}
         footer={null}
         width={800}

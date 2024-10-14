@@ -46,7 +46,7 @@ const ChannelList: React.FC = () => {
               cover={
                 <ChannelImage alt={channel.name} src={channel.image_url} />
               }
-              bodyStyle={{ padding: 0 }}
+              styles={{ body: { padding: 0 } }}
             >
               <ChannelInfo>
                 <ChannelName level={5}>{channel.name}</ChannelName>

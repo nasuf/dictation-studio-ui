@@ -95,7 +95,7 @@ const UserManagement: React.FC = () => {
       </Card>
       <Modal
         title="Edit User Role"
-        visible={isEditModalVisible}
+        open={isEditModalVisible}
         onOk={handleEditSubmit}
         onCancel={() => setIsEditModalVisible(false)}
       >

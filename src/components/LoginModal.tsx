@@ -360,7 +360,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         placement="right"
         className="dark:bg-gray-800 dark:text-gray-200"
         onClose={onClose}
-        visible={visible}
+        open={visible}
         mask={false}
       >
         <ContentWrapper>
@@ -400,7 +400,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       </StyledDrawer>
       <Modal
         title={t("chooseAvatar")}
-        visible={isAvatarModalVisible}
+        open={isAvatarModalVisible}
         onCancel={() => setIsAvatarModalVisible(false)}
         footer={[
           avatarOptions.length === initialAvatarCount && (
