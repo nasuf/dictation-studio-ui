@@ -85,8 +85,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const handleToggleDarkMode = useCallback(() => {
     const newDarkMode = !isDarkMode;
     toggleDarkMode();
-    api.saveUserConfig({ darkMode: newDarkMode });
-  }, [isDarkMode, toggleDarkMode]);
+    if (userInfo) {
+      api.saveUserConfig({ darkMode: newDarkMode });
+    }
+  }, [isDarkMode, toggleDarkMode, userInfo, dispatch]);
 
   // Modify toggleLanguage to save the config
   const handleToggleLanguage = useCallback(

@@ -28,7 +28,10 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const isDarkMode = useSelector(
-    (state: RootState) => state.user.userInfo?.darkMode ?? DEFAULT_DARK_MODE
+    (state: RootState) =>
+      state.user.userInfo?.darkMode ??
+      state.user.tmpDarkMode ??
+      DEFAULT_DARK_MODE
   );
   const language = useSelector(
     (state: RootState) => state.user.userInfo?.language ?? DEFAULT_LANGUAGE
