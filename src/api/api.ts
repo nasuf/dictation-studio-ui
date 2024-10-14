@@ -1,5 +1,11 @@
 import axios from "axios";
-import { ProgressData, TranscriptItem, UserInfo, Video } from "@/utils/type";
+import {
+  ProgressData,
+  TranscriptItem,
+  UserInfo,
+  Video,
+  Channel,
+} from "@/utils/type";
 import { JWT_TOKEN_KEY } from "@/utils/const";
 
 const API_BASE_URL =
@@ -111,4 +117,11 @@ export const api = {
   saveUserConfig: (config: Partial<UserInfo>) =>
     axiosInstance.post("/user/config", config),
   getUserDuration: () => axiosInstance.get("/user/duration"),
+
+  // Add these new methods for channel management
+  updateChannel: (channelId: string, channelData: Partial<Channel>) =>
+    axiosInstance.put(`/service/channel/${channelId}`, channelData),
+
+  updateChannelVisibility: (channelId: string, visibility: string) =>
+    axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
 };

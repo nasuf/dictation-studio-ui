@@ -351,6 +351,10 @@ body {
   box-shadow: 0 1px 0 0px #fafafa;
 }
 
+.dark .ant-table-cell-row-hover {
+  @apply bg-gray-600 !important;
+}
+
 /* Dark mode - antd pagination */
 .dark .ant-pagination-item {
   @apply bg-gray-700 text-white border-gray-600 !important;
@@ -516,4 +520,39 @@ body {
 
 .custom-slider .ant-slider-handle {
   @apply border-blue-500 dark:border-blue-400;
+}
+
+/* 在文件末尾添加以下样式 */
+
+/* 自定义 channel management 表格样式 */
+/* .channel-management-table .ant-table-tbody > tr.ant-table-row:hover > td {
+  background-color: rgba(55, 65, 81, 0.5) !important;
+}
+
+.channel-management-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: #3b82f6 !important;
+} */
+
+/* 自定义 Select 下拉菜单样式 */
+.ant-select-dropdown {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.ant-select-item-option-content {
+  color: white !important;
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: #374151 !important;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+/* 确保选中的选项在深色模式下可见 */
+.dark .ant-select-selection-item {
+  color: rgba(255, 255, 255, 0.85) !important;
 }

@@ -24,6 +24,7 @@ export interface Channel {
   id: string;
   name: string;
   image_url: string;
+  is_visible: boolean;
 }
 
 export interface Video {
