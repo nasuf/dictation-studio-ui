@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, clearUser, setDarkMode } from "./redux/userSlice";
+import { setUser, clearUser } from "./redux/userSlice";
 import i18n from "./utils/i18n";
 import AppHeader from "@/components/Header";
 import AppContent from "@/components/Content";
@@ -14,12 +14,7 @@ import { api } from "@/api/api";
 import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
-import {
-  DARK_THEME_CLASS_NAME,
-  DEFAULT_DARK_MODE,
-  DEFAULT_LANGUAGE,
-  JWT_TOKEN_KEY,
-} from "@/utils/const";
+import { DEFAULT_LANGUAGE, JWT_TOKEN_KEY } from "@/utils/const";
 
 const { Header, Content, Footer } = Layout;
 
@@ -27,29 +22,25 @@ const App: React.FC = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const isDarkMode = useSelector(
-    (state: RootState) =>
-      state.user.userInfo?.darkMode ??
-      state.user.tmpDarkMode ??
-      DEFAULT_DARK_MODE
-  );
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
   const language = useSelector(
     (state: RootState) => state.user.userInfo?.language ?? DEFAULT_LANGUAGE
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
     if (isDarkMode) {
-      document.documentElement.classList.add(DARK_THEME_CLASS_NAME);
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove(DARK_THEME_CLASS_NAME);
+      document.documentElement.classList.remove("dark");
     }
-    i18n.changeLanguage(language);
-  }, [isDarkMode, language]);
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
-    if (isDarkMode !== undefined) {
-      dispatch(setDarkMode(!isDarkMode));
-    }
+    setIsDarkMode(!isDarkMode);
   };
 
   useEffect(() => {

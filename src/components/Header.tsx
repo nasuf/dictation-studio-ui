@@ -81,15 +81,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     }
   };
 
-  // Modify toggleDarkMode to save the config
-  const handleToggleDarkMode = useCallback(() => {
-    const newDarkMode = !isDarkMode;
-    toggleDarkMode();
-    if (userInfo) {
-      api.saveUserConfig({ darkMode: newDarkMode });
-    }
-  }, [isDarkMode, toggleDarkMode, userInfo, dispatch]);
-
   // Modify toggleLanguage to save the config
   const handleToggleLanguage = useCallback(
     (lang: string) => {
@@ -164,7 +155,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center space-x-4">
         <Switch
           checked={isDarkMode}
-          onChange={handleToggleDarkMode}
+          onChange={toggleDarkMode}
           checkedChildren={<MoonOutlined />}
           unCheckedChildren={<SunOutlined />}
           className="bg-purple-500 dark:bg-gray-600"

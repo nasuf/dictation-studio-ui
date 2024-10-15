@@ -5,14 +5,12 @@ interface UserState {
   userInfo: UserInfo | null;
   isDictationStarted: boolean;
   repeatCount: number;
-  tmpDarkMode: boolean;
 }
 
 const initialState: UserState = {
   userInfo: null,
   isDictationStarted: false,
   repeatCount: 0,
-  tmpDarkMode: false,
 };
 
 const userSlice = createSlice({
@@ -58,13 +56,6 @@ const userSlice = createSlice({
         state.userInfo.dictation_config.auto_repeat = action.payload;
       }
     },
-    setDarkMode: (state, action: PayloadAction<boolean>) => {
-      if (state.userInfo) {
-        state.userInfo.darkMode = action.payload;
-      } else {
-        state.tmpDarkMode = action.payload;
-      }
-    },
     setLanguage: (state, action: PayloadAction<string>) => {
       if (state.userInfo) {
         state.userInfo.language = action.payload;
@@ -83,7 +74,6 @@ export const {
   setDictationShortcutKeys,
   setDictationPlaybackSpeed,
   setDictationAutoRepeat,
-  setDarkMode,
   setLanguage,
 } = userSlice.actions;
 export default userSlice.reducer;
