@@ -794,6 +794,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           onChange={handleAutoRepeatChange}
           className="w-full"
         >
+          <Select.Option value={0}>Off</Select.Option>
           <Select.Option value={1}>1 time</Select.Option>
           <Select.Option value={2}>2 times</Select.Option>
           <Select.Option value={3}>3 times</Select.Option>
