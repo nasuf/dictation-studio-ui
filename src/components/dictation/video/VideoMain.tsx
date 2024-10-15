@@ -440,30 +440,36 @@ const VideoMain: React.ForwardRefRenderFunction<
     const inputWords = cleanInput.split(/\s+/);
     const transcriptWords = cleanTranscript.split(/\s+/);
 
-    const originalInputWords = input.split(/\s+/);
-    const originalTranscriptWords = transcript.split(/\s+/);
+    const usedIndices = new Set<number>();
 
-    const inputResult = originalInputWords.map((word) => {
-      const cleanWord = cleanString(word);
-      if (transcriptWords.includes(cleanWord)) {
-        return { word, color: "#00827F", isCorrect: true };
-      } else {
-        return { word, color: "#C41E3A", isCorrect: false };
+    const inputResult = inputWords.map((word) => {
+      const index = transcriptWords.findIndex(
+        (w, i) => w === word && !usedIndices.has(i)
+      );
+      if (index !== -1) {
+        usedIndices.add(index);
+        return {
+          word,
+          color: "#00827F",
+          isCorrect: true,
+        };
       }
+      return {
+        word,
+        color: "#C41E3A",
+        isCorrect: false,
+      };
     });
 
-    const transcriptResult = originalTranscriptWords.map((word) => {
-      const cleanWord = cleanString(word);
-      if (inputWords.includes(cleanWord)) {
-        return { word, highlight: "#7CEECE", isCorrect: true };
-      } else {
-        return { word, highlight: "#FFAAA5", isCorrect: false };
-      }
+    const transcriptResult = transcriptWords.map((word, index) => {
+      return {
+        word,
+        highlight: usedIndices.has(index) ? "#7CEECE" : "#FFAAA5",
+        isCorrect: usedIndices.has(index),
+      };
     });
 
-    const correctWords = transcriptResult.filter(
-      (word) => word.isCorrect
-    ).length;
+    const correctWords = inputResult.filter((word) => word.isCorrect).length;
     const completionPercentage = (correctWords / transcriptWords.length) * 100;
 
     return { inputResult, transcriptResult, completionPercentage };
