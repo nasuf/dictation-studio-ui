@@ -30,9 +30,8 @@ axiosInstance.interceptors.request.use(
 
 export const api = {
   getChannels: () => axiosInstance.get("/service/channel"),
-  uploadChannels: (channels: {
-    channels: Array<{ name: string; id: string; image_url: string }>;
-  }) => axiosInstance.post("/service/channel", channels),
+  uploadChannels: (channels: { channels: Channel[] }) =>
+    axiosInstance.post("/service/channel", channels),
   getVideoList: (channelId: string) =>
     axiosInstance.get(`/service/video-list/${channelId}`),
   getVideoTranscript: (channelId: string, videoId: string) =>

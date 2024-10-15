@@ -21,10 +21,10 @@ export interface ShortcutKeys {
 }
 
 export interface Channel {
-  id: string;
   name: string;
+  id: string;
   image_url: string;
-  is_visible: boolean;
+  visibility: string;
 }
 
 export interface Video {

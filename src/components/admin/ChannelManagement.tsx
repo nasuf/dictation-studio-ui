@@ -24,15 +24,9 @@ import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
+import { Channel } from "@/utils/type";
 
 const { Option } = Select;
-
-interface Channel {
-  name: string;
-  id: string;
-  image_url: string;
-  visibility: string;
-}
 
 const AddChannelForm: React.FC<{
   onFinish: (values: any) => void;
