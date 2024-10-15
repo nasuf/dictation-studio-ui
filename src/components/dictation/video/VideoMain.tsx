@@ -515,7 +515,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     );
 
     const completedWords = transcript.reduce((sum, item, index) => {
-      if (item.userInput && revealedSentences.includes(index)) {
+      if (revealedSentences.includes(index)) {
         return sum + item.transcript.split(/\s+/).length;
       }
       return sum;
