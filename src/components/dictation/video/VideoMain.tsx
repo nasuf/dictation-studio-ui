@@ -145,7 +145,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
     fetchData();
     loadDictationConfig();
-  }, [videoId, channelId, userInfo, dispatch]);
+  }, [videoId, channelId, userInfo]);
 
   useEffect(() => {
     populateMissedWords();
@@ -391,7 +391,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       };
       repeat();
     },
-    [autoRepeat, playSentence, dispatch]
+    [autoRepeat, playSentence]
   );
 
   const saveUserInput = () => {
