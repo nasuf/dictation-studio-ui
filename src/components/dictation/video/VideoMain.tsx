@@ -6,7 +6,6 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useLayoutEffect,
-  useMemo,
 } from "react";
 import { Spin, message, Modal, Popover, Slider, Select, Button } from "antd";
 import {

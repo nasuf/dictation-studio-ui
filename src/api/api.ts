@@ -28,6 +28,19 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+axiosInstance.interceptors.response.use(
+  (response) => {
+    const newToken = response.headers["x-ds-token"];
+    if (newToken) {
+      localStorage.setItem(JWT_TOKEN_KEY, newToken);
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const api = {
   getChannels: () => axiosInstance.get("/service/channel"),
   uploadChannels: (channels: { channels: Channel[] }) =>
