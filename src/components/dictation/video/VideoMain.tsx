@@ -6,6 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
 } from "react";
 import { Spin, message, Modal, Popover, Slider, Select, Button } from "antd";
 import {
@@ -22,7 +23,12 @@ import {
   ProgressCircle,
   DualProgressBar,
 } from "@/components/dictation/video/Widget";
-import { DictationConfig, ProgressData, TranscriptItem } from "@/utils/type";
+import {
+  DictationConfig,
+  ProgressData,
+  ShortcutKeys,
+  TranscriptItem,
+} from "@/utils/type";
 import { useDispatch, useSelector } from "react-redux";
 import {
   increaseRepeatCount,
@@ -84,18 +90,26 @@ const VideoMain: React.ForwardRefRenderFunction<
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
   const [configChanged, setConfigChanged] = useState(false);
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
-  const [autoRepeat, setAutoRepeat] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [shortcutKeys, setShortcutKeys] = useState<{
-    repeat: string;
-    prev: string;
-    next: string;
-  }>({
-    repeat: "Tab",
-    prev: "Shift",
-    next: "Enter",
-  });
+  const userInfo = useMemo(
+    () => store.getState().user.userInfo,
+    [store.getState()]
+  );
+  // settings
+  const autoRepeat = useSelector(
+    (state: RootState) => state.user.userInfo?.dictation_config.auto_repeat || 0
+  );
+  const playbackSpeed = useSelector(
+    (state: RootState) =>
+      state.user.userInfo?.dictation_config.playback_speed || 1
+  );
+  const shortcuts: ShortcutKeys = useSelector(
+    (state: RootState) =>
+      state.user.userInfo?.dictation_config.shortcuts || {
+        repeat: "Tab",
+        prev: "Shift",
+        next: "Enter",
+      }
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -133,19 +147,23 @@ const VideoMain: React.ForwardRefRenderFunction<
     const loadDictationConfig = async () => {
       const dictationConfig = userInfo?.dictation_config;
       if (dictationConfig) {
-        setAutoRepeat(dictationConfig.auto_repeat || 0);
-        setPlaybackSpeed(dictationConfig.playback_speed || 1);
-        setShortcutKeys({
-          repeat: dictationConfig.shortcuts.repeat,
-          prev: dictationConfig.shortcuts.prev,
-          next: dictationConfig.shortcuts.next,
-        });
+        dispatch(setDictationAutoRepeat(dictationConfig.auto_repeat || 0));
+        dispatch(
+          setDictationPlaybackSpeed(dictationConfig.playback_speed || 1)
+        );
+        dispatch(
+          setDictationShortcutKeys({
+            repeat: dictationConfig.shortcuts.repeat,
+            prev: dictationConfig.shortcuts.prev,
+            next: dictationConfig.shortcuts.next,
+          })
+        );
       }
     };
 
     fetchData();
     loadDictationConfig();
-  }, [videoId, channelId, userInfo]);
+  }, [videoId, channelId]);
 
   useEffect(() => {
     populateMissedWords();
@@ -680,9 +698,9 @@ const VideoMain: React.ForwardRefRenderFunction<
       playback_speed: playbackSpeed,
       auto_repeat: autoRepeat,
       shortcuts: {
-        repeat: shortcutKeys?.repeat,
-        next: shortcutKeys?.next,
-        prev: shortcutKeys?.prev,
+        repeat: shortcuts?.repeat,
+        next: shortcuts?.next,
+        prev: shortcuts?.prev,
       },
     };
 
@@ -693,31 +711,41 @@ const VideoMain: React.ForwardRefRenderFunction<
     } catch (error) {
       message.error(t("configSaveFailed"));
     }
-  }, [playbackSpeed, autoRepeat, shortcutKeys, configChanged]);
+  }, [playbackSpeed, autoRepeat, shortcuts, configChanged]);
 
   const handlePopoverVisibleChange = (visible: boolean) => {
     if (!visible && configChanged) {
+      setConfigChanged(false);
       saveUserConfig();
     }
   };
 
-  const handleSpeedChange = (newSpeed: number) => {
-    dispatch(setDictationPlaybackSpeed(newSpeed));
-    setConfigChanged(true);
-    if (playerRef.current) {
-      playerRef.current.setPlaybackRate(newSpeed);
-    }
-  };
+  const handleSpeedChange = useCallback(
+    (newSpeed: number) => {
+      dispatch(setDictationPlaybackSpeed(newSpeed));
+      setConfigChanged(true);
+      if (playerRef.current) {
+        playerRef.current.setPlaybackRate(newSpeed);
+      }
+    },
+    [playerRef, playbackSpeed]
+  );
 
-  const handleAutoRepeatChange = (value: number) => {
-    dispatch(setDictationAutoRepeat(value));
-    setConfigChanged(true);
-  };
+  const handleAutoRepeatChange = useCallback(
+    (value: number) => {
+      dispatch(setDictationAutoRepeat(value));
+      setConfigChanged(true);
+    },
+    [autoRepeat]
+  );
 
-  const handleShortcutSet = (key: string) => {
-    setSettingShortcut(key);
-    setConfigChanged(true);
-  };
+  const handleShortcutSet = useCallback(
+    (key: string) => {
+      setSettingShortcut(key);
+      setConfigChanged(true);
+    },
+    [shortcuts]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -733,15 +761,15 @@ const VideoMain: React.ForwardRefRenderFunction<
         setSettingShortcut(null);
       } else {
         switch (e.code) {
-          case shortcutKeys?.repeat:
+          case shortcuts?.repeat:
             e.preventDefault();
             playCurrentSentence();
             break;
-          case shortcutKeys?.prev:
+          case shortcuts?.prev:
             e.preventDefault();
             playPreviousSentence();
             break;
-          case shortcutKeys?.next:
+          case shortcuts?.next:
             e.preventDefault();
             saveUserInput();
             revealCurrentSentence();
@@ -811,8 +839,8 @@ const VideoMain: React.ForwardRefRenderFunction<
           {t("shortcutKeys")}
         </h6>
         <div className="grid grid-cols-2 gap-4">
-          {shortcutKeys &&
-            Object.entries(shortcutKeys).map(([key, value]) => (
+          {shortcuts &&
+            Object.entries(shortcuts).map(([key, value]) => (
               <Button
                 key={key}
                 onClick={() => handleShortcutSet(key)}

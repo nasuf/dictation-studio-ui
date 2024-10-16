@@ -47,7 +47,7 @@ const userSlice = createSlice({
       }
     },
     setDictationPlaybackSpeed: (state, action: PayloadAction<number>) => {
-      if (state.userInfo) {
+      if (state.userInfo && state.userInfo.dictation_config) {
         state.userInfo.dictation_config.playback_speed = action.payload;
       }
     },
