@@ -90,10 +90,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
   const [configChanged, setConfigChanged] = useState(false);
-  const userInfo = useMemo(
-    () => store.getState().user.userInfo,
-    [store.getState()]
-  );
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
   // settings
   const autoRepeat = useSelector(
     (state: RootState) => state.user.userInfo?.dictation_config.auto_repeat || 0
@@ -147,10 +144,8 @@ const VideoMain: React.ForwardRefRenderFunction<
     const loadDictationConfig = async () => {
       const dictationConfig = userInfo?.dictation_config;
       if (dictationConfig) {
-        dispatch(setDictationAutoRepeat(dictationConfig.auto_repeat || 0));
-        dispatch(
-          setDictationPlaybackSpeed(dictationConfig.playback_speed || 1)
-        );
+        dispatch(setDictationAutoRepeat(dictationConfig.auto_repeat));
+        dispatch(setDictationPlaybackSpeed(dictationConfig.playback_speed));
         dispatch(
           setDictationShortcutKeys({
             repeat: dictationConfig.shortcuts.repeat,
@@ -164,6 +159,12 @@ const VideoMain: React.ForwardRefRenderFunction<
     fetchData();
     loadDictationConfig();
   }, [videoId, channelId]);
+
+  useEffect(() => {
+    if (playerRef.current) {
+      playerRef.current.setPlaybackRate(playbackSpeed);
+    }
+  }, [playbackSpeed]);
 
   useEffect(() => {
     populateMissedWords();
@@ -268,6 +269,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
     setIsVideoReady(true);
+    playerRef.current.setPlaybackRate(playbackSpeed);
   };
 
   const clearIntervalIfExists = () => {

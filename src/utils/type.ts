@@ -8,9 +8,15 @@ export interface UserInfo {
 }
 
 export interface DictationConfig {
-  playback_speed: number;
-  auto_repeat: number;
-  shortcuts: ShortcutKeys;
+  playback_speed: number | 1;
+  auto_repeat: number | 0;
+  shortcuts:
+    | ShortcutKeys
+    | {
+        repeat: "Tab";
+        next: "Enter";
+        prev: "Shift";
+      };
 }
 
 export interface ShortcutKeys {
