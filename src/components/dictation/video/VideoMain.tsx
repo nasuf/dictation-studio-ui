@@ -368,14 +368,19 @@ const VideoMain: React.ForwardRefRenderFunction<
     if (!playerRef.current || transcript.length === 0) return;
     clearIntervalIfExists();
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
-    setCurrentSentenceIndex(nextIndex);
-    const nextSentence = transcript[nextIndex];
-    if (autoRepeat > 0) {
-      repeatSentence(nextSentence);
+    if (nextIndex === 0) {
+      setIsCompleted(true);
+      onComplete();
     } else {
-      playSentence(nextSentence);
+      setCurrentSentenceIndex(nextIndex);
+      const nextSentence = transcript[nextIndex];
+      if (autoRepeat > 0) {
+        repeatSentence(nextSentence);
+      } else {
+        playSentence(nextSentence);
+      }
+      lastActivityRef.current = Date.now();
     }
-    lastActivityRef.current = Date.now();
   }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
 
   const playPreviousSentence = useCallback(() => {
