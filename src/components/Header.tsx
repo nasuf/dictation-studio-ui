@@ -43,7 +43,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         const response = await api.verifyGoogleToken(
           tokenResponse.access_token
         );
-        localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
         dispatch(setUser(response.data));
         message.success(t("loginSuccessfulWithGoogle"));
         setIsLoginModalVisible(false);

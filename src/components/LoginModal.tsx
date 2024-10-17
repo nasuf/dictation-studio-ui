@@ -8,7 +8,7 @@ import { api } from "@/api/api";
 import { encryptPassword } from "@/utils/encryption";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
-import { JWT_TOKEN_KEY } from "@/utils/const";
+import { JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
 
 interface LoginModalProps {
   visible: boolean;
@@ -280,39 +280,37 @@ const LoginModal: React.FC<LoginModalProps> = ({
         if (response.status === 200) {
           message.success(t("registerFormSuccessMessage"));
           setIsRegistering(false);
-          dispatch(setUser(response.data));
-          localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
+          userInfoSetup(response.data);
           onClose();
           setTimeout(() => {
             window.location.reload();
           }, 3000);
         } else {
-          dispatch(clearUser());
+          userInfoCleanup();
           message.error(t("registerFormErrorMessage"));
         }
       } else {
         try {
           const response = await api.login(values.username, encryptedPassword);
           if (response.status === 200) {
-            localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
-            dispatch(setUser(response.data));
+            userInfoSetup(response.data);
             message.success(t("loginSuccessful"));
             onClose();
             setTimeout(() => {
               window.location.reload();
             }, 3000);
           } else {
-            dispatch(clearUser());
+            userInfoCleanup();
             message.error(t("loginFormErrorMessage"));
           }
         } catch (error) {
-          dispatch(clearUser());
+          userInfoCleanup();
           console.error("Login error:", error);
           message.error(t("loginFormErrorMessage"));
         }
       }
     } catch (error) {
-      dispatch(clearUser());
+      userInfoCleanup();
       console.error("Operation failed:", error);
       message.error(
         isRegistering
@@ -322,6 +320,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const userInfoCleanup = () => {
+    localStorage.removeItem(JWT_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    dispatch(clearUser());
+  };
+
+  const userInfoSetup = (user: any) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    dispatch(setUser(user));
   };
 
   const handleAvatarEdit = () => {

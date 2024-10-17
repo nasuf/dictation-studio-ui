@@ -14,7 +14,7 @@ import { api } from "@/api/api";
 import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
-import { DEFAULT_LANGUAGE, JWT_TOKEN_KEY } from "@/utils/const";
+import { DEFAULT_LANGUAGE, JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
 
 const { Header, Content, Footer } = Layout;
 
@@ -44,26 +44,28 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const refreshLoginStatus = async () => {
-      try {
-        const response = await api.refreshLoginStatus();
-        if (response.status === 200) {
-          dispatch(setUser(response.data.user));
-        } else {
+    const loadUserInfo = async () => {
+      const userInfo = localStorage.getItem(USER_KEY);
+      if (userInfo) {
+        dispatch(setUser(JSON.parse(userInfo)));
+      } else {
+        try {
+          const response = await api.loadUserInfo();
+          if (response.status === 200) {
+            dispatch(setUser(response.data.user));
+          } else if (response.status === 401) {
+            dispatch(clearUser());
+            localStorage.removeItem(JWT_TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+          }
+        } catch (error) {
           dispatch(clearUser());
           localStorage.removeItem(JWT_TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
         }
-      } catch (error) {
-        console.error("Error checking login status:", error);
-        dispatch(clearUser());
-        localStorage.removeItem(JWT_TOKEN_KEY);
       }
     };
-
-    // refresh login status every 30 minutes
-    refreshLoginStatus();
-    setInterval(refreshLoginStatus, 30 * 60 * 1000);
-
+    loadUserInfo();
     const handleUnauthorized = () => {
       setIsLoginModalVisible(true);
     };
@@ -78,7 +80,6 @@ const App: React.FC = () => {
   const handleGoogleLogin = async (tokenResponse: any) => {
     try {
       const response = await api.verifyGoogleToken(tokenResponse.access_token);
-      localStorage.setItem(JWT_TOKEN_KEY, response.data.jwt_token);
       dispatch(setUser(response.data.user));
       setIsLoginModalVisible(false);
       message.success(t("loginSuccessful"));
