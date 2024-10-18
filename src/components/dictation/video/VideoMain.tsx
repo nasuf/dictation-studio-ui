@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal, Popover, Button } from "antd";
+import { message, Modal, Popover, Button, Tag } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -69,8 +69,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [revealedSentences, setRevealedSentences] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVideoReady, setIsVideoReady] = useState(false);
   const [overallCompletion, setOverallCompletion] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
   const dispatch = useDispatch();
@@ -110,7 +108,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
         const [transcriptResponse, progressResponse] = await Promise.all([
           api.getVideoTranscript(channelId!, videoId!),
@@ -136,8 +133,6 @@ const VideoMain: React.ForwardRefRenderFunction<
         if (error.response && error.response.status === 401) {
           window.dispatchEvent(new CustomEvent("unauthorized"));
         }
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -268,7 +263,6 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
-    setIsVideoReady(true);
     playerRef.current.setPlaybackRate(playbackSpeed);
   };
 
@@ -914,98 +908,85 @@ const VideoMain: React.ForwardRefRenderFunction<
               isRunning={isTimerRunning && isUserTyping}
             />
           </div>
-          <div className="flex-grow mt-4 flex flex-col overflow-hidden">
-            {isLoading || !isVideoReady ? (
-              <div className="h-full flex justify-center items-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
-                <Spin size="large" tip="Loading subtitles..." />
-              </div>
-            ) : (
-              <div className="flex-grow flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <div
-                  ref={subtitlesRef}
-                  className="flex-grow overflow-y-auto custom-scrollbar"
-                >
-                  <div className="p-4 pb-20">
-                    {transcript.map((item, index) => (
-                      <div
-                        key={index}
-                        className={`subtitle-item mb-6 ${
-                          !revealedSentences.includes(index)
-                            ? "filter blur-sm opacity-50"
-                            : ""
-                        } ${
-                          index === currentSentenceIndex
-                            ? "bg-gray-100 dark:bg-gray-700 rounded-lg"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex justify-between items-start p-2">
-                          <div className="flex-1 mr-4">
-                            {revealedSentences.includes(index) ? (
-                              <>
-                                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                                  {compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).transcriptResult.map((word, wordIndex) => (
-                                    <span
-                                      key={wordIndex}
-                                      className={`${
-                                        word.isCorrect
-                                          ? "bg-green-200 dark:bg-green-700"
-                                          : "bg-red-200 dark:bg-red-700"
-                                      } px-1 py-0.5 rounded`}
-                                    >
-                                      {word.word}{" "}
-                                    </span>
-                                  ))}
-                                </p>
-                                {item.userInput && (
-                                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                    {t("yourInput")}:{" "}
-                                    {compareInputWithTranscript(
-                                      item.userInput,
-                                      item.transcript
-                                    ).inputResult.map((word, wordIndex) => (
-                                      <span
-                                        key={wordIndex}
-                                        className={
-                                          word.isCorrect
-                                            ? "text-green-600 dark:text-green-400"
-                                            : "text-red-600 dark:text-red-400"
-                                        }
-                                      >
-                                        {word.word}{" "}
-                                      </span>
-                                    ))}
-                                  </p>
-                                )}
-                              </>
-                            ) : (
-                              <p className="text-gray-800 dark:text-gray-200">
-                                {item.transcript}
-                              </p>
-                            )}
-                          </div>
-                          {revealedSentences.includes(index) && (
-                            <div className="flex-shrink-0">
-                              <ProgressCircle
-                                percentage={
-                                  compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).completionPercentage
-                                }
-                              />
-                            </div>
-                          )}
-                        </div>
+          <div className="flex-grow mt-4 flex flex-col subtitle-container overflow-hidden">
+            <div
+              ref={subtitlesRef}
+              className="flex-grow overflow-y-auto custom-scrollbar"
+            >
+              <div className="p-4 pb-20">
+                {transcript.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`subtitle-item ${
+                      revealedSentences.includes(index) ? "revealed" : ""
+                    } ${!revealedSentences.includes(index) ? "blurred" : ""} ${
+                      index === currentSentenceIndex ? "current" : ""
+                    }`}
+                  >
+                    <div className="flex justify-between items-start p-2">
+                      <div className="flex-1 mr-4">
+                        {revealedSentences.includes(index) ? (
+                          <>
+                            <p className="text-gray-800 dark:text-gray-200 mb-2">
+                              {compareInputWithTranscript(
+                                item.userInput || "",
+                                item.transcript
+                              ).transcriptResult.map((word, wordIndex) => (
+                                <span
+                                  key={wordIndex}
+                                  className={`${
+                                    word.isCorrect
+                                      ? "bg-green-200 dark:bg-green-700"
+                                      : "bg-red-200 dark:bg-red-700"
+                                  } px-1 py-0.5 rounded`}
+                                >
+                                  {word.word}{" "}
+                                </span>
+                              ))}
+                            </p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                              <Tag color="blue">{t("yourInput")}</Tag>{" "}
+                              {item.userInput &&
+                                compareInputWithTranscript(
+                                  item.userInput,
+                                  item.transcript
+                                ).inputResult.map((word, wordIndex) => (
+                                  <span
+                                    key={wordIndex}
+                                    className={
+                                      word.isCorrect
+                                        ? "text-green-600 dark:text-green-400"
+                                        : "text-red-600 dark:text-red-400"
+                                    }
+                                  >
+                                    {word.word}{" "}
+                                  </span>
+                                ))}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-gray-800 dark:text-gray-200">
+                            {item.transcript}
+                          </p>
+                        )}
                       </div>
-                    ))}
+                      {revealedSentences.includes(index) && (
+                        <div className="flex-shrink-0">
+                          <ProgressCircle
+                            percentage={
+                              compareInputWithTranscript(
+                                item.userInput || "",
+                                item.transcript
+                              ).completionPercentage
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
