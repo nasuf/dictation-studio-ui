@@ -81,6 +81,7 @@ const App: React.FC = () => {
     try {
       const response = await api.verifyGoogleToken(tokenResponse.access_token);
       dispatch(setUser(response.data.user));
+      localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
       setIsLoginModalVisible(false);
       message.success(t("loginSuccessful"));
       setTimeout(() => {
@@ -89,6 +90,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Login failed:", error);
       message.error(t("loginFailed"));
+      localStorage.removeItem(USER_KEY);
     }
   };
 
