@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { Spin, message, Modal, Popover, Slider, Select, Button } from "antd";
+import { Spin, message, Modal, Popover, Button } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
@@ -41,6 +41,7 @@ import nlp from "compromise";
 import Timer from "./Timer";
 import { RootState } from "@/redux/store";
 import { store } from "@/redux/store";
+import Settings from "./Settings";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -811,53 +812,14 @@ const VideoMain: React.ForwardRefRenderFunction<
   ]);
 
   const settingsContent = (
-    <div className="space-y-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <div>
-        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          {t("playbackSpeed")}
-        </h6>
-        <Slider
-          min={0.5}
-          max={2}
-          step={0.1}
-          value={playbackSpeed}
-          onChange={handleSpeedChange}
-          className="custom-slider"
-        />
-      </div>
-      <div>
-        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          {t("autoRepeat")}
-        </h6>
-        <Select
-          value={autoRepeat}
-          onChange={handleAutoRepeatChange}
-          className="w-full"
-        >
-          <Select.Option value={0}>Off</Select.Option>
-          <Select.Option value={1}>1 time</Select.Option>
-          <Select.Option value={2}>2 times</Select.Option>
-          <Select.Option value={3}>3 times</Select.Option>
-        </Select>
-      </div>
-      <div>
-        <h6 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          {t("shortcutKeys")}
-        </h6>
-        <div className="grid grid-cols-2 gap-4">
-          {shortcuts &&
-            Object.entries(shortcuts).map(([key, value]) => (
-              <Button
-                key={key}
-                onClick={() => handleShortcutSet(key)}
-                className="w-full text-left"
-              >
-                {t(key)}: {value || "Not set"}
-              </Button>
-            ))}
-        </div>
-      </div>
-    </div>
+    <Settings
+      playbackSpeed={playbackSpeed}
+      autoRepeat={autoRepeat}
+      shortcuts={shortcuts}
+      handleSpeedChange={handleSpeedChange}
+      handleAutoRepeatChange={handleAutoRepeatChange}
+      handleShortcutSet={handleShortcutSet}
+    />
   );
 
   return (
