@@ -13,9 +13,9 @@ import { api } from "@/api/api";
 import LoginModal from "@/components/LoginModal";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { clearUser, setUser } from "@/redux/userSlice";
+import { clearUser, setLanguage, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import { JWT_TOKEN_KEY } from "@/utils/const";
+import { JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
 
 interface AppHeaderProps {
   showLoginModal: () => void;
@@ -68,6 +68,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       if (response.status === 200) {
         dispatch(clearUser());
         localStorage.removeItem(JWT_TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         message.success(t("logoutSuccessful"));
       } else {
         message.error(t("logoutFailed"));
@@ -84,9 +85,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const handleToggleLanguage = useCallback(
     (lang: string) => {
       toggleLanguage(lang);
-      api.saveUserConfig({ language: lang });
+      dispatch(setLanguage(lang));
+
+      // Update localStorage
+      const storedUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+      const updatedUser = { ...storedUser, language: lang };
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+
+      // Update Redux store
+      if (userInfo) {
+        const updatedUserInfo = { ...userInfo, language: lang };
+        dispatch(setUser(updatedUserInfo));
+        // Save the updated language to the backend
+        api.saveUserConfig({ language: lang });
+      }
     },
-    [toggleLanguage]
+    [toggleLanguage, userInfo]
   );
 
   useEffect(() => {
