@@ -136,4 +136,6 @@ export const api = {
 
   updateChannelVisibility: (channelId: string, visibility: string) =>
     axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
+  restoreTranscript: (channelId: string, videoId: string) =>
+    axiosInstance.post(`/service/${channelId}/${videoId}/restore-transcript`),
 };

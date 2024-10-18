@@ -400,22 +400,36 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const loadOriginalTranscript = async () => {
-    if (!currentVideoId) {
-      message.error("No video selected");
+  const loadOriginalTranscript = () => {
+    if (!currentVideoId || !selectedChannel) {
+      message.error("No video or channel selected");
       return;
     }
-    setIsTranscriptLoading(true);
-    try {
-      const response = await api.getOriginalTranscript(currentVideoId);
-      setCurrentTranscript(response.data.transcript);
-      message.success("Original transcript loaded successfully");
-    } catch (error) {
-      console.error("Error loading original transcript:", error);
-      message.error("Failed to load original transcript");
-    } finally {
-      setIsTranscriptLoading(false);
-    }
+
+    Modal.confirm({
+      title: "Restore Original Transcript",
+      content:
+        "Are you sure you want to restore the original transcript? This action will overwrite any changes you've made.",
+      onOk: async () => {
+        setIsTranscriptLoading(true);
+        try {
+          const response = await api.restoreTranscript(
+            selectedChannel,
+            currentVideoId
+          );
+          setCurrentTranscript(response.data.transcript);
+          message.success("Original transcript restored successfully");
+        } catch (error) {
+          console.error("Error restoring original transcript:", error);
+          message.error("Failed to restore original transcript");
+        } finally {
+          setIsTranscriptLoading(false);
+        }
+      },
+      onCancel() {
+        // Do nothing if the user cancels
+      },
+    });
   };
 
   const rowSelection = {
