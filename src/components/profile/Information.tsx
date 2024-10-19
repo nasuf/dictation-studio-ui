@@ -65,101 +65,99 @@ const Information: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-xl overflow-hidden"
-      >
-        <div className="relative h-40 flex items-center justify-center">
-          <img
-            src={userInfo?.avatar}
-            alt="User Avatar"
-            className="w-24 h-24 rounded-full border-4 border-white shadow-lg absolute"
-          />
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
-          <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4 mt-12">
-            {userInfo?.username}
-          </h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <InfoCard
-              icon="👤"
-              title={t("username")}
-              value={userInfo?.username || ""}
+    <div className="flex items-center justify-center min-h-full p-6">
+      <div className="max-w-4xl w-full space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div className="relative h-40 flex items-center justify-center">
+            <img
+              src={userInfo?.avatar}
+              alt="User Avatar"
+              className="w-24 h-24 rounded-full border-4 border-white shadow-lg absolute"
             />
-            <InfoCard
-              icon="📧"
-              title={t("email")}
-              value={userInfo?.email || ""}
-            />
-            <InfoCard
-              icon="🎭"
-              title={t("role")}
-              value={userInfo?.role || ""}
-            />
-            <InfoCard
-              icon="⏱️"
-              title={t("total_dictation_time")}
-              value={
-                totalDuration !== null
-                  ? formatDuration(totalDuration)
-                  : t("loading")
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
+            <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">
+              {userInfo?.username}
+            </h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <InfoCard
+                icon="📧"
+                title={t("email")}
+                value={userInfo?.email || ""}
+              />
+              <InfoCard
+                icon="🎭"
+                title={t("role")}
+                value={userInfo?.role || ""}
+              />
+              <InfoCard
+                icon="⏱️"
+                title={t("total_dictation_time")}
+                value={
+                  totalDuration !== null
+                    ? formatDuration(totalDuration)
+                    : t("loading")
+                }
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6"
+        >
+          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+            {t("dictationIntensity")}
+          </h2>
+          <div className="overflow-x-auto">
+            <CalendarHeatmap
+              startDate={subYears(new Date(), 1)}
+              endDate={new Date()}
+              values={dailyDurations}
+              showWeekdayLabels={true}
+              classForValue={(value) => getColor(value as DailyDuration | null)}
+              titleForValue={(value) =>
+                value
+                  ? `${format(
+                      new Date(value.date),
+                      "yyyy-MM-dd"
+                    )}: ${formatDuration(value.count)}`
+                  : "No data"
               }
             />
           </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6"
-      >
-        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-          {t("dictationIntensity")}
-        </h2>
-        <div className="overflow-x-auto">
-          <CalendarHeatmap
-            startDate={subYears(new Date(), 1)}
-            endDate={new Date()}
-            values={dailyDurations}
-            classForValue={(value) => getColor(value as DailyDuration | null)}
-            titleForValue={(value) =>
-              value
-                ? `${format(
-                    new Date(value.date),
-                    "yyyy-MM-dd"
-                  )}: ${formatDuration(value.count)}`
-                : "No data"
-            }
-          />
-        </div>
-        <div className="flex justify-end items-center mt-4">
-          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
-            {t("less")}
-          </span>
-          <div className="flex">
-            {[
-              "color-empty",
-              "color-scale-1",
-              "color-scale-2",
-              "color-scale-3",
-              "color-scale-4",
-            ].map((color) => (
-              <div
-                key={color}
-                className={`w-3 h-3 ${color} rounded-sm mr-1`}
-              ></div>
-            ))}
+          <div className="flex justify-end items-center mt-4">
+            <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+              {t("less")}
+            </span>
+            <div className="flex">
+              {[
+                "color-empty",
+                "color-scale-1",
+                "color-scale-2",
+                "color-scale-3",
+                "color-scale-4",
+              ].map((color) => (
+                <div
+                  key={color}
+                  className={`w-3 h-3 ${color} rounded-sm mr-1`}
+                ></div>
+              ))}
+            </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+              {t("more")}
+            </span>
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-            {t("more")}
-          </span>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

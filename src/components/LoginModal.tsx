@@ -280,7 +280,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         if (response.status === 200) {
           message.success(t("registerFormSuccessMessage"));
           setIsRegistering(false);
-          userInfoSetup(response.data);
+          userInfoSetup(response.data.user);
           onClose();
           setTimeout(() => {
             window.location.reload();
@@ -293,7 +293,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         try {
           const response = await api.login(values.username, encryptedPassword);
           if (response.status === 200) {
-            userInfoSetup(response.data);
+            userInfoSetup(response.data.user);
             message.success(t("loginSuccessful"));
             onClose();
             setTimeout(() => {
