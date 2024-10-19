@@ -452,6 +452,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
     const inputWords = cleanInput.split(/\s+/);
     const transcriptWords = cleanTranscript.split(/\s+/);
+    const originalTranscriptWords = transcript.split(/\s+/);
 
     const usedIndices = new Set<number>();
 
@@ -462,7 +463,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       if (index !== -1) {
         usedIndices.add(index);
         return {
-          word,
+          word: originalTranscriptWords[index], // Use the original word with correct case and punctuation
           color: "#00827F",
           isCorrect: true,
         };
@@ -474,7 +475,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       };
     });
 
-    const transcriptResult = transcriptWords.map((word, index) => {
+    const transcriptResult = originalTranscriptWords.map((word, index) => {
       return {
         word,
         highlight: usedIndices.has(index) ? "#7CEECE" : "#FFAAA5",
