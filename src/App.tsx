@@ -14,7 +14,12 @@ import { api } from "@/api/api";
 import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
-import { DEFAULT_LANGUAGE, JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
+import {
+  DEFAULT_LANGUAGE,
+  JWT_TOKEN_KEY,
+  UNAUTHORIZED_EVENT,
+  USER_KEY,
+} from "@/utils/const";
 
 const { Header, Content, Footer } = Layout;
 
@@ -66,14 +71,13 @@ const App: React.FC = () => {
       }
     };
     loadUserInfo();
+
     const handleUnauthorized = () => {
       setIsLoginModalVisible(true);
     };
-
-    window.addEventListener("unauthorized", handleUnauthorized);
-
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => {
-      window.removeEventListener("unauthorized", handleUnauthorized);
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
     };
   }, [dispatch]);
 

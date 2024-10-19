@@ -47,7 +47,6 @@ const VideoList: React.FC = () => {
       } catch (error: any) {
         if (error.response && error.response.status === 401) {
           setIsUnauthorized(true);
-          window.dispatchEvent(new CustomEvent("unauthorized"));
         }
       }
     };

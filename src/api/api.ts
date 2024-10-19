@@ -6,7 +6,7 @@ import {
   Video,
   Channel,
 } from "@/utils/type";
-import { JWT_TOKEN_KEY } from "@/utils/const";
+import { JWT_TOKEN_KEY, UNAUTHORIZED_EVENT } from "@/utils/const";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
@@ -37,6 +37,9 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response && error.response.status === 401) {
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+    }
     return Promise.reject(error);
   }
 );

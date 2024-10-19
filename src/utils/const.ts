@@ -15,3 +15,5 @@ export const DEFAULT_DICTATION_CONFIG: DictationConfig = {
     prev: "Shift",
   },
 };
+
+export const UNAUTHORIZED_EVENT = "UNAUTHORIZED";

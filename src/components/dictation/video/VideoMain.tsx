@@ -108,31 +108,25 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [transcriptResponse, progressResponse] = await Promise.all([
-          api.getVideoTranscript(channelId!, videoId!),
-          api.getUserProgress(channelId!, videoId!),
-        ]);
+      const [transcriptResponse, progressResponse] = await Promise.all([
+        api.getVideoTranscript(channelId!, videoId!),
+        api.getUserProgress(channelId!, videoId!),
+      ]);
 
-        setTranscript(transcriptResponse.data.transcript);
+      setTranscript(transcriptResponse.data.transcript);
 
-        if (
-          progressResponse.data &&
-          progressResponse.data.userInput &&
-          Object.keys(progressResponse.data.userInput).length > 0
-        ) {
-          restoreUserProgress(
-            progressResponse.data,
-            transcriptResponse.data.transcript
-          );
-        } else {
-          setCurrentSentenceIndex(0);
-          dispatch(setIsDictationStarted(false));
-        }
-      } catch (error: any) {
-        if (error.response && error.response.status === 401) {
-          window.dispatchEvent(new CustomEvent("unauthorized"));
-        }
+      if (
+        progressResponse.data &&
+        progressResponse.data.userInput &&
+        Object.keys(progressResponse.data.userInput).length > 0
+      ) {
+        restoreUserProgress(
+          progressResponse.data,
+          transcriptResponse.data.transcript
+        );
+      } else {
+        setCurrentSentenceIndex(0);
+        dispatch(setIsDictationStarted(false));
       }
     };
 
