@@ -76,3 +76,8 @@ export interface FilterOption {
   translationKey: string;
   checked: boolean;
 }
+
+export interface DailyDuration {
+  date: string;
+  count: number;
+}

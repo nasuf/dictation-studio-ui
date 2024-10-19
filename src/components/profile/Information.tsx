@@ -3,18 +3,32 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
+import CalendarHeatmap from "react-calendar-heatmap";
+import "react-calendar-heatmap/dist/styles.css";
+import { subYears, format } from "date-fns";
+import { DailyDuration } from "@/utils/type";
 
 const Information: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [loading, setLoading] = useState(true);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
+  const [dailyDurations, setDailyDurations] = useState<DailyDuration[]>([]);
   const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const duration = await api.getUserDuration();
-        setTotalDuration(duration.data.totalDuration);
+        const response = await api.getUserDuration();
+        setTotalDuration(response.data.totalDuration);
+
+        // Convert dailyDurations object to array of objects
+        const durationsArray = Object.entries(response.data.dailyDurations).map(
+          ([date, duration]) => ({
+            date,
+            count: duration as number,
+          })
+        );
+        setDailyDurations(durationsArray);
       } catch (error) {
         console.error("Error fetching user duration:", error);
       }
@@ -40,6 +54,14 @@ const Information: React.FC = () => {
     } else {
       return `${remainingSeconds} ${t("seconds")}`;
     }
+  };
+
+  const getColor = (value: DailyDuration | null): string => {
+    if (!value || value.count === 0) return "color-empty";
+    if (value.count < 1800) return "color-scale-1"; // Less than 30 minutes
+    if (value.count < 3600) return "color-scale-2"; // 30 minutes to 1 hour
+    if (value.count < 7200) return "color-scale-3"; // 1 hour to 2 hours
+    return "color-scale-4"; // More than 2 hours
   };
 
   if (loading) {
@@ -134,6 +156,42 @@ const Information: React.FC = () => {
                   : t("loading")}
               </span>
             </div>
+          </div>
+        </div>
+
+        <div className="border-gray-200 dark:border-gray-700 px-8 py-6">
+          <CalendarHeatmap
+            startDate={subYears(new Date(), 1)}
+            endDate={new Date()}
+            values={dailyDurations}
+            classForValue={(value) => getColor(value as DailyDuration | null)}
+            titleForValue={(value) =>
+              value
+                ? `${format(
+                    new Date(value.date),
+                    "yyyy-MM-dd"
+                  )}: ${formatDuration(value.count)}`
+                : "No data"
+            }
+          />
+          <div className="flex justify-end items-center mt-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">
+              {t("less")}
+            </span>
+            <div className="flex">
+              {[
+                "color-empty",
+                "color-scale-1",
+                "color-scale-2",
+                "color-scale-3",
+                "color-scale-4",
+              ].map((color) => (
+                <div key={color} className={`w-3 h-3 ${color} mr-1`}></div>
+              ))}
+            </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+              {t("more")}
+            </span>
           </div>
         </div>
       </div>

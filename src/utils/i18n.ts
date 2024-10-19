@@ -93,6 +93,7 @@ const enTranslations = {
   next: "Next",
   prev: "Previous",
   noProgressDataAvailable: "No dictation progress available",
+  dictationIntensity: "Dictation Intensity",
 };
 
 const zhTranslations = {
@@ -183,6 +184,7 @@ const zhTranslations = {
   next: "下一句",
   prev: "上一句",
   noProgressDataAvailable: "暂无听写进度",
+  dictationIntensity: "听写强度",
 };
 
 const zhTraditionalTranslations = {
