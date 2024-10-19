@@ -164,6 +164,7 @@ const Information: React.FC = () => {
             startDate={subYears(new Date(), 1)}
             endDate={new Date()}
             values={dailyDurations}
+            showWeekdayLabels={true}
             classForValue={(value) => getColor(value as DailyDuration | null)}
             titleForValue={(value) =>
               value
