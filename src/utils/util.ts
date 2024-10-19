@@ -1,3 +1,6 @@
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export const resetScrollPosition = (e: React.MouseEvent<HTMLDivElement>) => {
   const innerText = e.currentTarget.querySelector(".inner-text") as HTMLElement;
   if (innerText) {
@@ -6,3 +9,7 @@ export const resetScrollPosition = (e: React.MouseEvent<HTMLDivElement>) => {
     innerText.style.animation = "";
   }
 };
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
