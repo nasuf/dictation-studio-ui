@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Progress, Layout, Menu } from "antd";
+import { Progress, Layout, Menu, Empty } from "antd";
 import { api } from "@/api/api";
 import {
   CustomCardMeta,
@@ -12,6 +12,7 @@ import {
 import { UserProgressData } from "@/utils/type";
 import { Link } from "react-router-dom";
 import { resetScrollPosition } from "@/utils/util";
+import { useTranslation } from "react-i18next";
 
 const { Content, Sider } = Layout;
 
@@ -21,6 +22,7 @@ const UserProgress: React.FC = () => {
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
   );
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchAllProgress = async () => {
@@ -59,6 +61,20 @@ const UserProgress: React.FC = () => {
   const handleImageLoad = (videoId: string) => {
     setLoadedImages((prev) => ({ ...prev, [videoId]: true }));
   };
+
+  if (allProgress.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Empty
+          description={
+            <span className="text-gray-500 dark:text-gray-400">
+              {t("noProgressDataAvailable")}
+            </span>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <Layout className="h-full bg-transparent">

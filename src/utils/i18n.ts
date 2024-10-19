@@ -92,6 +92,7 @@ const enTranslations = {
   repeat: "Repeat",
   next: "Next",
   prev: "Previous",
+  noProgressDataAvailable: "No dictation progress available",
 };
 
 const zhTranslations = {
@@ -181,6 +182,7 @@ const zhTranslations = {
   repeat: "重复",
   next: "下一句",
   prev: "上一句",
+  noProgressDataAvailable: "暂无听写进度",
 };
 
 const zhTraditionalTranslations = {
@@ -270,6 +272,7 @@ const zhTraditionalTranslations = {
   repeat: "重複",
   next: "下一句",
   prev: "上一句",
+  noProgressDataAvailable: "暫無聽寫進度",
 };
 
 const jaTranslations = {
@@ -363,6 +366,7 @@ const jaTranslations = {
   repeat: "繰り返す",
   next: "次へ",
   prev: "前へ",
+  noProgressDataAvailable: "聴写進捗はありません",
 };
 
 const koTranslations = {
@@ -455,6 +459,7 @@ const koTranslations = {
   repeat: "반복",
   next: "다음",
   prev: "이전",
+  noProgressDataAvailable: "듣기 진행 상황이 없습니다",
 };
 
 i18n.use(initReactI18next).init({
