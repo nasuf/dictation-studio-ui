@@ -45,15 +45,9 @@ const Information: React.FC = () => {
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
 
-    if (hours > 0) {
-      return `${hours} ${t("hours")} ${minutes} ${t(
-        "minutes"
-      )} ${remainingSeconds} ${t("seconds")}`;
-    } else if (minutes > 0) {
-      return `${minutes} ${t("minutes")} ${remainingSeconds} ${t("seconds")}`;
-    } else {
-      return `${remainingSeconds} ${t("seconds")}`;
-    }
+    return [hours, minutes, remainingSeconds]
+      .map((val) => val.toString().padStart(2, "0"))
+      .join(":");
   };
 
   const getColor = (value: DailyDuration | null): string => {

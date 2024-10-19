@@ -655,8 +655,6 @@ body {
   border: 1px solid rgba(96, 165, 250, 0.3);
 }
 
-/* Add these styles at the end of the file */
-
 .react-calendar-heatmap .color-empty {
   fill: #ebedf0;
 }
@@ -689,7 +687,6 @@ body {
   fill: #39d353;
 }
 
-/* Add these new styles for the legend */
 .color-empty {
   background-color: #ebedf0;
 }
