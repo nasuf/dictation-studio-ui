@@ -66,17 +66,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     try {
       const response = await api.logout();
       if (response.status === 200) {
-        dispatch(clearUser());
-        localStorage.removeItem(JWT_TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
         message.success(t("logoutSuccessful"));
       } else {
         message.error(t("logoutFailed"));
       }
     } catch (error) {
-      console.error("Logout failed:", error);
       message.error(t("logoutFailed"));
     } finally {
+      dispatch(clearUser());
+      localStorage.removeItem(JWT_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       navigate("/");
     }
   };
