@@ -105,6 +105,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         next: "Enter",
       }
   );
+  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -280,6 +281,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const startTimer = useCallback(() => {
     if (!isTimerRunning) {
       setIsTimerRunning(true);
+      setLastSaveTime(Date.now());
       timerIntervalRef.current = setInterval(() => {
         setTotalTime((prev) => prev + 1);
       }, 1000);
@@ -599,6 +601,14 @@ const VideoMain: React.ForwardRefRenderFunction<
     updateOverallProgress();
   }, [revealedSentences, transcript, updateOverallProgress]);
 
+  const getTimeSinceLastSave = () => {
+    return Math.floor((Date.now() - lastSaveTime) / 1000); // Convert to seconds
+  };
+
+  const resetLastSaveTime = () => {
+    setLastSaveTime(Date.now());
+  };
+
   const saveProgress = useCallback(async () => {
     const userInputJson: { [key: number]: string } = {};
     transcript.forEach((item, index) => {
@@ -606,6 +616,8 @@ const VideoMain: React.ForwardRefRenderFunction<
         userInputJson[index] = item.userInput.trim();
       }
     });
+    const timeSinceLastSave = getTimeSinceLastSave();
+    resetLastSaveTime();
 
     const progressData: ProgressData = {
       channelId: channelId!,
@@ -613,7 +625,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       userInput: userInputJson,
       currentTime: new Date().getTime(),
       overallCompletion: Number(overallCompletion.toFixed(2)),
-      duration: totalTime,
+      duration: timeSinceLastSave,
     };
 
     try {
@@ -622,7 +634,15 @@ const VideoMain: React.ForwardRefRenderFunction<
     } catch (error) {
       message.error(t("progressSaveFailed"));
     }
-  }, [channelId, videoId, transcript, overallCompletion, t, totalTime]);
+  }, [
+    channelId,
+    videoId,
+    transcript,
+    overallCompletion,
+    t,
+    totalTime,
+    lastSaveTime,
+  ]);
 
   const removeMissedWord = (word: string) => {
     setMissedWords((prev) => prev.filter((w) => w !== word));

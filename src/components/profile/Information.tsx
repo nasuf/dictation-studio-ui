@@ -115,7 +115,7 @@ const Information: React.FC = () => {
           className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6"
         >
           <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-            {t("dictationIntensity")}
+            {t("dictationActivities")}
           </h2>
           <div className="overflow-x-auto">
             <CalendarHeatmap
