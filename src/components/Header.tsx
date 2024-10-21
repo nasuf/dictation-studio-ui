@@ -195,7 +195,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 alt="User Avatar"
                 className="w-6 h-6 md:w-8 md:h-8 rounded-full"
               />
-              <span className="hidden md:inline">{userInfo.username}</span>
             </button>
           </Dropdown>
         ) : (
