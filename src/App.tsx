@@ -86,16 +86,13 @@ const App: React.FC = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_IN" && session) {
-          const email = session.user.email;
-          if (email) {
-            api.loadUserInfo(email).then((response) => {
-              if (response.status === 200) {
-                const user = response.data.user;
-                localStorage.setItem(USER_KEY, JSON.stringify(user));
-                dispatch(setUser(user));
-              }
-            });
-          }
+          api.verifyGoogleToken(session.access_token).then((response) => {
+            if (response.status === 200) {
+              const user = response.data.user;
+              localStorage.setItem(USER_KEY, JSON.stringify(user));
+              dispatch(setUser(user));
+            }
+          });
           message.success(t("loginSuccessful"));
         } else if (event === "SIGNED_OUT") {
           localStorage.removeItem(USER_KEY);
