@@ -60,9 +60,9 @@ export const api = {
     });
     return response.data;
   },
-  verifyGoogleToken: (token: string) =>
-    axiosInstance.post("/auth/verify-google-token", { token }),
-  loadUserInfo: () => axiosInstance.get("/auth/userinfo"),
+  // verifyGoogleToken: (token: string) =>
+  //   axiosInstance.post("/auth/verify-google-token", { token }),
+  loadUserInfo: (email: string) => axiosInstance.get(`/auth/userinfo/${email}`),
   logout: () => axiosInstance.post("/auth/logout"),
   register: (
     username: string,
