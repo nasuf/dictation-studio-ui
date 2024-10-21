@@ -20,6 +20,7 @@ import {
   UNAUTHORIZED_EVENT,
   USER_KEY,
 } from "@/utils/const";
+import { supabase } from "@/utils/supabaseClient";
 
 const { Header, Content, Footer } = Layout;
 
@@ -49,28 +50,28 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadUserInfo = async () => {
-      const userInfo = localStorage.getItem(USER_KEY);
-      if (userInfo) {
-        dispatch(setUser(JSON.parse(userInfo)));
-      } else {
-        try {
-          const response = await api.loadUserInfo();
-          if (response.status === 200) {
-            dispatch(setUser(response.data.user));
-          } else if (response.status === 401) {
-            dispatch(clearUser());
-            localStorage.removeItem(JWT_TOKEN_KEY);
-            localStorage.removeItem(USER_KEY);
-          }
-        } catch (error) {
-          dispatch(clearUser());
-          localStorage.removeItem(JWT_TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        }
-      }
-    };
-    loadUserInfo();
+    // const loadUserInfo = async () => {
+    //   const userInfo = localStorage.getItem(USER_KEY);
+    //   if (userInfo) {
+    //     dispatch(setUser(JSON.parse(userInfo)));
+    //   } else {
+    //     try {
+    //       const response = await api.loadUserInfo();
+    //       if (response.status === 200) {
+    //         dispatch(setUser(response.data.user));
+    //       } else if (response.status === 401) {
+    //         dispatch(clearUser());
+    //         localStorage.removeItem(JWT_TOKEN_KEY);
+    //         localStorage.removeItem(USER_KEY);
+    //       }
+    //     } catch (error) {
+    //       dispatch(clearUser());
+    //       localStorage.removeItem(JWT_TOKEN_KEY);
+    //       localStorage.removeItem(USER_KEY);
+    //     }
+    //   }
+    // };
+    // loadUserInfo();
 
     const handleUnauthorized = () => {
       setIsLoginModalVisible(true);
@@ -81,22 +82,32 @@ const App: React.FC = () => {
     };
   }, [dispatch]);
 
-  const handleGoogleLogin = async (tokenResponse: any) => {
-    try {
-      const response = await api.verifyGoogleToken(tokenResponse.access_token);
-      dispatch(setUser(response.data.user));
-      localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
-      setIsLoginModalVisible(false);
-      message.success(t("loginSuccessful"));
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      console.error("Login failed:", error);
-      message.error(t("loginFailed"));
-      localStorage.removeItem(USER_KEY);
-    }
-  };
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          const email = session.user.email;
+          if (email) {
+            api.loadUserInfo(email).then((response) => {
+              if (response.status === 200) {
+                const user = response.data.user;
+                localStorage.setItem(USER_KEY, JSON.stringify(user));
+                dispatch(setUser(user));
+              }
+            });
+          }
+          message.success(t("loginSuccessful"));
+        } else if (event === "SIGNED_OUT") {
+          localStorage.removeItem(USER_KEY);
+          dispatch(clearUser());
+          message.info(t("loggedOut"));
+        }
+      }
+    );
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [dispatch]);
 
   return (
     <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col`}>
@@ -123,7 +134,6 @@ const App: React.FC = () => {
               <LoginModal
                 visible={isLoginModalVisible}
                 onClose={() => setIsLoginModalVisible(false)}
-                onGoogleLogin={handleGoogleLogin}
               />
             </Layout>
           }

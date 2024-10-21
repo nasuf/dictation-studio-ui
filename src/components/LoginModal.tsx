@@ -2,18 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Button, Form, Input, Drawer, message, Avatar, Modal } from "antd";
 import { GoogleOutlined, UserOutlined, EditOutlined } from "@ant-design/icons";
 import styled from "styled-components";
-import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import { encryptPassword } from "@/utils/encryption";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
 import { JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
+import { supabase } from "@/utils/supabaseClient";
 
 interface LoginModalProps {
   visible: boolean;
   onClose: () => void;
-  onGoogleLogin: (tokenResponse: any) => void;
 }
 
 const BlurredBackground = styled.div`
@@ -239,11 +238,7 @@ const AvatarGrid = styled.div`
   overflow-y: auto;
 `;
 
-const LoginModal: React.FC<LoginModalProps> = ({
-  visible,
-  onClose,
-  onGoogleLogin,
-}) => {
+const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState<string>("");
@@ -353,13 +348,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setIsAvatarModalVisible(false);
   };
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: onGoogleLogin,
-    onError: () => {
-      console.log("Login Failed");
+  const handleGoogleLogin = async () => {
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+      });
+      onClose();
+    } catch (error) {
+      console.error("Google login failed:", error);
       message.error(t("loginFailedWithGoogle"));
-    },
-  });
+    }
+  };
 
   return (
     <>
@@ -389,7 +388,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             {!isRegistering && (
               <Button
                 icon={<GoogleOutlined />}
-                onClick={() => googleLogin()}
+                onClick={() => handleGoogleLogin()}
                 style={{ width: "100%", marginBottom: "10px" }}
                 className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
               >

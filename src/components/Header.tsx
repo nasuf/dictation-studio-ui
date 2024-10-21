@@ -8,7 +8,6 @@ import {
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
-import { useGoogleLogin } from "@react-oauth/google";
 import { api } from "@/api/api";
 import LoginModal from "@/components/LoginModal";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,30 +37,30 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const navigate = useNavigate();
 
-  const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const response = await api.verifyGoogleToken(
-          tokenResponse.access_token
-        );
-        dispatch(setUser(response.data));
-        message.success(t("loginSuccessfulWithGoogle"));
-        setIsLoginModalVisible(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } catch (error) {
-        console.error("Login failed:", error);
-        message.error(t("loginFailedWithGoogle"));
-        localStorage.removeItem(JWT_TOKEN_KEY);
-      }
-    },
-    onError: () => {
-      console.log("Login Failed");
-      message.error(t("loginFailedWithGoogle"));
-      localStorage.removeItem(JWT_TOKEN_KEY);
-    },
-  });
+  // const login = useGoogleLogin({
+  //   onSuccess: async (tokenResponse) => {
+  //     try {
+  //       const response = await api.verifyGoogleToken(
+  //         tokenResponse.access_token
+  //       );
+  //       dispatch(setUser(response.data));
+  //       message.success(t("loginSuccessfulWithGoogle"));
+  //       setIsLoginModalVisible(false);
+  //       setTimeout(() => {
+  //         window.location.reload();
+  //       }, 1000);
+  //     } catch (error) {
+  //       console.error("Login failed:", error);
+  //       message.error(t("loginFailedWithGoogle"));
+  //       localStorage.removeItem(JWT_TOKEN_KEY);
+  //     }
+  //   },
+  //   onError: () => {
+  //     console.log("Login Failed");
+  //     message.error(t("loginFailedWithGoogle"));
+  //     localStorage.removeItem(JWT_TOKEN_KEY);
+  //   },
+  // });
 
   const logout = async () => {
     try {
@@ -158,12 +157,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white dark:text-gray-300 py-2 px-4 md:px-6 flex items-center justify-between shadow-lg h-16">
       <div className="flex items-center">
-        {/* <h1
-          className="text-xl md:text-2xl font-bold cursor-pointer"
-          onClick={() => navigate("/dictation/video")}
-        >
-          Dictation Studio
-        </h1> */}
         <GradualSpacing
           className="text-2xl md:text-2xl font-bold cursor-pointer font-display text-center font-bold -tracking-widest text-white dark:text-gray-300 md:leading-[5rem]"
           text="Dictation Studio"
@@ -218,7 +211,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <LoginModal
         visible={isLoginModalVisible}
         onClose={() => setIsLoginModalVisible(false)}
-        onGoogleLogin={() => login()}
       />
     </header>
   );
