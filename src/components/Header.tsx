@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setLanguage, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import { JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
+import { JWT_TOKEN_KEY, USER_KEY, USER_ROLE } from "@/utils/const";
 import { GradualSpacing } from "@/lib/magic-ui-components/GradualSpacing";
 
 interface AppHeaderProps {
@@ -36,31 +36,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const dispatch = useDispatch();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const navigate = useNavigate();
-
-  // const login = useGoogleLogin({
-  //   onSuccess: async (tokenResponse) => {
-  //     try {
-  //       const response = await api.verifyGoogleToken(
-  //         tokenResponse.access_token
-  //       );
-  //       dispatch(setUser(response.data));
-  //       message.success(t("loginSuccessfulWithGoogle"));
-  //       setIsLoginModalVisible(false);
-  //       setTimeout(() => {
-  //         window.location.reload();
-  //       }, 1000);
-  //     } catch (error) {
-  //       console.error("Login failed:", error);
-  //       message.error(t("loginFailedWithGoogle"));
-  //       localStorage.removeItem(JWT_TOKEN_KEY);
-  //     }
-  //   },
-  //   onError: () => {
-  //     console.log("Login Failed");
-  //     message.error(t("loginFailedWithGoogle"));
-  //     localStorage.removeItem(JWT_TOKEN_KEY);
-  //   },
-  // });
 
   const logout = async () => {
     try {
@@ -139,7 +114,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       >
         {t("userProfile")}
       </Menu.Item>
-      {userInfo?.role === "admin" && (
+      {userInfo?.role === USER_ROLE.ADMIN && (
         <Menu.Item
           key="admin"
           onClick={() => navigate("/admin/channel")}

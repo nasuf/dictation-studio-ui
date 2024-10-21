@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
+import { USER_ROLE } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -79,7 +80,7 @@ const UserManagement: React.FC = () => {
     },
   ];
 
-  if (!userInfo || userInfo.role !== "admin") {
+  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
 
@@ -106,8 +107,11 @@ const UserManagement: React.FC = () => {
             rules={[{ required: true, message: "Please select a role" }]}
           >
             <Select>
-              <Option value="user">User</Option>
-              <Option value="admin">Admin</Option>
+              <Option value="Admin">Admin</Option>
+              <Option value="Free Plan User">Free Plan User</Option>
+              <Option value="VIP 1">VIP 1</Option>
+              <Option value="VIP 2">VIP 2</Option>
+              <Option value="VIP 3">VIP 3</Option>
             </Select>
           </Form.Item>
         </Form>

@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, clearUser } from "./redux/userSlice";
 import i18n from "./utils/i18n";
@@ -22,13 +21,11 @@ import { RootState } from "@/redux/store";
 import {
   DEFAULT_DICTATION_CONFIG,
   DEFAULT_LANGUAGE,
-  DEFAULT_ROLE,
-  JWT_TOKEN_KEY,
   UNAUTHORIZED_EVENT,
   USER_KEY,
+  USER_ROLE,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
-import { UserInfo } from "@/utils/type";
 
 const { Header, Content, Footer } = Layout;
 
@@ -59,29 +56,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // const loadUserInfo = async () => {
-    //   const userInfo = localStorage.getItem(USER_KEY);
-    //   if (userInfo) {
-    //     dispatch(setUser(JSON.parse(userInfo)));
-    //   } else {
-    //     try {
-    //       const response = await api.loadUserInfo();
-    //       if (response.status === 200) {
-    //         dispatch(setUser(response.data.user));
-    //       } else if (response.status === 401) {
-    //         dispatch(clearUser());
-    //         localStorage.removeItem(JWT_TOKEN_KEY);
-    //         localStorage.removeItem(USER_KEY);
-    //       }
-    //     } catch (error) {
-    //       dispatch(clearUser());
-    //       localStorage.removeItem(JWT_TOKEN_KEY);
-    //       localStorage.removeItem(USER_KEY);
-    //     }
-    //   }
-    // };
-    // loadUserInfo();
-
     const handleUnauthorized = () => {
       setIsLoginModalVisible(true);
     };
@@ -118,11 +92,14 @@ const App: React.FC = () => {
                 if (!user.language) {
                   user.language = DEFAULT_LANGUAGE;
                 }
-                if (!user.dictation_config) {
+                if (
+                  !user.dictation_config ||
+                  Object.keys(user.dictation_config).length === 0
+                ) {
                   user.dictation_config = DEFAULT_DICTATION_CONFIG;
                 }
                 if (!user.role) {
-                  user.role = DEFAULT_ROLE;
+                  user.role = USER_ROLE.FREE_PLAN_USER;
                 }
                 navigate("/dictation/video");
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -134,6 +111,8 @@ const App: React.FC = () => {
             } catch (error) {
               message.error(t("loginFailed"));
             }
+          } else {
+            dispatch(setUser(storedUserInfo));
           }
         } else if (event === "SIGNED_OUT") {
           localStorage.removeItem(USER_KEY);
@@ -185,13 +164,11 @@ const App: React.FC = () => {
 
 const AppWithProviders: React.FC = () => {
   return (
-    <GoogleOAuthProvider clientId="107650640585-tnqr7jl8i7gnqgbil128pj6c6h8l0g36.apps.googleusercontent.com">
-      <I18nextProvider i18n={i18n}>
-        <Router>
-          <App />
-        </Router>
-      </I18nextProvider>
-    </GoogleOAuthProvider>
+    <I18nextProvider i18n={i18n}>
+      <Router>
+        <App />
+      </Router>
+    </I18nextProvider>
   );
 };
 

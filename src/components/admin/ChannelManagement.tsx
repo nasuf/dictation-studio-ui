@@ -25,6 +25,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { Channel } from "@/utils/type";
+import { USER_ROLE } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -100,7 +101,7 @@ const ChannelManagement: React.FC = () => {
 
   const [editingKey, setEditingKey] = useState<string>("");
 
-  if (!userInfo || userInfo.role !== "admin") {
+  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
 
