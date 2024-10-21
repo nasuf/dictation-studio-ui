@@ -60,8 +60,6 @@ export const api = {
     });
     return response.data;
   },
-  verifyGoogleToken: (token: string) =>
-    axiosInstance.post("/auth/verify-google-token", { token }),
   loadUserInfo: (email: string) => axiosInstance.get(`/auth/userinfo/${email}`),
   logout: () => axiosInstance.post("/auth/logout"),
   register: (
@@ -141,4 +139,7 @@ export const api = {
     axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
   restoreTranscript: (channelId: string, videoId: string) =>
     axiosInstance.post(`/service/${channelId}/${videoId}/restore-transcript`),
+  updateUserInfo: (userInfo: Partial<UserInfo>) => {
+    return axiosInstance.post("/auth/userinfo", userInfo);
+  },
 };

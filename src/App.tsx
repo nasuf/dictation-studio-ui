@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import {
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -15,12 +20,15 @@ import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
 import {
+  DEFAULT_DICTATION_CONFIG,
   DEFAULT_LANGUAGE,
+  DEFAULT_ROLE,
   JWT_TOKEN_KEY,
   UNAUTHORIZED_EVENT,
   USER_KEY,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
+import { UserInfo } from "@/utils/type";
 
 const { Header, Content, Footer } = Layout;
 
@@ -35,6 +43,7 @@ const App: React.FC = () => {
   const language = useSelector(
     (state: RootState) => state.user.userInfo?.language ?? DEFAULT_LANGUAGE
   );
+  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
@@ -84,27 +93,61 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === "SIGNED_IN" && session) {
-          api.verifyGoogleToken(session.access_token).then((response) => {
-            if (response.status === 200) {
-              const user = response.data.user;
-              localStorage.setItem(USER_KEY, JSON.stringify(user));
-              dispatch(setUser(user));
+          const user_metadata = session.user.user_metadata;
+          const userInfo = {
+            email: user_metadata.email,
+            avatar: user_metadata.avatar_url,
+            username: user_metadata.full_name,
+          };
+
+          const storedUserInfo = JSON.parse(
+            localStorage.getItem(USER_KEY) || "{}"
+          );
+
+          if (
+            userInfo.email !== storedUserInfo.email ||
+            userInfo.avatar !== storedUserInfo.avatar ||
+            userInfo.username !== storedUserInfo.username
+          ) {
+            try {
+              const response = await api.updateUserInfo(userInfo);
+              if (response.status === 200) {
+                const user = response.data.user;
+                if (!user.language) {
+                  user.language = DEFAULT_LANGUAGE;
+                }
+                if (!user.dictation_config) {
+                  user.dictation_config = DEFAULT_DICTATION_CONFIG;
+                }
+                if (!user.role) {
+                  user.role = DEFAULT_ROLE;
+                }
+                navigate("/dictation/video");
+                localStorage.setItem(USER_KEY, JSON.stringify(user));
+                dispatch(setUser(user));
+                message.success(t("loginSuccessful"));
+              } else {
+                throw new Error("Failed to update user info");
+              }
+            } catch (error) {
+              message.error(t("loginFailed"));
             }
-          });
-          message.success(t("loginSuccessful"));
+          }
         } else if (event === "SIGNED_OUT") {
           localStorage.removeItem(USER_KEY);
           dispatch(clearUser());
           message.info(t("loggedOut"));
+          navigate("/");
         }
       }
     );
+
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [dispatch]);
+  }, []);
 
   return (
     <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col`}>
