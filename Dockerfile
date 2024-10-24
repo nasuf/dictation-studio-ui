@@ -1,6 +1,6 @@
-FROM node:16
+FROM node:22.5.1
 
-WORKDIR /usr/src/app
+WORKDIR /app/dictation-studio-ui
 
 COPY package*.json ./
 

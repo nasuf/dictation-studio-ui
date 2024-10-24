@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           source: "."
-          target: "/app"
+          target: "/app/dictation-studio-ui"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /app
+            cd /app/dictation-studio-ui
             docker build -t dictation-studio-ui .
             docker stop dictation-studio-ui || true
             docker rm dictation-studio-ui || true
