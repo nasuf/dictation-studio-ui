@@ -17,11 +17,17 @@ jobs:
         with:
           node-version: "22.5.1"
 
+      - name: Clear node_modules and package-lock.json
+        run: rm -rf node_modules package-lock.json
+
       - name: Install dependencies
         run: npm install
 
+      - name: List installed packages
+        run: npm list
+
       - name: Build the project
-        run: rm -rf node_modules package-lock.json && npm run build
+        run: npm run build
 
       - name: Transfer build artifacts to VPS
         uses: appleboy/scp-action@master
