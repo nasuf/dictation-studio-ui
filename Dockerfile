@@ -8,9 +8,10 @@ WORKDIR /app/dictation-studio-ui
 
 COPY package*.json ./
 
+RUN rm -rf node_modules package-lock.json
 RUN node -v
 RUN npm -v
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
