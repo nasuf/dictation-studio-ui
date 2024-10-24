@@ -14,7 +14,8 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN npm run build --max-old-space-size=4096
 
 EXPOSE 5173
 
