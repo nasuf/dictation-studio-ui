@@ -11,11 +11,12 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json
 RUN node -v
 RUN npm -v
+
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm install --legacy-peer-deps
 
 COPY . .
 
-ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build --max-old-space-size=4096
 
 EXPOSE 5173
