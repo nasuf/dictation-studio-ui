@@ -1,4 +1,4 @@
-name: Build and Deploy to VPS
+name: Deploy to VPS
 
 on:
   push:
@@ -6,31 +6,20 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "22.5.1"
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build the project
-        run: rm -rf node_modules package-lock.json && npm run build
-
-      - name: Transfer build artifacts to VPS
+      - name: Copy files to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
-          source: "dist/*"
+          source: "."
           target: "/app/dictation-studio-ui"
 
       - name: Deploy to VPS
@@ -42,7 +31,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /app/dictation-studio-ui
-            npm install --production
-            pm2 stop dictation-studio-ui || true
-            pm2 delete dictation-studio-ui || true
-            pm2 start npm --name dictation-studio-ui -- start
+            docker build -t dictation-studio-ui .
+            docker stop dictation-studio-ui || true
+            docker rm dictation-studio-ui || true
+            docker run -d --name dictation-studio-ui -p 5173:5173 dictation-studio-ui
