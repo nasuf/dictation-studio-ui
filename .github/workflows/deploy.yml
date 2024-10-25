@@ -29,6 +29,17 @@ jobs:
       - name: Build the project
         run: npm run build
 
+      - name: Transfer project files to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          source: "./*"
+          target: "/app/dictation-studio-ui"
+          rm: true
+
       - name: Transfer build artifacts to VPS
         uses: appleboy/scp-action@master
         with:
@@ -37,7 +48,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           source: "dist/*"
-          target: "/app/dictation-studio-ui"
+          target: "/app/dictation-studio-ui/dist"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
