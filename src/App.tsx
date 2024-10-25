@@ -21,6 +21,7 @@ import { RootState } from "@/redux/store";
 import {
   DEFAULT_DICTATION_CONFIG,
   DEFAULT_LANGUAGE,
+  JWT_TOKEN_KEY,
   UNAUTHORIZED_EVENT,
   USER_KEY,
   USER_ROLE,
@@ -57,6 +58,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      localStorage.removeItem(JWT_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      dispatch(clearUser());
       setIsLoginModalVisible(true);
     };
     window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
