@@ -9,10 +9,10 @@ import {
 import { JWT_TOKEN_KEY, UNAUTHORIZED_EVENT } from "@/utils/const";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://192.210.235.115:4001";
+  import.meta.env.VITE_API_BASE_URL || "https://www.dictationstudio.com";
 
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/dictation-studio`,
+  baseURL: `${API_BASE_URL}/ds`,
 });
 
 axiosInstance.interceptors.request.use(
