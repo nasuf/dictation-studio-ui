@@ -25,6 +25,7 @@ const VideoList: React.FC = () => {
     {}
   );
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +49,8 @@ const VideoList: React.FC = () => {
         if (error.response && error.response.status === 401) {
           setIsUnauthorized(true);
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -57,6 +60,14 @@ const VideoList: React.FC = () => {
   const handleImageLoad = (videoId: string) => {
     setLoadedImages((prev) => ({ ...prev, [videoId]: true }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">

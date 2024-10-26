@@ -16,6 +16,7 @@ import { setChannelName, resetNavigation } from "@/redux/navigationSlice";
 const ChannelList: React.FC = () => {
   const dispatch = useDispatch();
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     dispatch(resetNavigation());
@@ -25,11 +26,21 @@ const ChannelList: React.FC = () => {
         setChannels(response.data);
       } catch (error) {
         console.error("Error fetching channels:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchChannels();
   }, [dispatch]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <ScrollableContainer>

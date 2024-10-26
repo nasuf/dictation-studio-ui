@@ -23,6 +23,7 @@ const UserProgress: React.FC = () => {
     {}
   );
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAllProgress = async () => {
@@ -44,6 +45,8 @@ const UserProgress: React.FC = () => {
         );
       } catch (error) {
         console.error("Error fetching progress:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -62,92 +65,107 @@ const UserProgress: React.FC = () => {
     setLoadedImages((prev) => ({ ...prev, [videoId]: true }));
   };
 
-  if (allProgress.length === 0) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-full w-full">
-        <Empty
-          description={
-            <span className="text-gray-500 dark:text-gray-400">
-              {t("noProgressDataAvailable")}
-            </span>
-          }
-        />
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
     <Layout className="h-full bg-transparent">
-      <Sider className="bg-white dark:bg-gray-800 dark:text-white" width={200}>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedChannel || ""]}
-          style={{ height: "100%", borderRight: 0 }}
-          onSelect={({ key }) => setSelectedChannel(key)}
-          className="bg-white dark:bg-gray-800 dark:text-white"
-        >
-          {channels.map((channelId) => (
-            <Menu.Item key={channelId} className="dark:text-white">
-              {allProgress.find((item) => item.channelId === channelId)
-                ?.channelName || channelId}
-            </Menu.Item>
-          ))}
-        </Menu>
-      </Sider>
-      <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
-        <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
-          <VideoCardGrid>
-            {filteredVideos.map((video) => (
-              <Link
-                key={video.videoId}
-                to={`/dictation/video/${selectedChannel}/${video.videoId}`}
-              >
-                <CustomHoverCard
-                  hoverable
-                  className="video-card"
-                  key={video.videoId}
-                  cover={
-                    <div style={{ position: "relative", paddingTop: "56.25%" }}>
-                      {!loadedImages[video.videoId] && <SkeletonImage active />}
-                      <img
-                        alt={video.videoTitle}
-                        src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
-                        onLoad={() => handleImageLoad(video.videoId)}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          display: loadedImages[video.videoId]
-                            ? "block"
-                            : "none",
-                          borderRadius: "8px 8px 0 0",
-                        }}
+      {allProgress.length === 0 ? (
+        <div className="flex items-center justify-center h-full w-full">
+          <Empty
+            description={
+              <span className="text-gray-500 dark:text-gray-400">
+                {t("noProgressDataAvailable")}
+              </span>
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <Sider
+            className="bg-white dark:bg-gray-800 dark:text-white"
+            width={200}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedChannel || ""]}
+              style={{ height: "100%", borderRight: 0 }}
+              onSelect={({ key }) => setSelectedChannel(key)}
+              className="bg-white dark:bg-gray-800 dark:text-white"
+            >
+              {channels.map((channelId) => (
+                <Menu.Item key={channelId} className="dark:text-white">
+                  {allProgress.find((item) => item.channelId === channelId)
+                    ?.channelName || channelId}
+                </Menu.Item>
+              ))}
+            </Menu>
+          </Sider>
+          <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+            <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
+              <VideoCardGrid>
+                {filteredVideos.map((video) => (
+                  <Link
+                    key={video.videoId}
+                    to={`/dictation/video/${selectedChannel}/${video.videoId}`}
+                  >
+                    <CustomHoverCard
+                      hoverable
+                      className="video-card"
+                      key={video.videoId}
+                      cover={
+                        <div
+                          style={{ position: "relative", paddingTop: "56.25%" }}
+                        >
+                          {!loadedImages[video.videoId] && (
+                            <SkeletonImage active />
+                          )}
+                          <img
+                            alt={video.videoTitle}
+                            src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                            onLoad={() => handleImageLoad(video.videoId)}
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: loadedImages[video.videoId]
+                                ? "block"
+                                : "none",
+                              borderRadius: "8px 8px 0 0",
+                            }}
+                          />
+                        </div>
+                      }
+                    >
+                      <CustomCardMeta
+                        title={
+                          <ScrollingTitle onMouseLeave={resetScrollPosition}>
+                            <div className="inner-text">{video.videoTitle}</div>
+                          </ScrollingTitle>
+                        }
                       />
-                    </div>
-                  }
-                >
-                  <CustomCardMeta
-                    title={
-                      <ScrollingTitle onMouseLeave={resetScrollPosition}>
-                        <div className="inner-text">{video.videoTitle}</div>
-                      </ScrollingTitle>
-                    }
-                  />
-                  <Progress
-                    percent={video.overallCompletion}
-                    size="small"
-                    status="active"
-                    style={{ marginTop: "10px" }}
-                  />
-                </CustomHoverCard>
-              </Link>
-            ))}
-          </VideoCardGrid>
-        </ScrollableContainer>
-      </Content>
+                      <Progress
+                        percent={video.overallCompletion}
+                        size="small"
+                        status="active"
+                        style={{ marginTop: "10px" }}
+                      />
+                    </CustomHoverCard>
+                  </Link>
+                ))}
+              </VideoCardGrid>
+            </ScrollableContainer>
+          </Content>
+        </>
+      )}
     </Layout>
   );
 };
