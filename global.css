@@ -266,6 +266,13 @@ body {
   @apply bg-gray-600 border-gray-600 text-white hover:bg-gray-500 hover:border-gray-500 !important;
 }
 
+.button-container {
+  display: flex;
+  justify-content: center; /* Center buttons horizontally */
+  align-items: center; /* Align buttons vertically */
+  gap: 5px; /* Space between buttons */
+}
+
 /* dark mode - antd select */
 .dark .ant-select-selector {
   @apply bg-gray-700 text-white border-gray-600 !important;

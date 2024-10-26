@@ -226,31 +226,34 @@ const AppContent: React.FC = () => {
             <span>{t("goBack")}</span>
           </button>
           {isVideoPage && (
-            <div className="space-x-4">
-              <Button
+            <div className="space-x-4 button-container">
+              <button
                 onClick={showMissedWordsModal}
                 disabled={!isDictationCompleted}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
+                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+   dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
               >
                 <FileTextOutlined className="mr-2" />
                 {t("missedWordsSummary")}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handleResetProgress}
                 disabled={!isDictationStarted}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white dark:from-yellow-600 dark:to-yellow-700 dark:hover:from-yellow-700 dark:hover:to-yellow-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
+                className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50
+   dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800"
               >
                 <ReloadOutlined className="mr-2" />
                 {t("resetProgress")}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handleSaveProgress}
                 disabled={!isDictationStarted}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white dark:from-green-600 dark:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-105"
+                className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
+   dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
               >
                 <CloudUploadOutlined className="mr-2" />
                 {t("saveProgressBtnText")}
-              </Button>
+              </button>
             </div>
           )}
         </div>
