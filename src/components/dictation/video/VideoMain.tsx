@@ -208,6 +208,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
     }
     setIsInitialLoad(false);
+    playerRef.current?.pauseVideo();
   };
 
   const resetProgress = (transcriptData?: TranscriptItem[]) => {
