@@ -111,7 +111,6 @@ const App: React.FC = () => {
                 }
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));
-                message.success(t("loginSuccessful"));
               } else {
                 throw new Error("Failed to update user info");
               }
@@ -124,7 +123,6 @@ const App: React.FC = () => {
         } else if (event === "SIGNED_OUT") {
           localStorage.removeItem(USER_KEY);
           dispatch(clearUser());
-          message.info(t("loggedOut"));
           navigate("/");
         }
       }

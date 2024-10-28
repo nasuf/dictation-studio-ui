@@ -213,11 +213,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
     if (error) {
       message.error(error.message);
     } else {
+      onClose();
       message.success(
         "Registration successful! Please check your email to verify your account."
       );
     }
-
     setIsLoading(false);
   };
 
@@ -241,7 +241,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
         );
         if (response.status === 200) {
           userInfoSetup(response.data.user);
-          message.success(t("loginSuccessful"));
           onClose();
           setTimeout(() => {
             window.location.reload();
@@ -252,7 +251,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
         }
       } catch (error) {
         userInfoCleanup();
-        console.error("Login error:", error);
         message.error(t("loginFormErrorMessage"));
       }
     }
