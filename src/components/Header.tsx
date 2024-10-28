@@ -16,6 +16,7 @@ import { clearUser, setLanguage, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
 import { JWT_TOKEN_KEY, USER_KEY, USER_ROLE } from "@/utils/const";
 import { GradualSpacing } from "@/lib/magic-ui-components/GradualSpacing";
+import { supabase } from "@/utils/supabaseClient";
 
 interface AppHeaderProps {
   showLoginModal: () => void;
@@ -52,6 +53,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       localStorage.removeItem(JWT_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       navigate("/");
+      await supabase.auth.signOut();
     }
   };
 

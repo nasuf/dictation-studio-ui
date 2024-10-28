@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form, Input, Drawer, message, Avatar, Modal } from "antd";
-import { GoogleOutlined, UserOutlined, EditOutlined } from "@ant-design/icons";
-import styled from "styled-components";
+import { Button, Form, Input, message, Avatar, Modal } from "antd";
+import { GoogleOutlined, UserOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { api, SERVICE_HOST, UI_HOST } from "@/api/api";
-import { encryptPassword } from "@/utils/encryption";
+import { api, UI_HOST } from "@/api/api";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
 import { EMAIL_VERIFIED_KEY, JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
@@ -200,7 +198,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
 
   const handleRegister = async (values: any) => {
     setIsLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {

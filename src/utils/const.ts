@@ -12,6 +12,7 @@ export const USER_ROLE = {
 export const DARK_THEME_CLASS_NAME = "dark";
 export const JWT_TOKEN_KEY = "ds_tkn";
 export const USER_KEY = "user";
+export const EMAIL_VERIFIED_KEY = "emailVerified";
 
 export const DEFAULT_DICTATION_CONFIG: DictationConfig = {
   playback_speed: 1,
