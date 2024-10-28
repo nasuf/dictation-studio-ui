@@ -8,11 +8,16 @@ import {
 } from "@/utils/type";
 import { JWT_TOKEN_KEY, UNAUTHORIZED_EVENT } from "@/utils/const";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://www.dictationstudio.com";
+// export const UI_HOST = "http://localhost:5173";
+// export const SERVICE_HOST = "http://localhost:4001";
+// const SERVICE_BASE_URL = `${SERVICE_HOST}/dictation-studio`;
+
+export const UI_HOST = "https://www.dictationstudio.com";
+export const SERVICE_HOST = "https://www.dictationstudio.com";
+const SERVICE_BASE_URL = `${SERVICE_HOST}/ds`;
 
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/ds`,
+  baseURL: `${SERVICE_BASE_URL}`,
 });
 
 axiosInstance.interceptors.request.use(
@@ -70,8 +75,8 @@ export const api = {
   ) =>
     axiosInstance.post("/auth/register", { username, email, password, avatar }),
 
-  login: (username_or_email: string, password: string) =>
-    axiosInstance.post("/auth/login", { username_or_email, password }),
+  login: (email: string, username: string, avatar: string) =>
+    axiosInstance.post("/auth/login", { email, username, avatar }),
   checkEmail: (email: string) =>
     axiosInstance.post("/auth/check-email", { email }),
 

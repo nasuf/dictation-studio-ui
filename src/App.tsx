@@ -74,6 +74,9 @@ const App: React.FC = () => {
       async (event, session) => {
         if (event === "SIGNED_IN" && session) {
           const user_metadata = session.user.user_metadata;
+          const app_metadata = session.user.app_metadata;
+          const provider = app_metadata.provider;
+          const emailVerified = localStorage.getItem("emailVerified");
           const userInfo = {
             email: user_metadata.email,
             avatar: user_metadata.avatar_url,
@@ -85,9 +88,10 @@ const App: React.FC = () => {
           );
 
           if (
-            userInfo.email !== storedUserInfo.email ||
-            userInfo.avatar !== storedUserInfo.avatar ||
-            userInfo.username !== storedUserInfo.username
+            (userInfo.email !== storedUserInfo.email ||
+              userInfo.avatar !== storedUserInfo.avatar ||
+              userInfo.username !== storedUserInfo.username) &&
+            (provider === "google" || (provider === "email" && emailVerified))
           ) {
             try {
               const response = await api.updateUserInfo(userInfo);
@@ -105,7 +109,6 @@ const App: React.FC = () => {
                 if (!user.role) {
                   user.role = USER_ROLE.FREE_PLAN_USER;
                 }
-                navigate("/dictation/video");
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));
                 message.success(t("loginSuccessful"));
@@ -136,6 +139,8 @@ const App: React.FC = () => {
     <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col`}>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/signup-confirmation" element={<HomePage />} />
+        <Route path="/signup-success" element={<HomePage />} />
         <Route
           path="*"
           element={

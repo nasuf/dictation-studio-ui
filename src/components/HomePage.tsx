@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Canvas } from "@react-three/fiber";
 import { Sphere, MeshDistortMaterial } from "@react-three/drei";
+import { message } from "antd";
+import { supabase } from "@/utils/supabaseClient";
 
 const AnimatedSphere = () => {
   return (
@@ -49,6 +51,57 @@ const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const [isSignUpPendingConfirmation, setIsSignUpPendingConfirmation] =
+    useState(false);
+  const [confirmationUrl, setConfirmationUrl] = useState("");
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const confirmationUrl = queryParams.get("confirmation_url");
+
+    if (location.pathname.includes("/signup-confirmation") && confirmationUrl) {
+      setIsSignUpPendingConfirmation(true);
+      setConfirmationUrl(confirmationUrl);
+    }
+    if (location.pathname.includes("/signup-success")) {
+      setIsSignUpPendingConfirmation(false);
+      message.success(t("signupSuccess"));
+    }
+  }, [location]);
+
+  const HomeContent = () => (
+    <>
+      {isSignUpPendingConfirmation ? (
+        <Link
+          to={confirmationUrl}
+          onClick={() => {
+            localStorage.setItem("emailVerified", "true");
+            supabase.auth.refreshSession();
+          }}
+          className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
+                     transform transition duration-300 hover:scale-110 hover:bg-purple-500
+                     animate-pulse"
+        >
+          Click here to confirm your email
+        </Link>
+      ) : (
+        <>
+          <p className="text-xl mb-12 animate-fade-in-up max-w-2xl">
+            {t("homePageDescription")}
+          </p>
+          <Link
+            to="/dictation/video"
+            className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
+                     transform transition duration-300 hover:scale-110 hover:bg-purple-500
+                     animate-pulse"
+          >
+            {t("startDictation")}
+          </Link>
+        </>
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -61,17 +114,7 @@ const HomePage: React.FC = () => {
       </div>
       <div className="z-10 text-center">
         <TypewriterEffect text="Dictation Studio" />
-        <p className="text-xl mb-12 animate-fade-in-up max-w-2xl">
-          {t("homePageDescription")}
-        </p>
-        <Link
-          to="/dictation/video"
-          className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
-                     transform transition duration-300 hover:scale-110 hover:bg-purple-500
-                     animate-pulse"
-        >
-          {t("startDictation")}
-        </Link>
+        <HomeContent />
       </div>
     </div>
   );

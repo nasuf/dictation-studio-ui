@@ -1,7 +1,7 @@
-import { Card, Typography, Avatar, Skeleton } from "antd";
+import { Card, Typography, Avatar, Skeleton, Drawer } from "antd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { AudioOutlined } from "@ant-design/icons";
+import { AudioOutlined, EditOutlined } from "@ant-design/icons";
 
 export const VideoColumn = styled.div`
   flex: 1;
@@ -380,3 +380,76 @@ export const DualProgressBar: React.FC<{
     </div>
   );
 };
+
+export const BlurredBackground = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+`;
+
+export const StyledDrawer = styled(Drawer)`
+  .ant-drawer-content-wrapper {
+    width: 400px !important;
+  }
+  .ant-drawer-content {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+  }
+
+  .dark & {
+    .ant-drawer-content {
+      background: rgba(31, 41, 55, 0.8);
+      color: #e5e7eb;
+    }
+    .ant-drawer-title {
+      color: #e5e7eb;
+    }
+    .ant-drawer-close {
+      color: #e5e7eb;
+    }
+  }
+`;
+
+export const LoginContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+`;
+
+export const FormWrapper = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 0;
+`;
+
+export const BottomSection = styled.div`
+  padding: 20px 0;
+`;
+
+export const EditIcon = styled(EditOutlined)`
+  position: absolute;
+  right: 50%;
+  bottom: -10px;
+  transform: translateX(50px);
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+`;
+
+export const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+`;

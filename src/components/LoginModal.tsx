@@ -3,70 +3,26 @@ import { Button, Form, Input, Drawer, message, Avatar, Modal } from "antd";
 import { GoogleOutlined, UserOutlined, EditOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
-import { api } from "@/api/api";
+import { api, SERVICE_HOST, UI_HOST } from "@/api/api";
 import { encryptPassword } from "@/utils/encryption";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
-import { JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
+import { EMAIL_VERIFIED_KEY, JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
+import {
+  BlurredBackground,
+  StyledDrawer,
+  LoginContentWrapper,
+  FormWrapper,
+  BottomSection,
+  AvatarGrid,
+  EditIcon,
+} from "@/components/dictation/video/Widget";
 
 interface LoginModalProps {
   visible: boolean;
   onClose: () => void;
 }
-
-const BlurredBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-`;
-
-const StyledDrawer = styled(Drawer)`
-  .ant-drawer-content-wrapper {
-    width: 400px !important;
-  }
-  .ant-drawer-content {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(5px);
-  }
-
-  .dark & {
-    .ant-drawer-content {
-      background: rgba(31, 41, 55, 0.8);
-      color: #e5e7eb;
-    }
-    .ant-drawer-title {
-      color: #e5e7eb;
-    }
-    .ant-drawer-close {
-      color: #e5e7eb;
-    }
-  }
-`;
-
-const ContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
-`;
-
-const FormWrapper = styled.div`
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 20px 0;
-`;
-
-const BottomSection = styled.div`
-  padding: 20px 0;
-`;
 
 const LoginForm: React.FC<{
   onFinish: (values: any) => void;
@@ -77,12 +33,13 @@ const LoginForm: React.FC<{
   return (
     <Form onFinish={onFinish}>
       <Form.Item
-        name="username"
+        name="email"
         rules={[
           {
             required: true,
             message: t("loginFormUsernameOrEmailPrompt"),
           },
+          { type: "email", message: t("loginFormUsernameOrEmailPrompt") },
         ]}
       >
         <input
@@ -200,6 +157,7 @@ const RegisterForm: React.FC<{
         ]}
       >
         <input
+          type="password"
           placeholder={t("registerFormConfirmPasswordPrompt")}
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600 transition duration-300 ease-in-out"
         />
@@ -217,26 +175,6 @@ const RegisterForm: React.FC<{
     </Form>
   );
 };
-
-const EditIcon = styled(EditOutlined)`
-  position: absolute;
-  right: 50%;
-  bottom: -10px;
-  transform: translateX(50px);
-  background-color: #fff;
-  border-radius: 50%;
-  padding: 5px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-`;
-
-const AvatarGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-`;
 
 const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -260,71 +198,79 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
     setAvatarOptions(initialAvatars);
   }, []);
 
-  const handleFinish = async (values: any) => {
+  const handleRegister = async (values: any) => {
     setIsLoading(true);
-    try {
-      const encryptedPassword = await encryptPassword(values.password);
+    const { data, error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
+      options: {
+        emailRedirectTo: `${UI_HOST}/signup-success`,
+        data: {
+          full_name: values.username,
+          avatar_url: avatar,
+        },
+      },
+    });
 
-      if (isRegistering) {
-        const response = await api.register(
-          values.username,
-          values.email,
-          encryptedPassword,
-          avatar
+    if (error) {
+      message.error(error.message);
+    } else {
+      message.success(
+        "Registration successful! Please check your email to verify your account."
+      );
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleLogin = async (values: any) => {
+    setIsLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (error) {
+      message.error(error.message);
+    } else {
+      message.success("Login successful!");
+      const user = data.user.user_metadata;
+      try {
+        const response = await api.login(
+          user.email,
+          user.full_name,
+          user.avatar_url
         );
         if (response.status === 200) {
-          message.success(t("registerFormSuccessMessage"));
-          setIsRegistering(false);
           userInfoSetup(response.data.user);
+          message.success(t("loginSuccessful"));
           onClose();
           setTimeout(() => {
             window.location.reload();
           }, 3000);
         } else {
           userInfoCleanup();
-          message.error(t("registerFormErrorMessage"));
-        }
-      } else {
-        try {
-          const response = await api.login(values.username, encryptedPassword);
-          if (response.status === 200) {
-            userInfoSetup(response.data.user);
-            message.success(t("loginSuccessful"));
-            onClose();
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
-          } else {
-            userInfoCleanup();
-            message.error(t("loginFormErrorMessage"));
-          }
-        } catch (error) {
-          userInfoCleanup();
-          console.error("Login error:", error);
           message.error(t("loginFormErrorMessage"));
         }
+      } catch (error) {
+        userInfoCleanup();
+        console.error("Login error:", error);
+        message.error(t("loginFormErrorMessage"));
       }
-    } catch (error) {
-      userInfoCleanup();
-      console.error("Operation failed:", error);
-      message.error(
-        isRegistering
-          ? t("registerFormErrorMessage")
-          : t("loginFormErrorMessage")
-      );
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const userInfoCleanup = () => {
     localStorage.removeItem(JWT_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(EMAIL_VERIFIED_KEY);
     dispatch(clearUser());
   };
 
   const userInfoSetup = (user: any) => {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem(EMAIL_VERIFIED_KEY, "true");
     dispatch(setUser(user));
   };
 
@@ -371,17 +317,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
         open={visible}
         mask={false}
       >
-        <ContentWrapper>
+        <LoginContentWrapper>
           <FormWrapper>
             {isRegistering ? (
               <RegisterForm
-                onFinish={handleFinish}
+                onFinish={handleRegister}
                 isLoading={isLoading}
                 avatar={avatar}
                 onAvatarEdit={handleAvatarEdit}
               />
             ) : (
-              <LoginForm onFinish={handleFinish} isLoading={isLoading} />
+              <LoginForm onFinish={handleLogin} isLoading={isLoading} />
             )}
           </FormWrapper>
           <BottomSection>
@@ -404,7 +350,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
               {isRegistering ? t("haveAnAccount") : t("noAccount")}
             </Button>
           </BottomSection>
-        </ContentWrapper>
+        </LoginContentWrapper>
       </StyledDrawer>
       <Modal
         title={t("chooseAvatar")}
