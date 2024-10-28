@@ -902,7 +902,10 @@ const VideoMain: React.ForwardRefRenderFunction<
               placeholder={t("inputPlaceHolder")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500 transition duration-300 ease-in-out"
             />
-            <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 dark:bg-blue-900 dark:border-blue-400 dark:text-blue-200 rounded-md">
+            <div
+              className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
+              dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-700 dark:border-blue-400 dark:text-blue-200 rounded-md"
+            >
               <p className="font-bold">
                 {t("videoDictationKeyboardInstructions")}
               </p>

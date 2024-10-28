@@ -71,13 +71,14 @@ const Information: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-xl overflow-hidden"
+          className="bg-gradient-to-r from-blue-500 to-purple-600
+           dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800 rounded-2xl shadow-xl overflow-hidden"
         >
           <div className="relative h-40 flex items-center justify-center">
             <img
               src={userInfo?.avatar}
               alt="User Avatar"
-              className="w-24 h-24 rounded-full border-4 border-white shadow-lg absolute"
+              className="w-24 h-24 rounded-full border-4 shadow-lg absolute"
             />
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
