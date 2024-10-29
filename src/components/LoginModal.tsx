@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api, UI_HOST } from "@/api/api";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
-import { EMAIL_VERIFIED_KEY, JWT_TOKEN_KEY, USER_KEY } from "@/utils/const";
+import { EMAIL_VERIFIED_KEY, USER_KEY } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import {
   BlurredBackground,
@@ -16,6 +16,7 @@ import {
   AvatarGrid,
   EditIcon,
 } from "@/components/dictation/video/Widget";
+import { localStorageCleanup } from "@/utils/util";
 
 interface LoginModalProps {
   visible: boolean;
@@ -258,9 +259,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   };
 
   const userInfoCleanup = () => {
-    localStorage.removeItem(JWT_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(EMAIL_VERIFIED_KEY);
+    localStorageCleanup();
     dispatch(clearUser());
   };
 

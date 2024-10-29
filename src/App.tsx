@@ -21,12 +21,12 @@ import { RootState } from "@/redux/store";
 import {
   DEFAULT_DICTATION_CONFIG,
   DEFAULT_LANGUAGE,
-  JWT_TOKEN_KEY,
   UNAUTHORIZED_EVENT,
   USER_KEY,
   USER_ROLE,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
+import { localStorageCleanup } from "@/utils/util";
 
 const { Header, Content, Footer } = Layout;
 
@@ -58,8 +58,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleUnauthorized = () => {
-      localStorage.removeItem(JWT_TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
+      localStorageCleanup();
       dispatch(clearUser());
       setIsLoginModalVisible(true);
     };
@@ -121,7 +120,7 @@ const App: React.FC = () => {
             dispatch(setUser(storedUserInfo));
           }
         } else if (event === "SIGNED_OUT") {
-          localStorage.removeItem(USER_KEY);
+          localStorageCleanup();
           dispatch(clearUser());
           navigate("/");
         }
