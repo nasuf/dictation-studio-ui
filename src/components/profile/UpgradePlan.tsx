@@ -14,6 +14,7 @@ interface PlanFeature {
 }
 
 interface PlanProps {
+  id: string;
   title: string;
   price: number;
   originalPrice?: number;
@@ -25,6 +26,7 @@ interface PlanProps {
 }
 
 const PlanCard: React.FC<PlanProps> = ({
+  id,
   title,
   price,
   originalPrice,
@@ -39,13 +41,13 @@ const PlanCard: React.FC<PlanProps> = ({
   return (
     <div
       className={`
-      relative rounded-lg p-6
-      dark:bg-gray-800 bg-white
-      transition-all duration-300
-      hover:border-2 hover:border-green-500
-      dark:hover:border-orange-500
-      hover:shadow-xl hover:scale-105
-    `}
+        relative rounded-lg p-6
+        dark:bg-gray-800 bg-white
+        transition-all duration-300
+        hover:border-2 hover:border-green-500
+        dark:hover:border-orange-500
+        hover:shadow-xl hover:scale-105
+      `}
     >
       {isPopular && (
         <span
@@ -76,11 +78,9 @@ const PlanCard: React.FC<PlanProps> = ({
             /{duration}
           </span>
         </div>
-        {originalPrice && (
-          <span className="text-gray-500 dark:text-gray-400 line-through">
-            ¥{originalPrice}
-          </span>
-        )}
+        <span className="text-gray-500 dark:text-gray-400 line-through">
+          {originalPrice ? `¥${originalPrice}` : ""}
+        </span>
       </div>
 
       <div className="space-y-4 mb-8">
@@ -106,9 +106,10 @@ const PlanCard: React.FC<PlanProps> = ({
         ))}
       </div>
 
-      <button
-        onClick={onSelect}
-        className={`
+      {id !== USER_PLAN.FREE && (
+        <button
+          onClick={onSelect}
+          className={`
           w-full py-3 px-4 rounded-lg font-semibold
           transition-colors duration-200
           ${
@@ -117,13 +118,14 @@ const PlanCard: React.FC<PlanProps> = ({
                   hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
                   dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
                   dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
-              : `bg-gray-100 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700 hover:text-white
-                  dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800 dark:hover:text-white`
+              : `text-white bg-gray-300 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
+                  dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
           }
         `}
-      >
-        {t("selectPlan")}
-      </button>
+        >
+          {t("selectPlan")}
+        </button>
+      )}
     </div>
   );
 };
@@ -140,6 +142,7 @@ export const UpgradePlan: React.FC = () => {
 
   const plans = [
     {
+      id: USER_PLAN.FREE,
       title: t("freePlan"),
       price: 0,
       duration: t("unlimited"),
@@ -154,6 +157,7 @@ export const UpgradePlan: React.FC = () => {
       isCurrent: currentPlan === USER_PLAN.FREE,
     },
     {
+      id: USER_PLAN.PRO,
       title: t("proPlan"),
       price: 49,
       originalPrice: 57,
@@ -170,6 +174,7 @@ export const UpgradePlan: React.FC = () => {
       isCurrent: currentPlan === USER_PLAN.PRO,
     },
     {
+      id: USER_PLAN.PREMIUM,
       title: t("premiumPlan"),
       price: 89,
       originalPrice: 114,
@@ -207,7 +212,7 @@ export const UpgradePlan: React.FC = () => {
             <PlanCard
               key={index}
               {...plan}
-              onSelect={() => handleSelectPlan(plan.title)}
+              onSelect={() => handleSelectPlan(plan.id)}
             />
           ))}
         </div>
