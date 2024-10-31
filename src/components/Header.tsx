@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setLanguage, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import { USER_KEY, USER_ROLE } from "@/utils/const";
+import { USER_KEY, USER_PLAN } from "@/utils/const";
 import { GradualSpacing } from "@/lib/magic-ui-components/GradualSpacing";
 import { supabase } from "@/utils/supabaseClient";
 import { localStorageCleanup } from "@/utils/util";
@@ -116,7 +116,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       >
         {t("userProfile")}
       </Menu.Item>
-      {userInfo?.role === USER_ROLE.ADMIN && (
+      <Menu.Item
+        key="upgrade-plan"
+        onClick={() => navigate("/profile/upgrade-plan")}
+        className="header-menu-item"
+      >
+        {t("upgradePlan")}
+      </Menu.Item>
+      {userInfo?.plan === USER_PLAN.ADMIN && (
         <Menu.Item
           key="admin"
           onClick={() => navigate("/admin/channel")}

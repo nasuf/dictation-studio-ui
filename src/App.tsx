@@ -23,7 +23,7 @@ import {
   DEFAULT_LANGUAGE,
   UNAUTHORIZED_EVENT,
   USER_KEY,
-  USER_ROLE,
+  USER_PLAN,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import { localStorageCleanup } from "@/utils/util";
@@ -105,8 +105,8 @@ const App: React.FC = () => {
                 ) {
                   user.dictation_config = DEFAULT_DICTATION_CONFIG;
                 }
-                if (!user.role) {
-                  user.role = USER_ROLE.FREE_PLAN_USER;
+                if (!user.plan) {
+                  user.plan = USER_PLAN.FREE;
                 }
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));

@@ -80,6 +80,12 @@ const AppSider: React.FC = () => {
       label: t("dictationProgress"),
       path: "/profile/progress",
     },
+    {
+      key: "UpgradePlan",
+      icon: <CustomerServiceTwoTone />,
+      label: t("upgradePlan"),
+      path: "/profile/upgrade-plan",
+    },
   ];
 
   const adminSiderItems: MenuItem[] = [

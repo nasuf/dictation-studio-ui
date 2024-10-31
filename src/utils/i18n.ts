@@ -94,6 +94,7 @@ const enTranslations = {
   prev: "Previous",
   noProgressDataAvailable: "No dictation progress available",
   dictationActivities: "Dictation Activities",
+  upgradePlan: "Upgrade Plan",
 };
 
 const zhTranslations = {
@@ -185,6 +186,7 @@ const zhTranslations = {
   prev: "上一句",
   noProgressDataAvailable: "暂无听写进度",
   dictationActivities: "听写记录",
+  upgradePlan: "升级计划",
 };
 
 const zhTraditionalTranslations = {
@@ -276,6 +278,7 @@ const zhTraditionalTranslations = {
   prev: "上一句",
   noProgressDataAvailable: "暫無聽寫進度",
   dictationActivities: "聽寫記錄",
+  upgradePlan: "升級計劃",
 };
 
 const jaTranslations = {
@@ -370,6 +373,7 @@ const jaTranslations = {
   next: "次へ",
   prev: "前へ",
   noProgressDataAvailable: "聴写進捗はありません",
+  upgradePlan: "プランをアップグレード",
 };
 
 const koTranslations = {
@@ -463,6 +467,7 @@ const koTranslations = {
   next: "다음",
   prev: "이전",
   noProgressDataAvailable: "듣기 진행 상황이 없습니다",
+  upgradePlan: "플랜 업그레이드",
 };
 
 i18n.use(initReactI18next).init({

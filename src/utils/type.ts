@@ -2,8 +2,8 @@ export interface UserInfo {
   username: string;
   email: string;
   avatar: string;
-  role: string;
   language: string;
+  plan: string;
   dictation_config: DictationConfig;
 }
 

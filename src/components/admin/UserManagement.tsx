@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
-import { USER_ROLE } from "@/utils/const";
+import { USER_PLAN } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -36,7 +36,7 @@ const UserManagement: React.FC = () => {
 
   const showEditModal = (user: UserInfo) => {
     setEditingUser(user);
-    form.setFieldsValue({ role: user.role });
+    form.setFieldsValue({ plan: user.plan });
     setIsEditModalVisible(true);
   };
 
@@ -44,14 +44,14 @@ const UserManagement: React.FC = () => {
     try {
       const values = await form.validateFields();
       if (editingUser) {
-        await api.updateUserRole(editingUser.email, values.role);
-        message.success("User role updated successfully");
+        await api.updateUserPlan(editingUser.email, values.plan);
+        message.success("User plan updated successfully");
         setIsEditModalVisible(false);
         fetchUsers(); // Refresh the user list
       }
     } catch (error) {
-      console.error("Error updating user role:", error);
-      message.error("Failed to update user role");
+      console.error("Error updating user plan:", error);
+      message.error("Failed to update user plan");
     }
   };
 
@@ -67,20 +67,20 @@ const UserManagement: React.FC = () => {
       key: "email",
     },
     {
-      title: "Role",
-      dataIndex: "role",
-      key: "role",
+      title: "Plan",
+      dataIndex: "plan",
+      key: "plan",
     },
     {
       title: "Actions",
       key: "actions",
       render: (_: any, record: UserInfo) => (
-        <Button onClick={() => showEditModal(record)}>Edit Role</Button>
+        <Button onClick={() => showEditModal(record)}>Edit Plan</Button>
       ),
     },
   ];
 
-  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
+  if (!userInfo || userInfo.plan !== USER_PLAN.ADMIN) {
     return <Navigate to="/" replace />;
   }
 
@@ -95,23 +95,22 @@ const UserManagement: React.FC = () => {
         />
       </Card>
       <Modal
-        title="Edit User Role"
+        title="Edit User Plan"
         open={isEditModalVisible}
         onOk={handleEditSubmit}
         onCancel={() => setIsEditModalVisible(false)}
       >
         <Form form={form}>
           <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: "Please select a role" }]}
+            name="plan"
+            label="Plan"
+            rules={[{ required: true, message: "Please select a plan" }]}
           >
             <Select>
-              <Option value="Admin">Admin</Option>
-              <Option value="Free Plan User">Free Plan User</Option>
-              <Option value="VIP 1">VIP 1</Option>
-              <Option value="VIP 2">VIP 2</Option>
-              <Option value="VIP 3">VIP 3</Option>
+              <Option value={USER_PLAN.ADMIN}>Admin</Option>
+              <Option value={USER_PLAN.FREE}>Free</Option>
+              <Option value={USER_PLAN.PRO}>Pro</Option>
+              <Option value={USER_PLAN.PREMIUM}>Premium</Option>
             </Select>
           </Form.Item>
         </Form>

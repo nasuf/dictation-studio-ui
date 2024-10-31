@@ -27,6 +27,7 @@ import Information from "@/components/profile/Information";
 
 import nlp from "compromise";
 import { FilterOption } from "@/utils/type";
+import { UpgradePlan } from "@/components/profile/UpgradePlan";
 
 const { Content } = Layout;
 
@@ -292,6 +293,7 @@ const AppContent: React.FC = () => {
               <Route path="/profile" element={<Information />} />
               <Route path="/profile/information" element={<Information />} />
               <Route path="/profile/progress" element={<UserProgress />} />
+              <Route path="/profile/upgrade-plan" element={<UpgradePlan />} />
             </Routes>
           </Content>
         </Layout>

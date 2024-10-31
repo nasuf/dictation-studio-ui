@@ -93,8 +93,8 @@ const Information: React.FC = () => {
               />
               <InfoCard
                 icon="🎭"
-                title={t("role")}
-                value={userInfo?.role || ""}
+                title={t("plan")}
+                value={userInfo?.plan || ""}
               />
               <InfoCard
                 icon="⏱️"
