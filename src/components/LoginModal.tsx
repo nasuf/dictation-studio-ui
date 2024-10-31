@@ -222,7 +222,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
     setIsLoading(false);
   };
 
-  const handleLogin = async (values: any) => {
+  const handleEmailLogin = async (values: any) => {
     setIsLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: values.email,
@@ -293,6 +293,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
     try {
       await supabase.auth.signInWithOAuth({
         provider: "google",
+        options: {
+          redirectTo: `${UI_HOST}/dictation/video`,
+        },
       });
       onClose();
     } catch (error) {
@@ -322,7 +325,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
                 onAvatarEdit={handleAvatarEdit}
               />
             ) : (
-              <LoginForm onFinish={handleLogin} isLoading={isLoading} />
+              <LoginForm onFinish={handleEmailLogin} isLoading={isLoading} />
             )}
           </FormWrapper>
           <BottomSection>
