@@ -22,48 +22,16 @@ const AppSider: React.FC = () => {
 
   const mainSiderItems: MenuItem[] = [
     {
-      key: "Dictation",
+      key: "Video Dictation",
       icon: <CustomerServiceTwoTone />,
-      label: t("dictation"),
-      children: [
-        {
-          key: "VideoDictation",
-          label: t("videoDictation"),
-          path: "/dictation/video",
-          icon: <></>,
-        },
-        {
-          key: "WordDictation",
-          label: t("wordDictation"),
-          path: "/dictation/word",
-          icon: <></>,
-        },
-      ],
+      label: t("videoDictation"),
+      path: "/dictation/video",
     },
     {
-      key: "Collection",
+      key: "Word Dictation",
       icon: <BookTwoTone />,
-      label: t("collection"),
-      children: [
-        {
-          key: "VideoCollection",
-          label: t("videoCollection"),
-          path: "/collection/video",
-          icon: <></>,
-        },
-        {
-          key: "WordCollection",
-          label: t("wordCollection"),
-          path: "/collection/word",
-          icon: <></>,
-        },
-      ],
-    },
-    {
-      key: "FM",
-      icon: <NotificationTwoTone />,
-      label: t("fm"),
-      path: "/radio",
+      label: t("wordDictation"),
+      path: "/dictation/word",
     },
   ];
 
