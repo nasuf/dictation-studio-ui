@@ -694,6 +694,7 @@ const VideoManagement: React.FC = () => {
         />
       </Modal>
       <Modal
+        maskClosable={false}
         title="Video Transcript"
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
@@ -728,8 +729,8 @@ const VideoManagement: React.FC = () => {
         width={800}
       >
         {isTranscriptLoading ? (
-          <div style={{ textAlign: "center", padding: "20px" }}>
-            Loading transcript...
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
           <Form form={form} component={false}>

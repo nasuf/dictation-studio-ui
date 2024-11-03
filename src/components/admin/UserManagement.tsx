@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, message, Button, Modal, Select, Form } from "antd";
+import { Table, Card, message, Modal, Select, Form } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -13,7 +13,7 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<UserInfo[]>([]);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [form] = Form.useForm();
 
@@ -34,25 +34,41 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const showEditModal = (user: UserInfo) => {
-    setEditingUser(user);
-    form.setFieldsValue({ plan: user.plan });
+  const showEditModal = () => {
+    if (selectedUsers.length === 0) {
+      message.warning("Please select users to edit");
+      return;
+    }
     setIsEditModalVisible(true);
   };
 
   const handleEditSubmit = async () => {
     try {
       const values = await form.validateFields();
-      if (editingUser) {
-        await api.updateUserPlan(editingUser.email, values.plan);
-        message.success("User plan updated successfully");
+      const emails = selectedUsers.map((user) => user.email);
+
+      const response = await api.updateUserPlan(emails, values.plan);
+      if (
+        response.data.results &&
+        response.data.results.every((r: any) => r.success)
+      ) {
+        message.success("User plans updated successfully");
         setIsEditModalVisible(false);
+        setSelectedUsers([]);
+        form.resetFields();
         fetchUsers(); // Refresh the user list
       }
     } catch (error) {
-      console.error("Error updating user plan:", error);
-      message.error("Failed to update user plan");
+      console.error("Error updating user plans:", error);
+      message.error("Failed to update user plans");
     }
+  };
+
+  const rowSelection = {
+    onChange: (_: React.Key[], selectedRows: UserInfo[]) => {
+      setSelectedUsers(selectedRows);
+    },
+    selectedRowKeys: selectedUsers.map((user) => user.email),
   };
 
   const columns = [
@@ -71,13 +87,6 @@ const UserManagement: React.FC = () => {
       dataIndex: "plan",
       key: "plan",
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, record: UserInfo) => (
-        <Button onClick={() => showEditModal(record)}>Edit Plan</Button>
-      ),
-    },
   ];
 
   if (!userInfo || userInfo.plan !== USER_PLAN.ADMIN) {
@@ -86,19 +95,39 @@ const UserManagement: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <Card title="User Management">
+      <Card
+        title="User Management"
+        extra={
+          <button
+            className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+   dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
+            onClick={showEditModal}
+            disabled={selectedUsers.length === 0}
+          >
+            Edit Selected Users ({selectedUsers.length})
+          </button>
+        }
+      >
         <Table
+          rowSelection={{
+            type: "checkbox",
+            ...rowSelection,
+          }}
           columns={columns}
           dataSource={users}
           rowKey="email"
           loading={isLoading}
         />
       </Card>
+
       <Modal
-        title="Edit User Plan"
+        title={`Edit Plan for ${selectedUsers.length} Users`}
         open={isEditModalVisible}
         onOk={handleEditSubmit}
-        onCancel={() => setIsEditModalVisible(false)}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+          form.resetFields();
+        }}
       >
         <Form form={form}>
           <Form.Item
@@ -113,6 +142,17 @@ const UserManagement: React.FC = () => {
               <Option value={USER_PLAN.PREMIUM}>Premium</Option>
             </Select>
           </Form.Item>
+          <div className="text-gray-500 dark:text-gray-400 mt-2">
+            <span className="font-bold">
+              Selected users ({selectedUsers.length}):
+            </span>
+            <br />
+            <ul>
+              {selectedUsers.map((user) => (
+                <li key={user.email}>{user.email}</li>
+              ))}
+            </ul>
+          </div>
         </Form>
       </Modal>
     </div>

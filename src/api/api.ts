@@ -103,8 +103,8 @@ export const api = {
     );
     return response.data;
   },
-  updateUserPlan: (email: string, plan: string) =>
-    axiosInstance.put("/auth/user/plan", { email, plan }),
+  updateUserPlan: (emails: string[], plan: string) =>
+    axiosInstance.put("/auth/user/plan", { emails, plan }),
   updateFullTranscript: async (
     channelId: string,
     videoId: string,
