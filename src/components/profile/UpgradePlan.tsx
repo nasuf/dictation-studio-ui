@@ -160,7 +160,7 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
       </h3>
       <button
         onClick={() => onSelect("alipay")}
-        className="w-full flex items-center justify-center space-x-2 p-4 rounded-lg transition-all duration-300
+        className="w-full flex items-center justify-center space-x-2 p-4 rounded-lg transition-all duration-300 cursor-pointer
                  bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600
                  border-2 border-blue-500 dark:border-blue-400 hover:shadow-xl hover:scale-105"
       >

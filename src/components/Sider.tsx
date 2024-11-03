@@ -3,9 +3,8 @@ import Sider from "antd/es/layout/Sider";
 import {
   BookTwoTone,
   CustomerServiceTwoTone,
-  NotificationTwoTone,
-  SettingTwoTone,
   IdcardTwoTone,
+  RocketTwoTone,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -19,6 +18,7 @@ const AppSider: React.FC = () => {
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
   const mainSiderItems: MenuItem[] = [
     {
@@ -50,7 +50,7 @@ const AppSider: React.FC = () => {
     },
     {
       key: "UpgradePlan",
-      icon: <CustomerServiceTwoTone />,
+      icon: <RocketTwoTone />,
       label: t("upgradePlan"),
       path: "/profile/upgrade-plan",
     },
@@ -58,29 +58,22 @@ const AppSider: React.FC = () => {
 
   const adminSiderItems: MenuItem[] = [
     {
-      key: "Admin",
-      icon: <SettingTwoTone />,
-      label: t("adminPanel"),
-      children: [
-        {
-          key: "ChannelManagement",
-          label: "Channel",
-          path: "/admin/channel",
-          icon: <></>,
-        },
-        {
-          key: "VideoManagement",
-          label: "Video",
-          path: "/admin/video",
-          icon: <></>,
-        },
-        {
-          key: "UserManagement",
-          label: "User",
-          path: "/admin/user",
-          icon: <></>,
-        },
-      ],
+      key: "ChannelManagement",
+      label: "Channel",
+      path: "/admin/channel",
+      icon: <></>,
+    },
+    {
+      key: "VideoManagement",
+      label: "Video",
+      path: "/admin/video",
+      icon: <></>,
+    },
+    {
+      key: "UserManagement",
+      label: "User",
+      path: "/admin/user",
+      icon: <></>,
     },
   ];
 
@@ -95,6 +88,12 @@ const AppSider: React.FC = () => {
         items = mainSiderItems;
       }
       setSiderItems(items);
+      const pathSegments = location.pathname.split("/");
+      const currentKey =
+        items.find((item) => item.path === location.pathname)?.key ||
+        pathSegments[2] ||
+        "Video Dictation";
+      setSelectedKeys([currentKey]);
     };
     getSiderItems();
   }, [location.pathname, userInfo, t]);
@@ -116,16 +115,13 @@ const AppSider: React.FC = () => {
     });
   };
 
-  const defaultSelectedKeys = [
-    location.pathname.split("/")[2] || "ArticalDictation",
-  ];
   const defaultOpenKeys = [location.pathname.split("/")[1] || "Dictation"];
 
   return (
     <Sider className="bg-white dark:bg-gray-800" width={200}>
       <Menu
         mode="inline"
-        defaultSelectedKeys={defaultSelectedKeys}
+        selectedKeys={selectedKeys}
         defaultOpenKeys={defaultOpenKeys}
         style={{ height: "100%" }}
         className="bg-white dark:bg-gray-800"
