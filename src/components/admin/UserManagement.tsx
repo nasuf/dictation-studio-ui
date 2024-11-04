@@ -16,6 +16,7 @@ const UserManagement: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<UserInfo[]>([]);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [form] = Form.useForm();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -43,24 +44,42 @@ const UserManagement: React.FC = () => {
   };
 
   const handleEditSubmit = async () => {
+    setIsUpdating(true);
     try {
       const values = await form.validateFields();
       const emails = selectedUsers.map((user) => user.email);
+      const updates: Promise<any>[] = [];
 
-      const response = await api.updateUserPlan(emails, values.plan);
-      if (
-        response.data.results &&
-        response.data.results.every((r: any) => r.success)
-      ) {
-        message.success("User plans updated successfully");
+      if (values.plan) {
+        updates.push(api.updateUserPlan(emails, values.plan));
+      }
+
+      if (values.role) {
+        updates.push(api.updateUserRole(emails, values.role));
+      }
+
+      const results = await Promise.all(updates);
+
+      const allSuccessful = results.every(
+        (response) =>
+          response.data.results &&
+          response.data.results.every((r: any) => r.success)
+      );
+
+      if (allSuccessful) {
+        message.success("Users updated successfully");
         setIsEditModalVisible(false);
         setSelectedUsers([]);
         form.resetFields();
-        fetchUsers(); // Refresh the user list
+        fetchUsers();
+      } else {
+        message.error("Some updates failed");
       }
     } catch (error) {
-      console.error("Error updating user plans:", error);
-      message.error("Failed to update user plans");
+      console.error("Error updating users:", error);
+      message.error("Failed to update users");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -86,6 +105,11 @@ const UserManagement: React.FC = () => {
       title: "Plan",
       dataIndex: "plan",
       key: "plan",
+    },
+    {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
     },
   ];
 
@@ -121,7 +145,8 @@ const UserManagement: React.FC = () => {
       </Card>
 
       <Modal
-        title={`Edit Plan for ${selectedUsers.length} Users`}
+        confirmLoading={isUpdating}
+        title={`Edit Users (${selectedUsers.length} selected)`}
         open={isEditModalVisible}
         onOk={handleEditSubmit}
         onCancel={() => {
@@ -130,15 +155,17 @@ const UserManagement: React.FC = () => {
         }}
       >
         <Form form={form}>
-          <Form.Item
-            name="plan"
-            label="Plan"
-            rules={[{ required: true, message: "Please select a plan" }]}
-          >
-            <Select>
+          <Form.Item name="plan" label="Plan">
+            <Select allowClear placeholder="Select new plan">
               <Option value={USER_PLAN.FREE}>Free</Option>
               <Option value={USER_PLAN.PRO}>Pro</Option>
               <Option value={USER_PLAN.PREMIUM}>Premium</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="role" label="Role">
+            <Select allowClear placeholder="Select new role">
+              <Option value={USER_ROLE.USER}>User</Option>
+              <Option value={USER_ROLE.ADMIN}>Admin</Option>
             </Select>
           </Form.Item>
           <div className="text-gray-500 dark:text-gray-400 mt-2">
