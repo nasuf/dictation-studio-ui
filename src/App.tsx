@@ -27,6 +27,7 @@ import {
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import { localStorageCleanup } from "@/utils/util";
+import ChatBox from "@/components/ChatBox";
 
 const { Header, Content, Footer } = Layout;
 
@@ -164,6 +165,7 @@ const App: React.FC = () => {
           }
         />
       </Routes>
+      <ChatBox />
     </div>
   );
 };

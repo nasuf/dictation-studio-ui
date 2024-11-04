@@ -81,3 +81,11 @@ export interface DailyDuration {
   date: string;
   count: number;
 }
+
+export interface Message {
+  id: string;
+  content: string;
+  type: "text" | "image";
+  sender: "user" | "admin";
+  timestamp: number;
+}
