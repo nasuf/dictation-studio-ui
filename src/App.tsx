@@ -24,6 +24,7 @@ import {
   UNAUTHORIZED_EVENT,
   USER_KEY,
   USER_PLAN,
+  USER_ROLE,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import { localStorageCleanup } from "@/utils/util";
@@ -108,6 +109,9 @@ const App: React.FC = () => {
                 }
                 if (!user.plan) {
                   user.plan = USER_PLAN.FREE;
+                }
+                if (!user.role) {
+                  user.role = USER_ROLE.USER;
                 }
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));

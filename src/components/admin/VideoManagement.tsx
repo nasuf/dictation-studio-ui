@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Form,
   Select,
@@ -171,7 +171,7 @@ const VideoManagement: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddVideoModalVisible, setIsAddVideoModalVisible] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
@@ -185,9 +185,9 @@ const VideoManagement: React.FC = () => {
     TranscriptItem[][]
   >([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const tableRef = useRef<any>(null);
   const [form] = Form.useForm();
   const [srtFiles, setSrtFiles] = useState<{ [key: string]: File }>({});
+  const [isUpdatingTranscript, setIsUpdatingTranscript] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -316,7 +316,7 @@ const VideoManagement: React.FC = () => {
     setEditingKey("");
   };
 
-  const save = async (key: string) => {
+  const saveVideo = async (key: string) => {
     try {
       const row = await form.validateFields();
       const newData = [...videos];
@@ -332,9 +332,26 @@ const VideoManagement: React.FC = () => {
         setVideos(newData);
         setEditingKey("");
         message.success("Video updated successfully");
-      } else {
-        newData.push(row);
-        setVideos(newData);
+      }
+    } catch (errInfo) {
+      console.log("Validate Failed:", errInfo);
+    }
+  };
+
+  // 转录文本的保存方法
+  const saveTranscript = async (key: string) => {
+    try {
+      const row = await form.validateFields();
+      const newData = [...currentTranscript];
+      const index = newData.findIndex((item) => key === item.start.toString());
+      if (index > -1) {
+        const item = newData[index];
+        const updatedItem = {
+          ...item,
+          ...row,
+        };
+        newData.splice(index, 1, updatedItem);
+        setCurrentTranscript(newData);
         setEditingKey("");
       }
     } catch (errInfo) {
@@ -366,9 +383,6 @@ const VideoManagement: React.FC = () => {
     setCurrentTranscript(newTranscript);
     setSelectedRows([]);
     setSelectedRowKeys([]);
-    if (tableRef.current) {
-      tableRef.current.clearSelection();
-    }
   };
 
   const undoMerge = () => {
@@ -379,9 +393,6 @@ const VideoManagement: React.FC = () => {
       setTranscriptHistory(transcriptHistory.slice(0, -1));
       setSelectedRows([]);
       setSelectedRowKeys([]);
-      if (tableRef.current) {
-        tableRef.current.clearSelection();
-      }
     } else {
       message.info("No more actions to undo");
     }
@@ -389,6 +400,7 @@ const VideoManagement: React.FC = () => {
 
   const updateFullTranscript = async () => {
     try {
+      setIsUpdatingTranscript(true);
       await api.updateFullTranscript(
         selectedChannel!,
         currentVideoId!,
@@ -398,6 +410,8 @@ const VideoManagement: React.FC = () => {
     } catch (error) {
       console.error("Error updating full transcript:", error);
       message.error("Failed to update full transcript");
+    } finally {
+      setIsUpdatingTranscript(false);
     }
   };
 
@@ -492,7 +506,7 @@ const VideoManagement: React.FC = () => {
         return editable ? (
           <span>
             <Button
-              onClick={() => save(record.start.toString())}
+              onClick={() => saveTranscript(record.start.toString())}
               style={{ marginRight: 8 }}
               type="link"
             >
@@ -579,7 +593,7 @@ const VideoManagement: React.FC = () => {
         return editable ? (
           <span>
             <Button
-              onClick={() => save(record.video_id)}
+              onClick={() => saveVideo(record.video_id)}
               style={{ marginRight: 8 }}
               icon={<SaveOutlined />}
             >
@@ -651,7 +665,7 @@ const VideoManagement: React.FC = () => {
             style={{ width: 200 }}
             placeholder="Select a channel"
             onChange={handleChannelChange}
-            value={selectedChannel}
+            value={selectedChannel || undefined}
           >
             {channels.map((channel) => (
               <Option key={channel.id} value={channel.id}>
@@ -722,7 +736,12 @@ const VideoManagement: React.FC = () => {
           >
             Merge Selected
           </Button>,
-          <Button key="update" onClick={updateFullTranscript} type="primary">
+          <Button
+            loading={isUpdatingTranscript}
+            key="update"
+            onClick={updateFullTranscript}
+            type="primary"
+          >
             Update Full Transcript
           </Button>,
         ]}
@@ -735,7 +754,6 @@ const VideoManagement: React.FC = () => {
         ) : (
           <Form form={form} component={false}>
             <Table
-              ref={tableRef}
               rowSelection={rowSelection}
               columns={transcriptColumns}
               dataSource={currentTranscript}
