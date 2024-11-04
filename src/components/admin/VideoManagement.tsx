@@ -31,7 +31,7 @@ import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import getYoutubeId from "get-youtube-id";
 import { Channel, TranscriptItem, Video } from "@/utils/type";
-import { USER_PLAN } from "@/utils/const";
+import { USER_ROLE } from "@/utils/const";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -164,7 +164,7 @@ const AddVideosForm: React.FC<{
 const VideoManagement: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
-  if (!userInfo || userInfo.plan !== USER_PLAN.ADMIN) {
+  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
 

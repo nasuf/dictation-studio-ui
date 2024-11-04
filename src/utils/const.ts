@@ -3,10 +3,13 @@ import { DictationConfig } from "@/utils/type";
 export const DEFAULT_DARK_MODE = false;
 export const DEFAULT_LANGUAGE = "en";
 export const USER_PLAN = {
-  ADMIN: "Admin",
   FREE: "Free",
   PRO: "Pro",
   PREMIUM: "Premium",
+};
+export const USER_ROLE = {
+  ADMIN: "Admin",
+  USER: "User",
 };
 export const DARK_THEME_CLASS_NAME = "dark";
 export const JWT_TOKEN_KEY = "ds_tkn";

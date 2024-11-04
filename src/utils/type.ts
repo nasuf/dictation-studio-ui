@@ -4,6 +4,7 @@ export interface UserInfo {
   avatar: string;
   language: string;
   plan: string;
+  role: string;
   dictation_config: DictationConfig;
 }
 

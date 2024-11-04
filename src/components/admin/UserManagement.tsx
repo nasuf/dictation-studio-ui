@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
-import { USER_PLAN } from "@/utils/const";
+import { USER_PLAN, USER_ROLE } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -89,7 +89,7 @@ const UserManagement: React.FC = () => {
     },
   ];
 
-  if (!userInfo || userInfo.plan !== USER_PLAN.ADMIN) {
+  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
 
@@ -136,7 +136,6 @@ const UserManagement: React.FC = () => {
             rules={[{ required: true, message: "Please select a plan" }]}
           >
             <Select>
-              <Option value={USER_PLAN.ADMIN}>Admin</Option>
               <Option value={USER_PLAN.FREE}>Free</Option>
               <Option value={USER_PLAN.PRO}>Pro</Option>
               <Option value={USER_PLAN.PREMIUM}>Premium</Option>
