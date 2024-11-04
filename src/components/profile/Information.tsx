@@ -8,6 +8,7 @@ import "react-calendar-heatmap/dist/styles.css";
 import { subYears, format } from "date-fns";
 import { DailyDuration } from "@/utils/type";
 import { motion } from "framer-motion";
+import { USER_PLAN, USER_ROLE } from "@/utils/const";
 
 const Information: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
@@ -66,7 +67,7 @@ const Information: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-full p-6">
-      <div className="max-w-4xl w-full space-y-6">
+      <div className="max-w-5xl w-full space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,7 +86,7 @@ const Information: React.FC = () => {
             <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">
               {userInfo?.username}
             </h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <InfoCard
                 icon="📧"
                 title={t("email")}
@@ -94,7 +95,12 @@ const Information: React.FC = () => {
               <InfoCard
                 icon="🎭"
                 title={t("plan")}
-                value={userInfo?.plan || ""}
+                value={userInfo?.plan || USER_PLAN.FREE}
+              />
+              <InfoCard
+                icon="👑"
+                title={t("role")}
+                value={userInfo?.role || USER_ROLE.USER}
               />
               <InfoCard
                 icon="⏱️"
