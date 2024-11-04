@@ -3,6 +3,7 @@ import { Layout, Modal, Tag, Checkbox } from "antd";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   CloudUploadOutlined,
+  LoadingOutlined,
   FileTextOutlined,
   ArrowLeftOutlined,
   ReloadOutlined,
@@ -75,6 +76,9 @@ const AppContent: React.FC = () => {
   const { t } = useTranslation();
   const isDictationStarted = useSelector(
     (state: RootState) => state.user.isDictationStarted
+  );
+  const isSavingProgress = useSelector(
+    (state: RootState) => state.user.isSavingProgress
   );
 
   useEffect(() => {
@@ -252,7 +256,11 @@ const AppContent: React.FC = () => {
                 className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
    dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
               >
-                <CloudUploadOutlined className="mr-2" />
+                {isSavingProgress ? (
+                  <LoadingOutlined className="mr-2" />
+                ) : (
+                  <CloudUploadOutlined className="mr-2" />
+                )}
                 {t("saveProgressBtnText")}
               </button>
             </div>

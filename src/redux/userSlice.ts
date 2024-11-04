@@ -6,12 +6,14 @@ interface UserState {
   userInfo: UserInfo | null;
   isDictationStarted: boolean;
   repeatCount: number;
+  isSavingProgress: boolean;
 }
 
 const initialState: UserState = {
   userInfo: null,
   isDictationStarted: false,
   repeatCount: 0,
+  isSavingProgress: false,
 };
 
 const userSlice = createSlice({
@@ -65,6 +67,9 @@ const userSlice = createSlice({
         state.userInfo.language = action.payload;
       }
     },
+    setIsSavingProgress: (state, action: PayloadAction<boolean>) => {
+      state.isSavingProgress = action.payload;
+    },
   },
 });
 
@@ -79,5 +84,6 @@ export const {
   setDictationPlaybackSpeed,
   setDictationAutoRepeat,
   setLanguage,
+  setIsSavingProgress,
 } = userSlice.actions;
 export default userSlice.reducer;

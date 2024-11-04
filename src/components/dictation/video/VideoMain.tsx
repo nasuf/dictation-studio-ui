@@ -36,6 +36,7 @@ import {
   setDictationPlaybackSpeed,
   setDictationShortcutKeys,
   setIsDictationStarted,
+  setIsSavingProgress,
 } from "@/redux/userSlice";
 import nlp from "compromise";
 import Timer from "./Timer";
@@ -630,10 +631,13 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
 
     try {
+      dispatch(setIsSavingProgress(true));
       await api.saveProgress(progressData);
       message.success(t("progressSaved"));
     } catch (error) {
       message.error(t("progressSaveFailed"));
+    } finally {
+      dispatch(setIsSavingProgress(false));
     }
   }, [
     channelId,
