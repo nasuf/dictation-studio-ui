@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, message, Modal, Select, Form } from "antd";
+import { Table, Card, message, Modal, Select, Form, InputNumber } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -17,6 +17,7 @@ const UserManagement: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [form] = Form.useForm();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showDuration, setShowDuration] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -41,6 +42,18 @@ const UserManagement: React.FC = () => {
       return;
     }
     setIsEditModalVisible(true);
+
+    // Set default values for the form
+    form.setFieldsValue({
+      duration: 30, // Set default duration
+    });
+  };
+
+  const handlePlanChange = (value: string) => {
+    setShowDuration(value === USER_PLAN.PRO || value === USER_PLAN.PREMIUM);
+    if (!value || value === USER_PLAN.FREE) {
+      form.setFieldValue("duration", undefined);
+    }
   };
 
   const handleEditSubmit = async () => {
@@ -51,7 +64,15 @@ const UserManagement: React.FC = () => {
       const updates: Promise<any>[] = [];
 
       if (values.plan) {
-        updates.push(api.updateUserPlan(emails, values.plan));
+        updates.push(
+          api.updateUserPlan(
+            emails,
+            values.plan,
+            values.plan === USER_PLAN.PRO || values.plan === USER_PLAN.PREMIUM
+              ? values.duration
+              : undefined
+          )
+        );
       }
 
       if (values.role) {
@@ -102,9 +123,18 @@ const UserManagement: React.FC = () => {
       key: "email",
     },
     {
-      title: "Plan",
-      dataIndex: "plan",
-      key: "plan",
+      title: "Plan Name",
+      dataIndex: ["plan", "name"],
+      key: "planName",
+      render: (name: string) => name || "",
+    },
+    {
+      title: "Expire Time",
+      dataIndex: ["plan", "expireTime"],
+      key: "expireTime",
+      render: (expireTime: string) => {
+        return expireTime ? new Date(expireTime).toLocaleString() : "";
+      },
     },
     {
       title: "Role",
@@ -156,12 +186,31 @@ const UserManagement: React.FC = () => {
       >
         <Form form={form}>
           <Form.Item name="plan" label="Plan">
-            <Select allowClear placeholder="Select new plan">
+            <Select
+              allowClear
+              placeholder="Select new plan"
+              onChange={handlePlanChange}
+            >
               <Option value={USER_PLAN.FREE}>Free</Option>
               <Option value={USER_PLAN.PRO}>Pro</Option>
               <Option value={USER_PLAN.PREMIUM}>Premium</Option>
             </Select>
           </Form.Item>
+          {showDuration && (
+            <Form.Item
+              name="duration"
+              label="Duration (days)"
+              rules={[{ required: true, message: "Please input duration" }]}
+            >
+              <InputNumber
+                min={1}
+                max={3650}
+                defaultValue={30}
+                style={{ width: "100%" }}
+                addonAfter="days"
+              />
+            </Form.Item>
+          )}
           <Form.Item name="role" label="Role">
             <Select allowClear placeholder="Select new role">
               <Option value={USER_ROLE.USER}>User</Option>

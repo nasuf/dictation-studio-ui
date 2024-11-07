@@ -831,3 +831,43 @@ body {
 .send-button:disabled {
   @apply opacity-50 cursor-not-allowed;
 }
+
+/* Dark mode - antd input number */
+.dark .ant-input-number {
+  @apply bg-gray-700 text-white border-gray-600 !important;
+}
+
+.dark .ant-input-number:hover,
+.dark .ant-input-number:focus {
+  @apply border-blue-500 !important;
+}
+
+.dark .ant-input-number-handler-wrap {
+  @apply bg-gray-800 border-gray-600 !important;
+}
+
+.dark .ant-input-number-handler {
+  @apply border-gray-600 !important;
+}
+
+.dark .ant-input-number-handler:hover {
+  @apply bg-gray-600 !important;
+}
+
+.dark .ant-input-number-handler-up-inner,
+.dark .ant-input-number-handler-down-inner {
+  @apply text-gray-400 !important;
+}
+
+.dark .ant-input-number-handler:hover .ant-input-number-handler-up-inner,
+.dark .ant-input-number-handler:hover .ant-input-number-handler-down-inner {
+  @apply text-white !important;
+}
+
+.dark .ant-input-number-input {
+  @apply bg-gray-700 text-white !important;
+}
+
+.dark .ant-input-number-group-addon {
+  @apply bg-gray-800 text-gray-400 border-gray-600 !important;
+}

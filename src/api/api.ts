@@ -8,13 +8,13 @@ import {
 } from "@/utils/type";
 import { JWT_TOKEN_KEY, UNAUTHORIZED_EVENT } from "@/utils/const";
 
-export const UI_HOST = "http://localhost:5173";
-export const SERVICE_HOST = "http://localhost:4001";
-const SERVICE_BASE_URL = `${SERVICE_HOST}/dictation-studio`;
+// export const UI_HOST = "http://localhost:5173";
+// export const SERVICE_HOST = "http://localhost:4001";
+// const SERVICE_BASE_URL = `${SERVICE_HOST}/dictation-studio`;
 
-// export const UI_HOST = "https://www.dictationstudio.com";
-// export const SERVICE_HOST = "https://www.dictationstudio.com";
-// const SERVICE_BASE_URL = `${SERVICE_HOST}/ds`;
+export const UI_HOST = "https://www.dictationstudio.com";
+export const SERVICE_HOST = "https://www.dictationstudio.com";
+const SERVICE_BASE_URL = `${SERVICE_HOST}/ds`;
 
 const axiosInstance = axios.create({
   baseURL: `${SERVICE_BASE_URL}`,
@@ -103,8 +103,8 @@ export const api = {
     );
     return response.data;
   },
-  updateUserPlan: (emails: string[], plan: string) =>
-    axiosInstance.put("/auth/user/plan", { emails, plan }),
+  updateUserPlan: (emails: string[], plan: string, duration?: number) =>
+    axiosInstance.put("/auth/user/plan", { emails, plan, duration }),
   updateUserRole: (emails: string[], role: string) =>
     axiosInstance.put("/auth/user/role", { emails, role }),
   updateFullTranscript: async (
