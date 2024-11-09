@@ -105,7 +105,7 @@ const Information: React.FC = () => {
                 value={userInfo?.plan.name || USER_PLAN.FREE}
               />
               <InfoCard
-                icon="⏱️"
+                icon="⏳"
                 title={t("expireTime")}
                 value={userInfo?.plan.expireTime || ""}
               />
