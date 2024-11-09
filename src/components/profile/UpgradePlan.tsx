@@ -212,7 +212,7 @@ export const UpgradePlan: React.FC = () => {
         { feature: t("advancedFeatures"), included: false },
         { feature: t("prioritySupport"), included: false },
       ],
-      isCurrent: currentPlan === USER_PLAN.FREE,
+      isCurrent: currentPlan?.name === USER_PLAN.FREE,
     },
     {
       id: USER_PLAN.PRO,
@@ -229,7 +229,7 @@ export const UpgradePlan: React.FC = () => {
         { feature: t("customLearningPath"), included: true },
       ],
       isPopular: true,
-      isCurrent: currentPlan === USER_PLAN.PRO,
+      isCurrent: currentPlan?.name === USER_PLAN.PRO,
     },
     {
       id: USER_PLAN.PREMIUM,
@@ -245,7 +245,7 @@ export const UpgradePlan: React.FC = () => {
         { feature: t("progressAnalytics"), included: true },
         { feature: t("dedicatedSupport"), included: true },
       ],
-      isCurrent: currentPlan === USER_PLAN.PREMIUM,
+      isCurrent: currentPlan?.name === USER_PLAN.PREMIUM,
     },
   ];
 

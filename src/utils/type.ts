@@ -3,9 +3,14 @@ export interface UserInfo {
   email: string;
   avatar: string;
   language: string;
-  plan: string;
+  plan: Plan;
   role: string;
   dictation_config: DictationConfig;
+}
+
+export interface Plan {
+  name: string;
+  expireTime?: string;
 }
 
 export interface DictationConfig {

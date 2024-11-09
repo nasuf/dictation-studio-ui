@@ -65,6 +65,12 @@ const Information: React.FC = () => {
     );
   }
 
+  const AdminBadge = () => (
+    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-orange-900 dark:text-orange-300">
+      Admin
+    </span>
+  );
+
   return (
     <div className="flex items-center justify-center min-h-full p-6">
       <div className="max-w-5xl w-full space-y-6">
@@ -83,8 +89,9 @@ const Information: React.FC = () => {
             />
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
-            <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">
+            <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center">
               {userInfo?.username}
+              {userInfo?.role === USER_ROLE.ADMIN && <AdminBadge />}
             </h1>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <InfoCard
@@ -95,12 +102,12 @@ const Information: React.FC = () => {
               <InfoCard
                 icon="🎭"
                 title={t("plan")}
-                value={userInfo?.plan || USER_PLAN.FREE}
+                value={userInfo?.plan.name || USER_PLAN.FREE}
               />
               <InfoCard
-                icon="👑"
-                title={t("role")}
-                value={userInfo?.role || USER_ROLE.USER}
+                icon="⏱️"
+                title={t("expireTime")}
+                value={userInfo?.plan.expireTime || ""}
               />
               <InfoCard
                 icon="⏱️"
