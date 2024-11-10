@@ -1,11 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  CreditCardIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { RootState } from "@/redux/store";
-import { useSelector } from "react-redux";
-import { USER_PLAN } from "@/utils/const";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  DEFAULT_DICTATION_CONFIG,
+  DEFAULT_LANGUAGE,
+  USER_KEY,
+  USER_PLAN,
+  USER_ROLE,
+} from "@/utils/const";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlipayCircleOutlined, WechatOutlined } from "@ant-design/icons";
+import { api } from "@/api/api";
+import { message } from "antd";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { setUser } from "@/redux/userSlice";
 
 interface PlanFeature {
   feature: string;
@@ -41,6 +55,13 @@ const PlanCard: React.FC<PlanProps> = ({
   onCancel,
 }) => {
   const { t } = useTranslation();
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   return (
     <div
@@ -147,6 +168,7 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
   onSelect,
 }) => {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <motion.div
@@ -159,27 +181,59 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
         {t("selectPaymentMethod")}
       </h3>
       <button
-        onClick={() => onSelect("alipay")}
-        className="w-full flex items-center justify-center space-x-2 p-4 rounded-lg transition-all duration-300 cursor-pointer
-                 bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600
-                 border-2 border-blue-500 dark:border-blue-400 hover:shadow-xl hover:scale-105"
+        onClick={async () => {
+          setIsLoading(true);
+          try {
+            await onSelect("stripe");
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+        disabled={isLoading}
+        className={`w-full flex items-center justify-center space-x-3 p-4 rounded-lg 
+             transition-all duration-300 cursor-pointer
+             bg-gradient-to-r from-blue-500 to-purple-600 
+             hover:from-blue-600 hover:to-purple-700
+             dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
+             dark:hover:from-orange-700 dark:hover:to-gray-900
+             text-white
+             hover:shadow-xl hover:scale-105
+             ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
       >
-        <AlipayCircleOutlined className="text-2xl text-blue-500 dark:text-blue-400" />
-        <span className="text-lg font-medium dark:text-white">
-          {t("alipay")}
-        </span>
+        {isLoading ? (
+          <div className="flex items-center space-x-2">
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-lg font-medium">Processing...</span>
+          </div>
+        ) : (
+          <>
+            <CreditCardIcon className="h-6 w-6" />
+            <span className="text-lg font-medium">Click to Pay</span>
+          </>
+        )}
       </button>
-      <button
-        onClick={() => onSelect("wechat")}
-        className="w-full flex items-center justify-center space-x-2 p-4 rounded-lg transition-all duration-300
-                 bg-green-50 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-gray-600
-                 border-2 border-green-500 dark:border-green-400 hover:shadow-xl hover:scale-105"
-      >
-        <WechatOutlined className="text-2xl text-green-500 dark:text-green-400" />
-        <span className="text-lg font-medium dark:text-white">
-          {t("wechat")}
-        </span>
-      </button>
+      <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
+        {t("securePayment")}
+      </p>
     </motion.div>
   );
 };
@@ -190,12 +244,70 @@ export const UpgradePlan: React.FC = () => {
   const currentPlan = userInfo?.plan;
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Verify payment status
+  const verifyPayment = async (sessionId: string) => {
+    try {
+      const response = await api.verifyPaymentSession(sessionId);
+      if (response.data.status === "paid") {
+        message.success("Payment successful!");
+        const user = response.data.userInfo;
+        if (!user.language) {
+          user.language = DEFAULT_LANGUAGE;
+        }
+        if (
+          !user.dictation_config ||
+          Object.keys(user.dictation_config).length === 0
+        ) {
+          user.dictation_config = DEFAULT_DICTATION_CONFIG;
+        }
+        if (!user.plan) {
+          user.plan = USER_PLAN.FREE;
+        }
+        if (!user.role) {
+          user.role = USER_ROLE.USER;
+        }
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        dispatch(setUser(user));
+      } else {
+        message.error("Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      message.error("Failed to verify payment");
+    } finally {
+      // Clear the session_id parameter from the URL
+      navigate(location.pathname, { replace: true });
+    }
+  };
+
+  // Check if there is a payment session ID in the URL
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const sessionId = queryParams.get("payment_session_id");
+
+    if (sessionId) {
+      verifyPayment(sessionId);
+    }
+  }, [location.search]);
+
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
   };
 
-  const handleSelectPayment = (method: string) => {
-    console.log(`Selected payment method: ${method} for plan: ${selectedPlan}`);
+  const handleSelectPayment = async (method: string) => {
+    if (method === "stripe") {
+      try {
+        const response = await api.createStripeSession(selectedPlan!, 30);
+        window.location.href = response.data.url;
+      } catch (error) {
+        console.error("Error creating Stripe session:", error);
+        message.error("Failed to initialize payment");
+      }
+    }
   };
 
   const plans = [
