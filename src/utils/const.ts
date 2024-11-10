@@ -7,6 +7,10 @@ export const USER_PLAN = {
   PRO: "Pro",
   PREMIUM: "Premium",
 };
+export const USER_PLAN_DURATION = {
+  PRO: 30,
+  PREMIUM: 90,
+};
 export const USER_ROLE = {
   ADMIN: "Admin",
   USER: "User",

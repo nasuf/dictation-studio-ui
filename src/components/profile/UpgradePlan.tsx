@@ -12,6 +12,7 @@ import {
   DEFAULT_LANGUAGE,
   USER_KEY,
   USER_PLAN,
+  USER_PLAN_DURATION,
   USER_ROLE,
 } from "@/utils/const";
 import { AnimatePresence, motion } from "framer-motion";
@@ -320,7 +321,12 @@ export const UpgradePlan: React.FC = () => {
   const handleSelectPayment = async (method: string) => {
     if (method === "stripe") {
       try {
-        const response = await api.createStripeSession(selectedPlan!, 30);
+        // if pro plan then 30 days, if premium plan then 90 days
+        const duration =
+          selectedPlan === USER_PLAN.PRO
+            ? USER_PLAN_DURATION.PRO
+            : USER_PLAN_DURATION.PREMIUM;
+        const response = await api.createStripeSession(selectedPlan!, duration);
         window.location.href = response.data.url;
       } catch (error) {
         console.error("Error creating Stripe session:", error);
