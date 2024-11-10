@@ -37,8 +37,10 @@ interface PlanProps {
   isPopular?: boolean;
   isCurrent?: boolean;
   toBeCanceled?: boolean;
+  currentPlan?: { name: string };
   onSelect: () => void;
   onCancel: () => void;
+  onCancelPlan: () => void;
 }
 
 const PlanCard: React.FC<PlanProps> = ({
@@ -51,6 +53,8 @@ const PlanCard: React.FC<PlanProps> = ({
   isPopular,
   isCurrent,
   toBeCanceled,
+  currentPlan,
+  onCancelPlan,
   onSelect,
   onCancel,
 }) => {
@@ -131,23 +135,38 @@ const PlanCard: React.FC<PlanProps> = ({
         ))}
       </div>
 
-      {id !== USER_PLAN.FREE && !isCurrent && !toBeCanceled && (
+      {id !== USER_PLAN.FREE && !toBeCanceled && !isCurrent && (
         <button
           onClick={onSelect}
-          className={`
-          w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200
-          ${
-            isPopular
-              ? `text-white bg-gradient-to-r from-green-500 to-green-600
-                  hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
-                  dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
-                  dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
-              : `text-white bg-gray-300 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
-                  dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
+          disabled={
+            currentPlan?.name === USER_PLAN.PREMIUM && id === USER_PLAN.PRO
           }
-        `}
+          className={`
+            w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200
+            ${
+              currentPlan?.name === USER_PLAN.PREMIUM && id === USER_PLAN.PRO
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+                : isPopular
+                ? `text-white bg-gradient-to-r from-green-500 to-green-600
+                    hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
+                    dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
+                    dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
+                : `text-white bg-gray-300 hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700
+                    dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gradient-to-r dark:hover:from-orange-700 dark:hover:to-gray-800`
+            }
+          `}
         >
           {t("selectPlan")}
+        </button>
+      )}
+      {isCurrent && (
+        <button
+          onClick={onCancelPlan}
+          className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200
+            text-white bg-gray-300 hover:bg-gradient-to-r hover:from-gray-600 hover:to-gray-700
+                  dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gradient-to-r dark:hover:from-gray-700 dark:hover:to-gray-800`}
+        >
+          {t("cancelPlan")}
         </button>
       )}
       {toBeCanceled && (
@@ -191,14 +210,14 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
         }}
         disabled={isLoading}
         className={`w-full flex items-center justify-center space-x-3 p-4 rounded-lg 
-             transition-all duration-300 cursor-pointer
-             bg-gradient-to-r from-blue-500 to-purple-600 
-             hover:from-blue-600 hover:to-purple-700
-             dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
-             dark:hover:from-orange-700 dark:hover:to-gray-900
-             text-white
-             hover:shadow-xl hover:scale-105
-             ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
+          transition-all duration-300 cursor-pointer
+          bg-gradient-to-r from-blue-500 to-purple-600 
+          hover:from-blue-600 hover:to-purple-700
+          dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800
+          dark:hover:from-orange-700 dark:hover:to-gray-900
+          text-white
+          hover:shadow-xl hover:scale-105
+              ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
       >
         {isLoading ? (
           <div className="flex items-center space-x-2">
@@ -331,7 +350,7 @@ export const UpgradePlan: React.FC = () => {
       title: t("proPlan"),
       price: 49,
       originalPrice: 57,
-      duration: t("3monthsUnlimited"),
+      duration: t("threeMonthsUnlimited"),
       features: [
         { feature: t("unlimitedLearningMaterials"), included: true },
         { feature: t("unlimitedDictations"), included: true },
@@ -348,7 +367,7 @@ export const UpgradePlan: React.FC = () => {
       title: t("premiumPlan"),
       price: 89,
       originalPrice: 114,
-      duration: t("6monthsUnlimited"),
+      duration: t("sixMonthsUnlimited"),
       features: [
         { feature: t("everythingInPro"), included: true },
         { feature: t("personalizedCoaching"), included: true },
@@ -367,9 +386,6 @@ export const UpgradePlan: React.FC = () => {
         <h2 className="text-3xl font-bold mb-4 dark:text-white">
           {t("choosePlanTitle")}
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          {t("choosePlanDescription")}
-        </p>
       </div>
 
       <AnimatePresence>
@@ -384,9 +400,11 @@ export const UpgradePlan: React.FC = () => {
                 <PlanCard
                   key={index}
                   {...plan}
+                  currentPlan={currentPlan}
                   toBeCanceled={false}
                   onSelect={() => handleSelectPlan(plan.id)}
                   onCancel={() => {}}
+                  onCancelPlan={() => {}}
                 />
               ))}
             </div>
@@ -410,6 +428,7 @@ export const UpgradePlan: React.FC = () => {
                   toBeCanceled={true}
                   onSelect={() => {}}
                   onCancel={() => setSelectedPlan(null)}
+                  onCancelPlan={() => {}}
                 />
               </motion.div>
               <motion.div

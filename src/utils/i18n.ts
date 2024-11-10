@@ -95,6 +95,15 @@ const enTranslations = {
   noProgressDataAvailable: "No dictation progress available",
   dictationActivities: "Dictation Activities",
   upgradePlan: "Upgrade Plan",
+  choosePlanTitle: "Dictation Plans",
+  freePlan: "Free Plan",
+  proPlan: "Pro Plan",
+  premiumPlan: "Premium Plan",
+  threeMonthsUnlimited: "3 Months Unlimited",
+  sixMonthsUnlimited: "6 Months Unlimited",
+  notAvailable: "Not Available",
+  cancelPlan: "Cancel Plan",
+  selectPlan: "Select Plan",
 };
 
 const zhTranslations = {
@@ -187,6 +196,15 @@ const zhTranslations = {
   noProgressDataAvailable: "暂无听写进度",
   dictationActivities: "听写记录",
   upgradePlan: "升级计划",
+  choosePlanTitle: "听写计划",
+  freePlan: "免费计划",
+  proPlan: "专业计划",
+  premiumPlan: "高级计划",
+  threeMonthsUnlimited: "3个月无限制",
+  sixMonthsUnlimited: "6个月无限制",
+  notAvailable: "不可用",
+  cancelPlan: "取消计划",
+  selectPlan: "选择计划",
 };
 
 const zhTraditionalTranslations = {
@@ -279,6 +297,15 @@ const zhTraditionalTranslations = {
   noProgressDataAvailable: "暫無聽寫進度",
   dictationActivities: "聽寫記錄",
   upgradePlan: "升級計劃",
+  choosePlanTitle: "聽寫計劃",
+  freePlan: "免費計劃",
+  proPlan: "專業計劃",
+  premiumPlan: "高級計劃",
+  threeMonthsUnlimited: "3個月無限制",
+  sixMonthsUnlimited: "6個月無限制",
+  notAvailable: "不可用",
+  cancelPlan: "取消計劃",
+  selectPlan: "選擇計劃",
 };
 
 const jaTranslations = {
