@@ -85,7 +85,9 @@ const Information: React.FC = () => {
             <img
               src={userInfo?.avatar}
               alt="User Avatar"
-              className="w-24 h-24 rounded-full border-4 shadow-lg absolute"
+              className="w-24 h-24 rounded-full border-4 shadow-lg absolute
+                border-purple-300 shadow-purple-600
+                dark:border-orange-500 dark:shadow-orange-500"
             />
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
@@ -102,16 +104,16 @@ const Information: React.FC = () => {
               <InfoCard
                 icon="🎭"
                 title={t("plan")}
-                value={userInfo?.plan.name || USER_PLAN.FREE}
+                value={userInfo?.plan?.name || USER_PLAN.FREE}
               />
               <InfoCard
                 icon="⏳"
                 title={t("expireTime")}
-                value={userInfo?.plan.expireTime || ""}
+                value={userInfo?.plan?.expireTime || t("noLimit")}
               />
               <InfoCard
                 icon="⏱️"
-                title={t("total_dictation_time")}
+                title={t("totalDictationTime")}
                 value={
                   totalDuration !== null
                     ? formatDuration(totalDuration)
@@ -143,8 +145,8 @@ const Information: React.FC = () => {
                   ? `${format(
                       new Date(value.date),
                       "yyyy-MM-dd"
-                    )}: ${formatDuration(value.count)}`
-                  : "No data"
+                    )} ${formatDuration(value.count)}`
+                  : t("noData")
               }
             />
           </div>

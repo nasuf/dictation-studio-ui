@@ -184,27 +184,100 @@ const PlanCard: React.FC<PlanProps> = ({
   );
 };
 
-const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
-  onSelect,
-}) => {
+// Add new interface for subscription type
+interface SubscriptionOption {
+  type: "recurring" | "onetime";
+  price: number;
+  description: string;
+}
+
+const PaymentOptions: React.FC<{
+  onSelect: (method: string, subscriptionType: "recurring" | "onetime") => void;
+  planPrice: number;
+}> = ({ onSelect, planPrice }) => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedType, setSelectedType] = useState<"recurring" | "onetime">(
+    "recurring"
+  );
+
+  const subscriptionOptions: SubscriptionOption[] = [
+    {
+      type: "recurring",
+      price: planPrice,
+      description: t("autoRenewDescription"), // "Auto-renew subscription, cancel anytime"
+    },
+    {
+      type: "onetime",
+      price: planPrice * 1.2,
+      description: t("onetimeDescription"), // "One-time purchase, no auto-renewal"
+    },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-4"
+      className="space-y-6"
     >
       <h3 className="text-xl font-semibold mb-6 dark:text-white">
-        {t("selectPaymentMethod")}
+        {t("selectSubscriptionMethod")}
       </h3>
+
+      <div className="space-y-4 mb-6">
+        {subscriptionOptions.map((option) => (
+          <div
+            key={option.type}
+            onClick={() => setSelectedType(option.type)}
+            className={`
+              p-4 rounded-lg border-2 cursor-pointer
+              transition-all duration-200
+              ${
+                selectedType === option.type
+                  ? "border-green-500 dark:border-orange-500 bg-green-50 dark:bg-gray-700"
+                  : "border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-orange-400"
+              }
+            `}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <div
+                  className={`
+                  w-5 h-5 rounded-full border-2 mr-3
+                  ${
+                    selectedType === option.type
+                      ? "border-green-500 dark:border-orange-500 bg-green-500 dark:bg-orange-500"
+                      : "border-gray-300 dark:border-gray-500"
+                  }
+                `}
+                >
+                  {selectedType === option.type && (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <CheckIcon className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                </div>
+                <span className="font-medium dark:text-white">
+                  {option.type === "recurring"
+                    ? t("autoRenew")
+                    : t("onetimePurchase")}
+                </span>
+              </div>
+              <span className="font-bold dark:text-white">¥{option.price}</span>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 ml-8">
+              {option.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
       <button
         onClick={async () => {
           setIsLoading(true);
           try {
-            await onSelect("stripe");
+            await onSelect("stripe", selectedType);
           } finally {
             setIsLoading(false);
           }
@@ -218,7 +291,7 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
           dark:hover:from-orange-700 dark:hover:to-gray-900
           text-white
           hover:shadow-xl hover:scale-105
-              ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
+          ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
       >
         {isLoading ? (
           <div className="flex items-center space-x-2">
@@ -242,18 +315,15 @@ const PaymentOptions: React.FC<{ onSelect: (method: string) => void }> = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            <span className="text-lg font-medium">Processing...</span>
+            <span className="text-lg font-medium">{t("processing")}</span>
           </div>
         ) : (
           <>
             <CreditCardIcon className="h-6 w-6" />
-            <span className="text-lg font-medium">Click to Pay</span>
+            <span className="text-lg font-medium">{t("clickToPay")}</span>
           </>
         )}
       </button>
-      <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
-        {t("securePayment")}
-      </p>
     </motion.div>
   );
 };
@@ -318,19 +388,27 @@ export const UpgradePlan: React.FC = () => {
     setSelectedPlan(planId);
   };
 
-  const handleSelectPayment = async (method: string) => {
+  const handleSelectPayment = async (
+    method: string,
+    subscriptionType: "recurring" | "onetime"
+  ) => {
     if (method === "stripe") {
       try {
-        // if pro plan then 30 days, if premium plan then 90 days
         const duration =
           selectedPlan === USER_PLAN.PRO
             ? USER_PLAN_DURATION.PRO
             : USER_PLAN_DURATION.PREMIUM;
-        const response = await api.createStripeSession(selectedPlan!, duration);
+
+        const response = await api.createStripeSession(
+          selectedPlan!,
+          duration,
+          subscriptionType === "recurring"
+        );
+
         window.location.href = response.data.url;
       } catch (error) {
         console.error("Error creating Stripe session:", error);
-        message.error("Failed to initialize payment");
+        message.error(t("paymentInitFailed"));
       }
     }
   };
@@ -443,7 +521,12 @@ export const UpgradePlan: React.FC = () => {
                 transition={{ duration: 0.5 }}
                 className="w-[400px]"
               >
-                <PaymentOptions onSelect={handleSelectPayment} />
+                <PaymentOptions
+                  onSelect={handleSelectPayment}
+                  planPrice={
+                    plans.find((p) => p.id === selectedPlan)?.price || 0
+                  }
+                />
               </motion.div>
             </motion.div>
           </div>

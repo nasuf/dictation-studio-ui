@@ -149,8 +149,12 @@ export const api = {
   updateUserInfo: (userInfo: Partial<UserInfo>) => {
     return axiosInstance.post("/auth/userinfo", userInfo);
   },
-  createStripeSession: (plan: string, duration: number) =>
-    axiosInstance.post("/payment/create-session", { plan, duration }),
+  createStripeSession: (plan: string, duration: number, isRecurring: boolean) =>
+    axiosInstance.post("/payment/create-session", {
+      plan,
+      duration,
+      isRecurring,
+    }),
   verifyPaymentSession: (sessionId: string) =>
     axiosInstance.post(`/payment/verify-session/${sessionId}`),
 };
