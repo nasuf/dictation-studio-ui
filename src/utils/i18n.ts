@@ -12,7 +12,7 @@ const enTranslations = {
   wordCollection: "Word Collection",
   fm: "FM",
   videoDictationKeyboardInstructions:
-    "Press Tab to start dictation or repeat the current sentence, press Enter to continue to the next sentence",
+    "Press Tab to start dictation or repeat the current sentence, press Enter to continue to the next sentence. Or customize your own shortcut keys in the settings.",
   wordDictationKeyboardInstructions:
     "Press Enter to submit and validate the answer. Press Enter again to get the next word. Press Tab or click the card to replay the word pronunciation.",
   inputPlaceHolder: "Enter what you hear",
@@ -128,7 +128,7 @@ const zhTranslations = {
   wordCollection: "单词收藏",
   fm: "电台",
   videoDictationKeyboardInstructions:
-    "按Tab键开始听写或重复当前语句，按Enter键继续下一句话",
+    "按Tab键开始听写或重复当前语句，按Enter键继续下一句话。或者在设置中自定义快捷键。",
   wordDictationKeyboardInstructions:
     "按Enter键提交并验证答案。再次按Enter键获取下一个单词。按Tab键或点击卡片重新播放单词发音",
   inputPlaceHolder: "输入你听到的内容",
@@ -240,7 +240,7 @@ const zhTraditionalTranslations = {
   wordCollection: "單詞收藏",
   fm: "電台",
   videoDictationKeyboardInstructions:
-    "按Tab鍵開始聽寫或重複當前語句，按Enter鍵繼續下一個句子",
+    "按Tab鍵開始聽寫或重複當前語句，按Enter鍵繼續下一個句子。或者在設置中自定義快捷鍵。",
   wordDictationKeyboardInstructions:
     "按Enter鍵提交並驗證答案。再次按Enter鍵獲取下一個單詞。按Tab鍵或點擊卡片重新播放單詞發音",
   inputPlaceHolder: "輸入你聽到的內容",
@@ -352,7 +352,7 @@ const jaTranslations = {
   wordCollection: "単語コレクション",
   fm: "FM",
   videoDictationKeyboardInstructions:
-    "Tabキーを押してディクテーションを開始するか現在の文を繰り返し、Enterキーを押して次の文に進みます",
+    "Tabキーを押してディクテーションを開始するか現在の文を繰り返し、Enterキーを押して次の文に進みます。または設置中でカスタマイズできます。",
   wordDictationKeyboardInstructions:
     "Enterキーを押して回答を送信し、検証します。もう一度Enterキーを押して次の単語を取得します。Tabキーを押すかカードをクリックして単語の発音を再生します。",
   completionRate: "完了率",
@@ -447,7 +447,7 @@ const koTranslations = {
   wordCollection: "단어 컬렉션",
   fm: "FM",
   videoDictationKeyboardInstructions:
-    "Tab 키를 눌러 받아쓰기를 시작하거나 현재 문장을 반복하고, Enter 키를 눌러 다음 문장으로 계속합니다",
+    "Tab 키를 눌러 받아쓰기를 시작하거나 현재 문장을 반복하고, Enter 키를 눌러 다음 문장으로 계속합니다. 또는 설정에서 단축키를 커스텀할 수 있습니다.",
   wordDictationKeyboardInstructions:
     "Enter 키를 눌러 답변을 제출하고 확인합니다. Enter 키를 다시 눌러 다음 단어를 가져옵니다. Tab 키를 누르거나 카드를 클릭하여 단어 발음을 다시 재생합니다.",
   inputPlaceHolder: "들은 내용을 입력하세요",
