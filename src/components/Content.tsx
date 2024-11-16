@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
-import { Layout, Modal, Tag, Checkbox, Empty } from "antd";
+import { Layout, Modal, Tag, Checkbox, Empty, Button } from "antd";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   CloudUploadOutlined,
@@ -29,6 +29,8 @@ import Information from "@/components/profile/Information";
 import nlp from "compromise";
 import { FilterOption } from "@/utils/type";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
+import { api } from "@/api/api";
+import { message } from "antd";
 
 const { Content } = Layout;
 
@@ -217,6 +219,22 @@ const AppContent: React.FC = () => {
     navigate(-1);
   };
 
+  const [isSavingWords, setIsSavingWords] = useState(false);
+
+  const handleSaveMissedWords = async () => {
+    try {
+      setIsSavingWords(true);
+      await api.saveMissedWords(filteredMissedWords);
+      message.success(t("missedWordsSaved"));
+      setIsMissedWordsModalVisible(false);
+    } catch (error) {
+      console.error("Error saving missed words:", error);
+      message.error(t("missedWordsSaveFailed"));
+    } finally {
+      setIsSavingWords(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-6">
@@ -303,9 +321,35 @@ const AppContent: React.FC = () => {
         title={t("missedWordsSummary")}
         open={isMissedWordsModalVisible}
         onCancel={() => setIsMissedWordsModalVisible(false)}
-        footer={null}
+        footer={
+          filteredMissedWords.length > 0
+            ? [
+                <Button
+                  key="cancel"
+                  onClick={() => setIsMissedWordsModalVisible(false)}
+                  className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  {t("cancel")}
+                </Button>,
+                <Button
+                  key="save"
+                  type="primary"
+                  loading={isSavingWords}
+                  onClick={handleSaveMissedWords}
+                  className="bg-blue-500 hover:bg-blue-600 dark:bg-orange-500 dark:hover:bg-orange-600"
+                >
+                  {t("save")}
+                </Button>,
+              ]
+            : null
+        }
         width={800}
-        styles={{ body: { maxHeight: "calc(100vh - 200px)", padding: 0 } }}
+        styles={{
+          body: {
+            maxHeight: "calc(100vh - 250px)",
+            padding: 0,
+          },
+        }}
         className="dark:bg-gray-800 dark:text-white"
       >
         {/* if there are no missed words, don't show the filter options */}

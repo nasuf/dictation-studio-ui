@@ -1,3 +1,4 @@
+import { api } from "@/api/api";
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
 import { Alert, Input, InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,17 +33,19 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
     (async () => {
       try {
         // Using the Random Word API from API Ninjas
-        const response = await fetch(
-          "https://api.api-ninjas.com/v1/randomword",
-          {
-            headers: {
-              "X-Api-Key": "SzOENN9+NEKsUgzzSNsrSw==9hOxftSvUXPrb5di", // Replace with your actual API key
-            },
-          }
-        );
-        const data = await response.json();
-        setWordData({ word: data.word[0] });
-        speakWord(data.word);
+        // const response = await fetch(
+        //   "https://api.api-ninjas.com/v1/randomword",
+        //   {
+        //     headers: {
+        //       "X-Api-Key": "SzOENN9+NEKsUgzzSNsrSw==9hOxftSvUXPrb5di", // Replace with your actual API key
+        //     },
+        //   }
+        // );
+        const response = await api.getMissedWords();
+        const missed_words = response.data.missed_words;
+        const randomIndex = Math.floor(Math.random() * missed_words.length);
+        setWordData({ word: missed_words[randomIndex] });
+        speakWord(missed_words[randomIndex]);
       } catch (error) {
         console.error("Error fetching random word:", error);
         setWordData({ word: "Error fetching word" });
@@ -85,16 +88,13 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
   }, []);
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center w-full h-full p-4">
       <div
         style={style}
-        className={
-          "flex h-[500px] w-full flex-col gap-4 lg:h-[250px] lg:flex-row"
-        }
-        onClick={() => speakWord(wordData.word)}
+        className="flex flex-col items-center justify-center gap-4 mb-8"
       >
         <MagicCard
-          className="cursor-pointer flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
+          className="cursor-pointer flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl w-full"
           gradientColor={"#D9D9D955"}
         >
           <div className="flex flex-col justify-between items-center h-full py-8">
@@ -123,21 +123,23 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
           </div>
         </MagicCard>
       </div>
-      <Input
-        ref={userInputRef}
-        style={{ marginTop: "20px", width: "640px" }}
-        value={userInput}
-        onChange={(e) => setUserInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={t("inputPlaceHolder")}
-      />
-      <p style={{ marginTop: "10px" }}>
+
+      <div className="flex flex-col items-center gap-4 w-full max-w-[640px]">
+        <Input
+          ref={userInputRef}
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={t("inputPlaceHolder")}
+          className="w-full"
+        />
         <Alert
           message={t("wordDictationKeyboardInstructions")}
           type="info"
           showIcon
+          className="w-full"
         />
-      </p>
-    </>
+      </div>
+    </div>
   );
 };
