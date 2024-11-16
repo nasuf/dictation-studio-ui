@@ -115,6 +115,7 @@ const enTranslations = {
   expireTime: "Expire Time",
   noLimit: "No Limit",
   noData: "No Data",
+  noMissedWordsYet: "No missed words yet",
 };
 
 const zhTranslations = {
@@ -227,6 +228,7 @@ const zhTranslations = {
   expireTime: "过期时间",
   noLimit: "无限制",
   noData: "无数据",
+  noMissedWordsYet: "暂无未写出单词",
 };
 
 const zhTraditionalTranslations = {
@@ -339,6 +341,7 @@ const zhTraditionalTranslations = {
   expireTime: "過期時間",
   noLimit: "無限制",
   noData: "無數據",
+  noMissedWordsYet: "暫無未寫出單詞",
 };
 
 const jaTranslations = {

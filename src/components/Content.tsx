@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
-import { Layout, Modal, Tag, Checkbox } from "antd";
+import { Layout, Modal, Tag, Checkbox, Empty } from "antd";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   CloudUploadOutlined,
@@ -115,7 +115,6 @@ const AppContent: React.FC = () => {
   const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
     useState(false);
   const [missedWords, setMissedWords] = useState<string[]>([]);
-  const [isDictationCompleted, setIsDictationCompleted] = useState(false);
 
   const showMissedWordsModal = () => {
     if (videoMainRef.current) {
@@ -234,7 +233,6 @@ const AppContent: React.FC = () => {
             <div className="space-x-4 button-container">
               <button
                 onClick={showMissedWordsModal}
-                disabled={!isDictationCompleted}
                 className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
    dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
               >
@@ -281,12 +279,7 @@ const AppContent: React.FC = () => {
               />
               <Route
                 path="/dictation/video/:channelId/:videoId"
-                element={
-                  <VideoMain
-                    ref={videoMainRef}
-                    onComplete={() => setIsDictationCompleted(true)}
-                  />
-                }
+                element={<VideoMain ref={videoMainRef} onComplete={() => {}} />}
               />
               <Route
                 path="/dictation/word"
@@ -315,26 +308,33 @@ const AppContent: React.FC = () => {
         styles={{ body: { maxHeight: "calc(100vh - 200px)", padding: 0 } }}
         className="dark:bg-gray-800 dark:text-white"
       >
-        <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
-          <Checkbox
-            checked={selectAll}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-            className="mb-2 font-bold"
-          >
-            {t("selectAll")}
-          </Checkbox>
-          <br />
-          {filterOptions.map((option) => (
+        {/* if there are no missed words, don't show the filter options */}
+        {filteredMissedWords.length > 0 ? (
+          <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
             <Checkbox
-              key={option.key}
-              checked={option.checked}
-              onChange={(e) => handleFilterChange(option.key, e.target.checked)}
-              className="mr-4 mb-2"
+              checked={selectAll}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="mb-2 font-bold"
             >
-              {t(option.translationKey)}
+              {t("selectAll")}
             </Checkbox>
-          ))}
-        </div>
+            <br />
+            {filterOptions.map((option) => (
+              <Checkbox
+                key={option.key}
+                checked={option.checked}
+                onChange={(e) =>
+                  handleFilterChange(option.key, e.target.checked)
+                }
+                className="mr-4 mb-2"
+              >
+                {t(option.translationKey)}
+              </Checkbox>
+            ))}
+          </div>
+        ) : (
+          <Empty description={t("noMissedWordsYet")} />
+        )}
         <div className="p-4 overflow-y-auto max-h-[calc(100vh-400px)] dark:bg-gray-800 custom-scrollbar">
           <div className="flex flex-wrap gap-2">
             {filteredMissedWords.map((word) => (
