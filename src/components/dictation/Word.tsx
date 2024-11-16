@@ -1,6 +1,6 @@
 import { api } from "@/api/api";
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
-import { Alert, Input, InputRef } from "antd";
+import { Input, InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -133,12 +133,12 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
           placeholder={t("inputPlaceHolder")}
           className="w-full"
         />
-        <Alert
-          message={t("wordDictationKeyboardInstructions")}
-          type="info"
-          showIcon
-          className="w-full"
-        />
+        <div
+          className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
+              dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-700 dark:border-blue-400 dark:text-blue-200 rounded-md"
+        >
+          <p className="font-bold">{t("wordDictationKeyboardInstructions")}</p>
+        </div>
       </div>
     </div>
   );
