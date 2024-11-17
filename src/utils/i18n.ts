@@ -116,6 +116,7 @@ const enTranslations = {
   noLimit: "No Limit",
   noData: "No Data",
   noMissedWordsYet: "No missed words yet",
+  wordPreview: "Word Preview",
 };
 
 const zhTranslations = {
@@ -229,6 +230,7 @@ const zhTranslations = {
   noLimit: "无限制",
   noData: "无数据",
   noMissedWordsYet: "暂无未写出单词",
+  wordPreview: "单词预览",
 };
 
 const zhTraditionalTranslations = {
@@ -342,6 +344,7 @@ const zhTraditionalTranslations = {
   noLimit: "無限制",
   noData: "無數據",
   noMissedWordsYet: "暫無未寫出單詞",
+  wordPreview: "單詞預覽",
 };
 
 const jaTranslations = {

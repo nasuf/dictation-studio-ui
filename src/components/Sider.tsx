@@ -28,9 +28,9 @@ const AppSider: React.FC = () => {
       path: "/dictation/video",
     },
     {
-      key: "Word Dictation",
+      key: "Word Collection",
       icon: <BookTwoTone />,
-      label: t("wordDictation"),
+      label: t("wordCollection"),
       path: "/dictation/word",
     },
   ];
