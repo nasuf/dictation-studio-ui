@@ -31,6 +31,8 @@ import { FilterOption } from "@/utils/type";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import { api } from "@/api/api";
 import { message } from "antd";
+import { setMissedWords } from "@/redux/userSlice";
+import { USER_KEY } from "@/utils/const";
 
 const { Content } = Layout;
 
@@ -82,6 +84,9 @@ const AppContent: React.FC = () => {
   const isSavingProgress = useSelector(
     (state: RootState) => state.user.isSavingProgress
   );
+  const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
+    useState(false);
+  const [currentMissedWords, setCurrentMissedWords] = useState<string[]>([]);
 
   useEffect(() => {
     const pathParts = location.pathname.split("/");
@@ -114,13 +119,9 @@ const AppContent: React.FC = () => {
     location.pathname
   );
 
-  const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
-    useState(false);
-  const [missedWords, setMissedWords] = useState<string[]>([]);
-
   const showMissedWordsModal = () => {
     if (videoMainRef.current) {
-      setMissedWords(videoMainRef.current.getMissedWords());
+      setCurrentMissedWords(videoMainRef.current.getMissedWords());
       setIsMissedWordsModalVisible(true);
     }
   };
@@ -129,9 +130,7 @@ const AppContent: React.FC = () => {
     if (videoMainRef.current) {
       const cleanWord = removePunctuation(word);
       videoMainRef.current.removeMissedWord(cleanWord);
-      setMissedWords((prev) =>
-        prev.filter((w) => removePunctuation(w) !== cleanWord)
-      );
+      setCurrentMissedWords(currentMissedWords.filter((w) => w !== word));
     }
   };
 
@@ -178,7 +177,7 @@ const AppContent: React.FC = () => {
   };
 
   const filteredMissedWords = useMemo(() => {
-    return missedWords.filter((word) => {
+    return currentMissedWords.filter((word) => {
       const doc = nlp(word);
       if (
         filterOptions.find((o) => o.key === "removePrepositions")?.checked &&
@@ -213,7 +212,7 @@ const AppContent: React.FC = () => {
         return false;
       return true;
     });
-  }, [missedWords, filterOptions]);
+  }, [currentMissedWords, filterOptions]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -227,12 +226,56 @@ const AppContent: React.FC = () => {
       await api.saveMissedWords(filteredMissedWords);
       message.success(t("missedWordsSaved"));
       setIsMissedWordsModalVisible(false);
+      dispatch(setMissedWords(filteredMissedWords));
     } catch (error) {
       console.error("Error saving missed words:", error);
       message.error(t("missedWordsSaveFailed"));
     } finally {
       setIsSavingWords(false);
     }
+  };
+
+  const [isWordEditing, setIsWordEditing] = useState(false);
+  const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
+  const [shouldResetWords, setShouldResetWords] = useState(false);
+
+  const handleSubmitDelete = async () => {
+    try {
+      setIsSavingWords(true);
+      const response = await api.deleteMissedWords(Array.from(wordsToDelete));
+      message.success(t("wordsDeletedSuccess"));
+
+      if (response.data) {
+        // refresh latest missed words
+        dispatch(setMissedWords(response.data.missed_words));
+        // update missed words in local storage
+        const userInfo = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+        localStorage.setItem(
+          USER_KEY,
+          JSON.stringify({
+            ...userInfo,
+            missed_words: response.data.missed_words,
+          })
+        );
+      }
+
+      setWordsToDelete(new Set());
+      setIsWordEditing(false);
+    } catch (error) {
+      console.error("Error deleting words:", error);
+      message.error(t("wordsDeleteFailed"));
+    } finally {
+      setIsSavingWords(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setWordsToDelete(new Set());
+    setIsWordEditing(false);
+    setShouldResetWords(true);
+    setTimeout(() => {
+      setShouldResetWords(false);
+    }, 0);
   };
 
   return (
@@ -281,6 +324,26 @@ const AppContent: React.FC = () => {
               </button>
             </div>
           )}
+          {isWordEditing && (
+            <div className="space-x-4 button-container">
+              <button
+                onClick={handleCancelDelete}
+                className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
+                dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                onClick={handleSubmitDelete}
+                disabled={wordsToDelete.size === 0 || isSavingWords}
+                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+                dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingWords ? <LoadingOutlined className="mr-2" /> : null}
+                {t("submit")}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-6 mb-6">
@@ -301,7 +364,14 @@ const AppContent: React.FC = () => {
               />
               <Route
                 path="/dictation/word"
-                element={<Word style={componentStyle} />}
+                element={
+                  <Word
+                    style={componentStyle}
+                    onEditingChange={setIsWordEditing}
+                    onWordsToDeleteChange={setWordsToDelete}
+                    shouldReset={shouldResetWords}
+                  />
+                }
               />
               <Route path="/collection/video" element={<div>文章收藏</div>} />
               <Route path="/collection/word" element={<div>单词收藏</div>} />

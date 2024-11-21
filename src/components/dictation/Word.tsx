@@ -4,27 +4,48 @@ import {
   SoundOutlined,
   EditOutlined,
   UnorderedListOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const { Content, Sider } = Layout;
 
-export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
+interface WordProps {
+  style: React.CSSProperties;
+  onEditingChange: (isEditing: boolean) => void;
+  onWordsToDeleteChange: (words: Set<string>) => void;
+  shouldReset?: boolean;
+}
+
+export const Word: React.FC<WordProps> = ({
+  style,
+  onEditingChange,
+  onWordsToDeleteChange,
+  shouldReset,
+}) => {
   const { t } = useTranslation();
   const [activeMode, setActiveMode] = useState<"dictation" | "preview">(
     "dictation"
   );
-  const [missedWords] = useState<string[]>(() => {
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user).missed_words || [] : [];
-  });
+  const missedWords = useSelector(
+    (state: RootState) => state.user.userInfo?.missed_words || []
+  );
 
   const [userInput, setUserInput] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const userInputRef = useRef<InputRef>(null);
   const [randomWord, setRandomWord] = useState("");
+  const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (shouldReset) {
+      setWordsToDelete(new Set());
+    }
+  }, [shouldReset]);
 
   useEffect(() => {
     fetchRandomWord();
@@ -83,6 +104,18 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
       console.log("Text-to-speech not supported.");
     }
   }, []);
+
+  const handleDeleteWord = (word: string) => {
+    const newWordsToDelete = new Set(wordsToDelete);
+    if (newWordsToDelete.has(word)) {
+      newWordsToDelete.delete(word);
+    } else {
+      newWordsToDelete.add(word);
+    }
+    setWordsToDelete(newWordsToDelete);
+    onWordsToDeleteChange(newWordsToDelete);
+    onEditingChange(newWordsToDelete.size > 0);
+  };
 
   const DictationMode = () => (
     <div className="flex flex-col items-center justify-center w-full h-full p-4">
@@ -150,9 +183,9 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
     </div>
   );
 
-  const PreviewMode = () => (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      {missedWords.length > 0 ? (
+  const PreviewMode = () => {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {missedWords.map((word, index) => (
             <div
@@ -161,22 +194,35 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
               onClick={() => speakWord(word)}
             >
               <div className="flex items-center justify-between">
-                <span className="text-lg font-medium dark:text-white">
+                <span
+                  className={`
+                    text-lg font-medium transition-colors duration-300
+                    ${
+                      wordsToDelete.has(word)
+                        ? "text-gray-300 dark:text-gray-600"
+                        : "text-gray-900 dark:text-white"
+                    }
+                  `}
+                >
                   {word}
                 </span>
-                <SoundOutlined className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex items-center gap-2">
+                  <SoundOutlined className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <DeleteOutlined
+                    className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteWord(word);
+                    }}
+                  />
+                </div>
               </div>
             </div>
           ))}
         </div>
-      ) : (
-        <Empty
-          description={t("noMissedWordsYet")}
-          className="dark:text-gray-400"
-        />
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const menuItems = [
     {
@@ -195,19 +241,35 @@ export const Word: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
 
   return (
     <Layout className="h-full bg-transparent">
-      <Sider className="bg-white dark:bg-gray-800 dark:text-white" width={200}>
-        <Menu
-          mode="inline"
-          selectedKeys={[activeMode]}
-          style={{ height: "100%", borderRight: 0 }}
-          onSelect={({ key }) => setActiveMode(key as "dictation" | "preview")}
-          className="bg-white dark:bg-gray-800 dark:text-white"
-          items={menuItems}
-        />
-      </Sider>
-      <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
-        {activeMode === "dictation" ? <DictationMode /> : <PreviewMode />}
-      </Content>
+      {missedWords.length > 0 ? (
+        <>
+          <Sider
+            className="bg-white dark:bg-gray-800 dark:text-white"
+            width={200}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={[activeMode]}
+              style={{ height: "100%", borderRight: 0 }}
+              onSelect={({ key }) =>
+                setActiveMode(key as "dictation" | "preview")
+              }
+              className="bg-white dark:bg-gray-800 dark:text-white"
+              items={menuItems}
+            />
+          </Sider>
+          <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+            {activeMode === "dictation" ? <DictationMode /> : <PreviewMode />}
+          </Content>
+        </>
+      ) : (
+        <div className="flex justify-center items-center h-full w-full">
+          <Empty
+            description={t("noCollectedWords")}
+            className="dark:text-gray-400"
+          />
+        </div>
+      )}
     </Layout>
   );
 };

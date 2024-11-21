@@ -43,6 +43,7 @@ const enTranslations = {
   chooseAvatar: "Choose an avatar",
   loadMore: "Load more",
   cancel: "Cancel",
+  submit: "Submit",
   logoutSuccessful: "Logout successful",
   logoutFailed: "Logout failed",
   userProfile: "User Profile",
@@ -115,7 +116,8 @@ const enTranslations = {
   expireTime: "Expire Time",
   noLimit: "No Limit",
   noData: "No Data",
-  noMissedWordsYet: "No missed words yet",
+  noCollectedWords:
+    "No collected words yet. Please start dictation first to collect words",
   wordPreview: "Word Preview",
 };
 
@@ -160,6 +162,7 @@ const zhTranslations = {
   chooseAvatar: "选择头像",
   loadMore: "加载更多",
   cancel: "取消",
+  submit: "提交",
   logoutSuccessful: "退出成功",
   logoutFailed: "退出失败",
   userProfile: "个人中心",
@@ -229,7 +232,7 @@ const zhTranslations = {
   expireTime: "过期时间",
   noLimit: "无限制",
   noData: "无数据",
-  noMissedWordsYet: "暂无未写出单词",
+  noCollectedWords: "暂无单词收藏。请先开始听写来收集单词",
   wordPreview: "单词预览",
 };
 
@@ -274,6 +277,7 @@ const zhTraditionalTranslations = {
   chooseAvatar: "選擇頭像",
   loadMore: "加載更多",
   cancel: "取消",
+  submit: "提交",
   logoutSuccessful: "登出成功",
   logoutFailed: "登出失敗",
   userProfile: "個人資料",
@@ -343,7 +347,7 @@ const zhTraditionalTranslations = {
   expireTime: "過期時間",
   noLimit: "無限制",
   noData: "無數據",
-  noMissedWordsYet: "暫無未寫出單詞",
+  noCollectedWords: "暫無單詞收藏。請先開始聽寫來收集單詞",
   wordPreview: "單詞預覽",
 };
 

@@ -6,6 +6,7 @@ export interface UserInfo {
   plan: Plan;
   role: string;
   dictation_config: DictationConfig;
+  missed_words: string[];
 }
 
 export interface Plan {

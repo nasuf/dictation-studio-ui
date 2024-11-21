@@ -70,6 +70,11 @@ const userSlice = createSlice({
     setIsSavingProgress: (state, action: PayloadAction<boolean>) => {
       state.isSavingProgress = action.payload;
     },
+    setMissedWords: (state, action: PayloadAction<string[]>) => {
+      if (state.userInfo) {
+        state.userInfo.missed_words = action.payload;
+      }
+    },
   },
 });
 
@@ -85,5 +90,6 @@ export const {
   setDictationAutoRepeat,
   setLanguage,
   setIsSavingProgress,
+  setMissedWords,
 } = userSlice.actions;
 export default userSlice.reducer;

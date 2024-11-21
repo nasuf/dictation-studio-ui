@@ -161,4 +161,6 @@ export const api = {
     return axiosInstance.post("/user/missed-words", { words });
   },
   getMissedWords: () => axiosInstance.get("/user/missed-words"),
+  deleteMissedWords: (words: string[]) =>
+    axiosInstance.delete("/user/missed-words", { data: { words } }),
 };
