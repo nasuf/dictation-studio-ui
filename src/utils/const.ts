@@ -4,12 +4,14 @@ export const DEFAULT_DARK_MODE = false;
 export const DEFAULT_LANGUAGE = "en";
 export const USER_PLAN = {
   FREE: "Free",
+  BASIC: "Basic",
   PRO: "Pro",
   PREMIUM: "Premium",
 };
 export const USER_PLAN_DURATION = {
+  BASIC: 30,
   PRO: 30,
-  PREMIUM: 90,
+  PREMIUM: 30,
 };
 export const USER_ROLE = {
   ADMIN: "Admin",
