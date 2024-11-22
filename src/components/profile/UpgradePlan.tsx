@@ -32,7 +32,6 @@ interface PlanProps {
   id: string;
   title: string;
   price: number;
-  originalPrice?: number;
   duration: string;
   features: PlanFeature[];
   isPopular?: boolean;
@@ -48,7 +47,6 @@ const PlanCard: React.FC<PlanProps> = ({
   id,
   title,
   price,
-  originalPrice,
   duration,
   features,
   isPopular,
@@ -112,13 +110,6 @@ const PlanCard: React.FC<PlanProps> = ({
           </span>
           <span className="text-gray-500 dark:text-gray-400">/ {duration}</span>
         </div>
-        {originalPrice && (
-          <div className="mt-1">
-            <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
-              ¥{originalPrice}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="flex-grow space-y-4 mb-8">
@@ -363,7 +354,6 @@ export const UpgradePlan: React.FC = () => {
       id: USER_PLAN.BASIC,
       title: t("basicPlan"),
       price: 29,
-      originalPrice: 39,
       duration: t("oneMonth"),
       features: [
         { feature: t("allFreeFeatures"), included: true },
@@ -378,7 +368,6 @@ export const UpgradePlan: React.FC = () => {
       id: USER_PLAN.PRO,
       title: t("proPlan"),
       price: 49,
-      originalPrice: 69,
       duration: t("threeMonths"),
       isPopular: true,
       features: [
@@ -394,7 +383,6 @@ export const UpgradePlan: React.FC = () => {
       id: USER_PLAN.PREMIUM,
       title: t("premiumPlan"),
       price: 99,
-      originalPrice: 129,
       duration: t("sixMonths"),
       features: [
         { feature: t("allProFeatures"), included: true },
