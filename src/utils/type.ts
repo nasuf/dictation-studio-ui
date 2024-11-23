@@ -12,6 +12,7 @@ export interface UserInfo {
 export interface Plan {
   name: string;
   expireTime?: string;
+  isRecurring: boolean;
 }
 
 export interface DictationConfig {

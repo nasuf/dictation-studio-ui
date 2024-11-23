@@ -15,6 +15,7 @@ import {
   USER_PLAN_DURATION,
   USER_ROLE,
 } from "@/utils/const";
+import { LoadingOutlined } from "@ant-design/icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/api/api";
 import { message } from "antd";
@@ -87,15 +88,13 @@ const PlanCard: React.FC<PlanProps> = ({
         </span>
       )}
       {isCurrent && (
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-          <span
-            className="inline-block px-4 py-1 text-sm font-semibold text-white rounded-full
-            bg-gradient-to-r from-blue-500 to-blue-600
-            dark:from-purple-500 dark:to-purple-600"
-          >
-            {t("current")}
-          </span>
-        </div>
+        <span
+          className="absolute -top-3 right-4 text-white px-3 py-1 rounded-full text-sm
+                      bg-gradient-to-r from-green-500 to-green-600 hover:bg-gradient-to-r
+                  dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800"
+        >
+          {t("current")}
+        </span>
       )}
 
       <h3 className="text-2xl font-bold text-center mb-4 dark:text-white">
@@ -161,7 +160,7 @@ const PlanCard: React.FC<PlanProps> = ({
         <button
           onClick={onCancelPlan}
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
-            text-white bg-red-500 hover:bg-red-600
+            text-white bg-orange-500 hover:bg-orange-600
             dark:bg-red-600 dark:hover:bg-red-700
             transition-all duration-300"
         >
@@ -334,6 +333,7 @@ export const UpgradePlan: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [showCancelInfo, setShowCancelInfo] = useState(false);
 
   const plans = [
     {
