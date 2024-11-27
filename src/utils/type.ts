@@ -13,6 +13,8 @@ export interface Plan {
   name: string;
   expireTime?: string;
   isRecurring: boolean;
+  status: string;
+  nextPaymentTime?: string;
 }
 
 export interface DictationConfig {
@@ -112,7 +114,7 @@ export interface PlanProps {
   features: PlanFeature[];
   isCurrent?: boolean;
   toBeCanceled?: boolean;
-  currentPlan?: { name: string };
+  currentPlan?: Plan;
   onSelect: () => void;
   onCancel: () => void;
   onCancelSubscription: () => void;

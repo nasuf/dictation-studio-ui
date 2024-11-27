@@ -122,6 +122,7 @@ const enTranslations = {
   noCollectedWords:
     "No collected words yet. Please start dictation first to collect words",
   wordPreview: "Word Preview",
+  nextPayment: "Next Payment",
 };
 
 const zhTranslations = {
@@ -240,6 +241,7 @@ const zhTranslations = {
   noData: "无数据",
   noCollectedWords: "暂无单词收藏。请先开始听写来收集单词",
   wordPreview: "单词预览",
+  nextPayment: "下次付款",
 };
 
 const zhTraditionalTranslations = {
@@ -358,6 +360,7 @@ const zhTraditionalTranslations = {
   noData: "無數據",
   noCollectedWords: "暫無單詞收藏。請先開始聽寫來收集單詞",
   wordPreview: "單詞預覽",
+  nextPayment: "下次付款",
 };
 
 const jaTranslations = {

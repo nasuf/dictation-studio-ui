@@ -71,7 +71,7 @@ const PlanCard: React.FC<PlanProps> = ({
         {t(title)}
       </h3>
 
-      <div className="text-center mb-6">
+      <div className="text-center h-[80px] mb-6">
         <div className="flex items-baseline justify-center">
           <span className="text-2xl font-semibold dark:text-white">¥</span>
           <span className="text-5xl font-bold mx-1 dark:text-white">
@@ -81,6 +81,41 @@ const PlanCard: React.FC<PlanProps> = ({
             {t(duration)}
           </span>
         </div>
+
+        {isCurrent &&
+          (currentPlan?.nextPaymentTime || currentPlan?.expireTime) && (
+            <div className="mt-3 flex items-center justify-center text-sm">
+              <div
+                className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300
+                          bg-gray-100 dark:bg-gray-700/50 rounded-full px-3 py-1.5"
+              >
+                <svg
+                  className="w-4 h-4 text-orange-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>
+                  {currentPlan?.nextPaymentTime
+                    ? t("nextPayment")
+                    : t("expireTime")}
+                  :
+                </span>
+                <span className="font-medium">
+                  {new Date(
+                    currentPlan.nextPaymentTime || currentPlan.expireTime!
+                  ).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          )}
       </div>
 
       <div className="flex-grow space-y-4 mb-8">
@@ -107,24 +142,28 @@ const PlanCard: React.FC<PlanProps> = ({
         ))}
       </div>
 
-      {id !== USER_PLAN.FREE && !toBeCanceled && !isCurrent && (
-        <button
-          onClick={onSelect}
-          disabled={currentPlan?.name !== id}
-          className={`
+      {id !== USER_PLAN.FREE &&
+        !toBeCanceled &&
+        (!isCurrent || (isCurrent && currentPlan?.expireTime)) && (
+          <button
+            onClick={onSelect}
+            disabled={
+              !isCurrent || (isCurrent && currentPlan?.expireTime !== null)
+            }
+            className={`
             w-full py-4 px-6 rounded-xl font-semibold text-center
             transition-all duration-300
             ${
-              currentPlan?.name !== id
+              !isCurrent || (isCurrent && currentPlan?.expireTime !== null)
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
                 : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
             }
           `}
-        >
-          {t("selectPlan")}
-        </button>
-      )}
-      {isCurrent && (
+          >
+            {t("selectPlan")}
+          </button>
+        )}
+      {isCurrent && !currentPlan?.expireTime && (
         <button
           onClick={onCancelSubscription}
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
