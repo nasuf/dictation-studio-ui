@@ -10,39 +10,19 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   DEFAULT_DICTATION_CONFIG,
   DEFAULT_LANGUAGE,
+  PLANS,
   USER_KEY,
   USER_PLAN,
   USER_PLAN_DURATION,
   USER_ROLE,
 } from "@/utils/const";
-import { LoadingOutlined } from "@ant-design/icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/api/api";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
-
-interface PlanFeature {
-  feature: string;
-  included: boolean;
-  isCurrent?: boolean;
-}
-
-interface PlanProps {
-  id: string;
-  title: string;
-  price: number;
-  duration: string;
-  features: PlanFeature[];
-  isPopular?: boolean;
-  isCurrent?: boolean;
-  toBeCanceled?: boolean;
-  currentPlan?: { name: string };
-  onSelect: () => void;
-  onCancel: () => void;
-  onCancelPlan: () => void;
-}
+import { PlanProps } from "@/utils/type";
 
 const PlanCard: React.FC<PlanProps> = ({
   id,
@@ -50,11 +30,10 @@ const PlanCard: React.FC<PlanProps> = ({
   price,
   duration,
   features,
-  isPopular,
   isCurrent,
   toBeCanceled,
   currentPlan,
-  onCancelPlan,
+  onCancelSubscription,
   onSelect,
   onCancel,
 }) => {
@@ -78,15 +57,6 @@ const PlanCard: React.FC<PlanProps> = ({
         hover:shadow-xl hover:scale-105
       `}
     >
-      {isPopular && (
-        <span
-          className="absolute -top-3 right-4 text-white px-3 py-1 rounded-full text-sm
-                      bg-gradient-to-r from-green-500 to-green-600 hover:bg-gradient-to-r
-                  dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800"
-        >
-          {t("popular")}
-        </span>
-      )}
       {isCurrent && (
         <span
           className="absolute -top-3 right-4 text-white px-3 py-1 rounded-full text-sm
@@ -98,7 +68,7 @@ const PlanCard: React.FC<PlanProps> = ({
       )}
 
       <h3 className="text-2xl font-bold text-center mb-4 dark:text-white">
-        {title}
+        {t(title)}
       </h3>
 
       <div className="text-center mb-6">
@@ -107,7 +77,9 @@ const PlanCard: React.FC<PlanProps> = ({
           <span className="text-5xl font-bold mx-1 dark:text-white">
             {price}
           </span>
-          <span className="text-gray-500 dark:text-gray-400">/ {duration}</span>
+          <span className="text-gray-500 dark:text-gray-400">
+            {t(duration)}
+          </span>
         </div>
       </div>
 
@@ -129,7 +101,7 @@ const PlanCard: React.FC<PlanProps> = ({
               }
             `}
             >
-              {feature.feature}
+              {t(feature.feature)}
             </span>
           </div>
         ))}
@@ -138,18 +110,14 @@ const PlanCard: React.FC<PlanProps> = ({
       {id !== USER_PLAN.FREE && !toBeCanceled && !isCurrent && (
         <button
           onClick={onSelect}
-          disabled={
-            currentPlan?.name === USER_PLAN.PREMIUM && id === USER_PLAN.PRO
-          }
+          disabled={currentPlan?.name !== id}
           className={`
             w-full py-4 px-6 rounded-xl font-semibold text-center
             transition-all duration-300
             ${
-              currentPlan?.name === USER_PLAN.PREMIUM && id === USER_PLAN.PRO
+              currentPlan?.name !== id
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
-                : isPopular
-                ? "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
-                : "text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
+                : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
             }
           `}
         >
@@ -158,13 +126,13 @@ const PlanCard: React.FC<PlanProps> = ({
       )}
       {isCurrent && (
         <button
-          onClick={onCancelPlan}
+          onClick={onCancelSubscription}
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
             text-white bg-orange-500 hover:bg-orange-600
             dark:bg-red-600 dark:hover:bg-red-700
             transition-all duration-300"
         >
-          {t("cancelPlan")}
+          {t("cancelSubscription")}
         </button>
       )}
       {toBeCanceled && (
@@ -333,67 +301,6 @@ export const UpgradePlan: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [showCancelInfo, setShowCancelInfo] = useState(false);
-
-  const plans = [
-    {
-      id: USER_PLAN.FREE,
-      title: t("freePlan"),
-      price: 0,
-      duration: t("unlimitedTime"),
-      features: [
-        { feature: t("basicFeatures"), included: true },
-        { feature: t("limitedDictations"), included: true },
-        { feature: t("standardSupport"), included: true },
-        { feature: t("advancedFeatures"), included: false },
-        { feature: t("prioritySupport"), included: false },
-        { feature: t("customFeatures"), included: false },
-      ],
-    },
-    {
-      id: USER_PLAN.BASIC,
-      title: t("basicPlan"),
-      price: 29,
-      duration: t("oneMonth"),
-      features: [
-        { feature: t("allFreeFeatures"), included: true },
-        { feature: t("unlimitedDictations"), included: true },
-        { feature: t("standardSupport"), included: true },
-        { feature: t("advancedFeatures"), included: false },
-        { feature: t("prioritySupport"), included: false },
-        { feature: t("customFeatures"), included: false },
-      ],
-    },
-    {
-      id: USER_PLAN.PRO,
-      title: t("proPlan"),
-      price: 49,
-      duration: t("threeMonths"),
-      isPopular: true,
-      features: [
-        { feature: t("allBasicFeatures"), included: true },
-        { feature: t("unlimitedDictations"), included: true },
-        { feature: t("advancedFeatures"), included: true },
-        { feature: t("prioritySupport"), included: true },
-        { feature: t("customFeatures"), included: false },
-        { feature: t("dedicatedSupport"), included: false },
-      ],
-    },
-    {
-      id: USER_PLAN.PREMIUM,
-      title: t("premiumPlan"),
-      price: 99,
-      duration: t("sixMonths"),
-      features: [
-        { feature: t("allProFeatures"), included: true },
-        { feature: t("unlimitedEverything"), included: true },
-        { feature: t("customFeatures"), included: true },
-        { feature: t("dedicatedSupport"), included: true },
-        { feature: t("priorityDevelopment"), included: true },
-        { feature: t("exclusiveContent"), included: true },
-      ],
-    },
-  ];
 
   const verifyPayment = async (sessionId: string) => {
     try {
@@ -432,6 +339,28 @@ export const UpgradePlan: React.FC = () => {
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
+  };
+
+  const cancelSubscription = async () => {
+    try {
+      const response = await api.cancelSubscription();
+      if (response.data.plan.status === "cancelled") {
+        // update user plan in local storage
+        const user = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+        user.plan = response.data.plan;
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        dispatch(setUser(user));
+        message.success(t("subscriptionCanceledSuccessfully"));
+      } else {
+        message.error(t("failedToCancelSubscription"));
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      message.error(t("failedToCancelSubscription"));
+    } finally {
+      // refresh the page
+      window.location.reload();
+    }
   };
 
   const handleSelectPayment = async (
@@ -485,7 +414,7 @@ export const UpgradePlan: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
           >
-            {plans.map((plan) => (
+            {PLANS.map((plan) => (
               <PlanCard
                 key={plan.id}
                 {...plan}
@@ -493,7 +422,7 @@ export const UpgradePlan: React.FC = () => {
                 currentPlan={currentPlan}
                 onSelect={() => handleSelectPlan(plan.id)}
                 onCancel={() => setSelectedPlan(null)}
-                onCancelPlan={() => {}}
+                onCancelSubscription={() => cancelSubscription()}
               />
             ))}
           </motion.div>
@@ -508,11 +437,11 @@ export const UpgradePlan: React.FC = () => {
             <div className="w-full lg:w-2/5">
               <div className="sticky top-8">
                 <PlanCard
-                  {...plans.find((p) => p.id === selectedPlan)!}
+                  {...PLANS.find((p) => p.id === selectedPlan)!}
                   toBeCanceled={true}
                   onSelect={() => {}}
                   onCancel={() => setSelectedPlan(null)}
-                  onCancelPlan={() => {}}
+                  onCancelSubscription={() => {}}
                 />
               </div>
             </div>
@@ -522,7 +451,7 @@ export const UpgradePlan: React.FC = () => {
                 <PaymentOptions
                   onSelect={handleSelectPayment}
                   planPrice={
-                    plans.find((p) => p.id === selectedPlan)?.price || 0
+                    PLANS.find((p) => p.id === selectedPlan)?.price || 0
                   }
                 />
               </div>

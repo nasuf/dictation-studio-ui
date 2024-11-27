@@ -163,4 +163,5 @@ export const api = {
   getMissedWords: () => axiosInstance.get("/user/missed-words"),
   deleteMissedWords: (words: string[]) =>
     axiosInstance.delete("/user/missed-words", { data: { words } }),
+  cancelSubscription: () => axiosInstance.post("/payment/cancel-subscription"),
 };

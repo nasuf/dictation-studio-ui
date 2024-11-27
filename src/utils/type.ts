@@ -97,3 +97,23 @@ export interface Message {
   sender: "user" | "admin";
   timestamp: number;
 }
+
+export interface PlanFeature {
+  feature: string;
+  included: boolean;
+  isCurrent?: boolean;
+}
+
+export interface PlanProps {
+  id: string;
+  title: string;
+  price: number;
+  duration: string;
+  features: PlanFeature[];
+  isCurrent?: boolean;
+  toBeCanceled?: boolean;
+  currentPlan?: { name: string };
+  onSelect: () => void;
+  onCancel: () => void;
+  onCancelSubscription: () => void;
+}

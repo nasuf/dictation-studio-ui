@@ -33,3 +33,62 @@ export const DEFAULT_DICTATION_CONFIG: DictationConfig = {
 };
 
 export const UNAUTHORIZED_EVENT = "UNAUTHORIZED";
+
+export const PLANS = [
+  {
+    id: USER_PLAN.FREE,
+    title: "freePlan",
+    price: 0,
+    duration: "unlimitedTime",
+    features: [
+      { feature: "basicFeatures", included: true },
+      { feature: "limitedDictations", included: true },
+      { feature: "standardSupport", included: true },
+      { feature: "advancedFeatures", included: false },
+      { feature: "prioritySupport", included: false },
+      { feature: "customFeatures", included: false },
+    ],
+  },
+  {
+    id: USER_PLAN.BASIC,
+    title: "basicPlan",
+    price: 29,
+    duration: "oneMonth",
+    features: [
+      { feature: "allFreeFeatures", included: true },
+      { feature: "unlimitedDictations", included: true },
+      { feature: "standardSupport", included: true },
+      { feature: "advancedFeatures", included: false },
+      { feature: "prioritySupport", included: false },
+      { feature: "customFeatures", included: false },
+    ],
+  },
+  {
+    id: USER_PLAN.PRO,
+    title: "proPlan",
+    price: 49,
+    duration: "threeMonths",
+    features: [
+      { feature: "allBasicFeatures", included: true },
+      { feature: "unlimitedDictations", included: true },
+      { feature: "advancedFeatures", included: true },
+      { feature: "prioritySupport", included: true },
+      { feature: "customFeatures", included: false },
+      { feature: "dedicatedSupport", included: false },
+    ],
+  },
+  {
+    id: USER_PLAN.PREMIUM,
+    title: "premiumPlan",
+    price: 99,
+    duration: "sixMonths",
+    features: [
+      { feature: "allProFeatures", included: true },
+      { feature: "unlimitedEverything", included: true },
+      { feature: "customFeatures", included: true },
+      { feature: "dedicatedSupport", included: true },
+      { feature: "priorityDevelopment", included: true },
+      { feature: "exclusiveContent", included: true },
+    ],
+  },
+];
