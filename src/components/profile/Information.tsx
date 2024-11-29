@@ -108,8 +108,16 @@ const Information: React.FC = () => {
               />
               <InfoCard
                 icon="⏳"
-                title={t("expireTime")}
-                value={userInfo?.plan?.expireTime || t("noLimit")}
+                title={
+                  userInfo?.plan?.nextPaymentTime
+                    ? t("nextPayment")
+                    : t("expireTime")
+                }
+                value={
+                  userInfo?.plan?.nextPaymentTime ||
+                  userInfo?.plan?.expireTime ||
+                  t("noLimit")
+                }
               />
               <InfoCard
                 icon="⏱️"

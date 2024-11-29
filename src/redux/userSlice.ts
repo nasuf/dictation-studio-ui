@@ -7,6 +7,7 @@ interface UserState {
   isDictationStarted: boolean;
   repeatCount: number;
   isSavingProgress: boolean;
+  isLoginModalVisible: boolean;
 }
 
 const initialState: UserState = {
@@ -14,6 +15,7 @@ const initialState: UserState = {
   isDictationStarted: false,
   repeatCount: 0,
   isSavingProgress: false,
+  isLoginModalVisible: false,
 };
 
 const userSlice = createSlice({
@@ -75,6 +77,9 @@ const userSlice = createSlice({
         state.userInfo.missed_words = action.payload;
       }
     },
+    setIsLoginModalVisible: (state, action: PayloadAction<boolean>) => {
+      state.isLoginModalVisible = action.payload;
+    },
   },
 });
 
@@ -91,5 +96,6 @@ export const {
   setLanguage,
   setIsSavingProgress,
   setMissedWords,
+  setIsLoginModalVisible,
 } = userSlice.actions;
 export default userSlice.reducer;

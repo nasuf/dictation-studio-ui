@@ -8,7 +8,7 @@ import {
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, clearUser } from "./redux/userSlice";
+import { setUser, clearUser, setIsLoginModalVisible } from "./redux/userSlice";
 import i18n from "./utils/i18n";
 import AppHeader from "@/components/Header";
 import AppContent from "@/components/Content";
@@ -32,7 +32,9 @@ import { localStorageCleanup } from "@/utils/util";
 const { Header, Content, Footer } = Layout;
 
 const App: React.FC = () => {
-  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+  const isLoginModalVisible = useSelector(
+    (state: RootState) => state.user.isLoginModalVisible
+  );
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -61,13 +63,13 @@ const App: React.FC = () => {
     const handleUnauthorized = () => {
       localStorageCleanup();
       dispatch(clearUser());
-      setIsLoginModalVisible(true);
+      dispatch(setIsLoginModalVisible(true));
     };
     window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => {
       window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
     };
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -148,7 +150,7 @@ const App: React.FC = () => {
             <Layout className="flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
               <Header className="flex-shrink-0 p-0 h-auto leading-normal bg-transparent">
                 <AppHeader
-                  showLoginModal={() => setIsLoginModalVisible(true)}
+                  showLoginModal={() => dispatch(setIsLoginModalVisible(true))}
                   isDarkMode={isDarkMode}
                   toggleDarkMode={toggleDarkMode}
                   language={language}
@@ -162,7 +164,7 @@ const App: React.FC = () => {
               </Footer>
               <LoginModal
                 visible={isLoginModalVisible}
-                onClose={() => setIsLoginModalVisible(false)}
+                onClose={() => dispatch(setIsLoginModalVisible(false))}
               />
             </Layout>
           }

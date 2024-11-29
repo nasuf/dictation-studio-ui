@@ -24,6 +24,35 @@ import { useLocation } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
 import { PlanProps } from "@/utils/type";
 
+const LoadingIcon: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center space-x-2">
+      <svg
+        className="animate-spin h-5 w-5 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+      <span>{t("processing")}</span>
+    </div>
+  );
+};
+
 const PlanCard: React.FC<PlanProps> = ({
   id,
   title,
@@ -39,6 +68,7 @@ const PlanCard: React.FC<PlanProps> = ({
 }) => {
   const { t } = useTranslation();
   const mounted = useRef(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -71,7 +101,7 @@ const PlanCard: React.FC<PlanProps> = ({
         {t(title)}
       </h3>
 
-      <div className="text-center h-[80px] mb-6">
+      <div className="text-center h-[90px] mb-6">
         <div className="flex items-baseline justify-center">
           <span className="text-2xl font-semibold dark:text-white">¥</span>
           <span className="text-5xl font-bold mx-1 dark:text-white">
@@ -148,19 +178,21 @@ const PlanCard: React.FC<PlanProps> = ({
           <button
             onClick={onSelect}
             disabled={
-              !isCurrent || (isCurrent && currentPlan?.expireTime !== null)
+              currentPlan !== undefined &&
+              (!isCurrent || (isCurrent && currentPlan?.expireTime !== null))
             }
             className={`
-            w-full py-4 px-6 rounded-xl font-semibold text-center
+              w-full py-4 px-6 rounded-xl font-semibold text-center
             transition-all duration-300
-            ${
-              !isCurrent || (isCurrent && currentPlan?.expireTime !== null)
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
-                : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
-            }
-          `}
+              ${
+                currentPlan !== undefined &&
+                (!isCurrent || (isCurrent && currentPlan?.expireTime !== null))
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+                  : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
+              }
+            `}
           >
-            {t("selectPlan")}
+            {isProcessing ? <LoadingIcon /> : t("selectPlan")}
           </button>
         )}
       {isCurrent && !currentPlan?.expireTime && (
@@ -171,7 +203,7 @@ const PlanCard: React.FC<PlanProps> = ({
             dark:bg-red-600 dark:hover:bg-red-700
             transition-all duration-300"
         >
-          {t("cancelSubscription")}
+          {isProcessing ? <LoadingIcon /> : t("cancelSubscription")}
         </button>
       )}
       {toBeCanceled && (
@@ -182,7 +214,7 @@ const PlanCard: React.FC<PlanProps> = ({
             dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
             transition-all duration-300"
         >
-          {t("cancel")}
+          {isProcessing ? <LoadingIcon /> : t("cancel")}
         </button>
       )}
     </div>
@@ -298,29 +330,7 @@ const PaymentOptions: React.FC<{
         `}
       >
         {isLoading ? (
-          <div className="flex items-center space-x-2">
-            <svg
-              className="animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <span>{t("processing")}</span>
-          </div>
+          <LoadingIcon />
         ) : (
           <>
             <CreditCardIcon className="h-5 w-5" />
