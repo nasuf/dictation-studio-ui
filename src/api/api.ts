@@ -12,14 +12,15 @@ import {
   UNAUTHORIZED_EVENT,
 } from "@/utils/const";
 import { jwtDecode } from "jwt-decode";
+import config from "@/config";
 
 // export const UI_HOST = "http://localhost:5173";
 // export const SERVICE_HOST = "http://localhost:4001";
 // const SERVICE_BASE_URL = `${SERVICE_HOST}/dictation-studio`;
 
-export const UI_HOST = "https://www.dictationstudio.com";
-export const SERVICE_HOST = "https://www.dictationstudio.com";
-const SERVICE_BASE_URL = `${SERVICE_HOST}/ds`;
+export const UI_HOST = config.UI_HOST;
+export const SERVICE_HOST = config.SERVICE_HOST;
+const SERVICE_BASE_URL = `${SERVICE_HOST}${config.SERVICE_PATH}`;
 
 const axiosInstance = axios.create({
   baseURL: `${SERVICE_BASE_URL}`,
