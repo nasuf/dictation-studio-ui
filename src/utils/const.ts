@@ -18,7 +18,8 @@ export const USER_ROLE = {
   USER: "User",
 };
 export const DARK_THEME_CLASS_NAME = "dark";
-export const JWT_TOKEN_KEY = "ds_tkn";
+export const JWT_ACCESS_TOKEN_KEY = "ds_a_token";
+export const JWT_REFRESH_TOKEN_KEY = "ds_r_token";
 export const USER_KEY = "user";
 export const EMAIL_VERIFIED_KEY = "emailVerified";
 

@@ -23,7 +23,6 @@ import {
   DEFAULT_LANGUAGE,
   UNAUTHORIZED_EVENT,
   USER_KEY,
-  USER_PLAN,
   USER_ROLE,
 } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
@@ -107,9 +106,6 @@ const App: React.FC = () => {
                   Object.keys(user.dictation_config).length === 0
                 ) {
                   user.dictation_config = DEFAULT_DICTATION_CONFIG;
-                }
-                if (!user.plan) {
-                  user.plan = USER_PLAN.FREE;
                 }
                 if (!user.role) {
                   user.role = USER_ROLE.USER;

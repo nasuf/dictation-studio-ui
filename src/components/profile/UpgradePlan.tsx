@@ -68,7 +68,6 @@ const PlanCard: React.FC<PlanProps> = ({
 }) => {
   const { t } = useTranslation();
   const mounted = useRef(true);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -192,7 +191,7 @@ const PlanCard: React.FC<PlanProps> = ({
               }
             `}
           >
-            {isProcessing ? <LoadingIcon /> : t("selectPlan")}
+            {t("selectPlan")}
           </button>
         )}
       {isCurrent && !currentPlan?.expireTime && (
@@ -203,7 +202,7 @@ const PlanCard: React.FC<PlanProps> = ({
             dark:bg-red-600 dark:hover:bg-red-700
             transition-all duration-300"
         >
-          {isProcessing ? <LoadingIcon /> : t("cancelSubscription")}
+          {t("cancelSubscription")}
         </button>
       )}
       {toBeCanceled && (
@@ -214,7 +213,7 @@ const PlanCard: React.FC<PlanProps> = ({
             dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
             transition-all duration-300"
         >
-          {isProcessing ? <LoadingIcon /> : t("cancel")}
+          {t("cancel")}
         </button>
       )}
     </div>
@@ -365,9 +364,6 @@ export const UpgradePlan: React.FC = () => {
           Object.keys(user.dictation_config).length === 0
         ) {
           user.dictation_config = DEFAULT_DICTATION_CONFIG;
-        }
-        if (!user.plan) {
-          user.plan = USER_PLAN.FREE;
         }
         if (!user.role) {
           user.role = USER_ROLE.USER;

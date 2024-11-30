@@ -6,7 +6,12 @@ import {
   Video,
   Channel,
 } from "@/utils/type";
-import { JWT_TOKEN_KEY, UNAUTHORIZED_EVENT } from "@/utils/const";
+import {
+  JWT_ACCESS_TOKEN_KEY,
+  JWT_REFRESH_TOKEN_KEY,
+  UNAUTHORIZED_EVENT,
+} from "@/utils/const";
+import { jwtDecode } from "jwt-decode";
 
 // export const UI_HOST = "http://localhost:5173";
 // export const SERVICE_HOST = "http://localhost:4001";
@@ -20,24 +25,44 @@ const axiosInstance = axios.create({
   baseURL: `${SERVICE_BASE_URL}`,
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(JWT_TOKEN_KEY);
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+async function refreshToken() {
+  const refreshToken = localStorage.getItem(JWT_REFRESH_TOKEN_KEY);
+  const response = await fetch("/auth/refresh-token", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${refreshToken}`,
+    },
+  });
+  const data = await response.json();
+  localStorage.setItem(JWT_ACCESS_TOKEN_KEY, data.access_token);
+  return data.access_token;
+}
+
+axiosInstance.interceptors.request.use(async (config) => {
+  const accessToken = localStorage.getItem(JWT_ACCESS_TOKEN_KEY);
+  if (accessToken) {
+    const decodedToken = jwtDecode(accessToken);
+    const currentTime = Date.now() / 1000;
+    if (decodedToken.exp && decodedToken.exp - currentTime < 600) {
+      const newToken = await refreshToken();
+      config.headers["Authorization"] = `Bearer ${newToken}`;
+    } else {
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
-);
+
+  return config;
+});
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    const token = response.headers["x-ds-token"];
-    if (token) {
-      localStorage.setItem(JWT_TOKEN_KEY, token);
+    const access_token = response.headers["x-ds-access-token"];
+    const refresh_token = response.headers["x-ds-refresh-token"];
+    if (access_token) {
+      localStorage.setItem(JWT_ACCESS_TOKEN_KEY, access_token);
+    }
+    if (refresh_token) {
+      localStorage.setItem(JWT_REFRESH_TOKEN_KEY, refresh_token);
     }
     return response;
   },

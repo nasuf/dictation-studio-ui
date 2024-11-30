@@ -65,9 +65,9 @@ const Information: React.FC = () => {
     );
   }
 
-  const AdminBadge = () => (
+  const PlanBadge = ({ planName }: { planName: string }) => (
     <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-orange-900 dark:text-orange-300">
-      Admin
+      {planName}
     </span>
   );
 
@@ -93,7 +93,13 @@ const Information: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 p-6 relative z-10">
             <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center">
               {userInfo?.username}
-              {userInfo?.role === USER_ROLE.ADMIN && <AdminBadge />}
+              {userInfo?.role === USER_ROLE.ADMIN ? (
+                <PlanBadge planName={userInfo?.role || ""} />
+              ) : userInfo?.plan?.name ? (
+                <PlanBadge planName={userInfo?.plan?.name} />
+              ) : (
+                <PlanBadge planName={USER_PLAN.FREE} />
+              )}
             </h1>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <InfoCard
