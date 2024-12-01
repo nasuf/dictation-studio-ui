@@ -28,7 +28,7 @@ export const Word: React.FC<WordProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeMode, setActiveMode] = useState<"dictation" | "preview">(
-    "dictation"
+    "preview"
   );
   const missedWords = useSelector(
     (state: RootState) => state.user.userInfo?.missed_words || []
@@ -48,8 +48,10 @@ export const Word: React.FC<WordProps> = ({
   }, [shouldReset]);
 
   useEffect(() => {
-    fetchRandomWord();
-  }, [missedWords]);
+    if (activeMode === "dictation") {
+      fetchRandomWord();
+    }
+  }, [missedWords, activeMode]);
 
   useEffect(() => {
     if (userInputRef.current) {
@@ -226,15 +228,15 @@ export const Word: React.FC<WordProps> = ({
 
   const menuItems = [
     {
-      key: "dictation",
-      icon: <EditOutlined />,
-      label: t("wordDictation"),
-      className: "dark:text-white",
-    },
-    {
       key: "preview",
       icon: <UnorderedListOutlined />,
       label: t("wordPreview"),
+      className: "dark:text-white",
+    },
+    {
+      key: "dictation",
+      icon: <EditOutlined />,
+      label: t("wordDictation"),
       className: "dark:text-white",
     },
   ];

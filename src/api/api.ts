@@ -13,6 +13,7 @@ import {
 } from "@/utils/const";
 import { jwtDecode } from "jwt-decode";
 import config from "@/config";
+import { message } from "antd";
 
 export const UI_HOST = config.UI_HOST;
 export const SERVICE_HOST = config.SERVICE_HOST;
@@ -44,8 +45,10 @@ axiosInstance.interceptors.request.use(async (config) => {
     const decodedToken = jwtDecode(accessToken);
     const currentTime = Date.now() / 1000;
     if (decodedToken.exp && decodedToken.exp - currentTime < 600) {
+      message.info("Auto login...");
       const newToken = await refreshToken();
       config.headers["Authorization"] = `Bearer ${newToken}`;
+      message.success("Auto login success!");
     } else {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }

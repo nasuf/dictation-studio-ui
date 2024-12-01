@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -43,7 +38,6 @@ const App: React.FC = () => {
   const language = useSelector(
     (state: RootState) => state.user.userInfo?.language ?? DEFAULT_LANGUAGE
   );
-  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
@@ -121,10 +115,6 @@ const App: React.FC = () => {
           } else {
             dispatch(setUser(storedUserInfo));
           }
-        } else if (event === "SIGNED_OUT") {
-          localStorageCleanup();
-          dispatch(clearUser());
-          navigate("/");
         }
       }
     );
