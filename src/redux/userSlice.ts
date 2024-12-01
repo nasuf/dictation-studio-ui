@@ -74,7 +74,11 @@ const userSlice = createSlice({
     },
     setMissedWords: (state, action: PayloadAction<string[]>) => {
       if (state.userInfo) {
-        state.userInfo.missed_words = action.payload;
+        // merge payload into userInfo.missed_words
+        state.userInfo.missed_words = [
+          ...state.userInfo.missed_words,
+          ...action.payload,
+        ];
       }
     },
     setIsLoginModalVisible: (state, action: PayloadAction<boolean>) => {

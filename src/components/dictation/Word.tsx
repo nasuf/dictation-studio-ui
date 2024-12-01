@@ -49,7 +49,7 @@ export const Word: React.FC<WordProps> = ({
 
   useEffect(() => {
     fetchRandomWord();
-  }, []);
+  }, [missedWords]);
 
   useEffect(() => {
     if (userInputRef.current) {

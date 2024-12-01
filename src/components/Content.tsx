@@ -87,6 +87,9 @@ const AppContent: React.FC = () => {
   const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
     useState(false);
   const [currentMissedWords, setCurrentMissedWords] = useState<string[]>([]);
+  const missedWords = useSelector(
+    (state: RootState) => state.user.userInfo?.missed_words || []
+  );
 
   useEffect(() => {
     const pathParts = location.pathname.split("/");
@@ -226,7 +229,20 @@ const AppContent: React.FC = () => {
       await api.saveMissedWords(filteredMissedWords);
       message.success(t("missedWordsSaved"));
       setIsMissedWordsModalVisible(false);
-      dispatch(setMissedWords(filteredMissedWords));
+      const userInfo = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+      localStorage.setItem(
+        USER_KEY,
+        JSON.stringify({
+          ...userInfo,
+          missed_words: filteredMissedWords,
+        })
+      );
+      // distinct filteredMissedWords with missedWords
+      dispatch(
+        setMissedWords(
+          Array.from(new Set([...missedWords, ...filteredMissedWords]))
+        )
+      );
     } catch (error) {
       console.error("Error saving missed words:", error);
       message.error(t("missedWordsSaveFailed"));

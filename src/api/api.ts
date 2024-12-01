@@ -14,10 +14,6 @@ import {
 import { jwtDecode } from "jwt-decode";
 import config from "@/config";
 
-// export const UI_HOST = "http://localhost:5173";
-// export const SERVICE_HOST = "http://localhost:4001";
-// const SERVICE_BASE_URL = `${SERVICE_HOST}/dictation-studio`;
-
 export const UI_HOST = config.UI_HOST;
 export const SERVICE_HOST = config.SERVICE_HOST;
 const SERVICE_BASE_URL = `${SERVICE_HOST}${config.SERVICE_PATH}`;
@@ -28,15 +24,18 @@ const axiosInstance = axios.create({
 
 async function refreshToken() {
   const refreshToken = localStorage.getItem(JWT_REFRESH_TOKEN_KEY);
-  const response = await fetch("/auth/refresh-token", {
+  const response = await fetch(`${SERVICE_BASE_URL}/auth/refresh-token`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${refreshToken}`,
     },
   });
-  const data = await response.json();
-  localStorage.setItem(JWT_ACCESS_TOKEN_KEY, data.access_token);
-  return data.access_token;
+  const newAccessToken = response.headers.get("x-ds-access-token");
+  if (!newAccessToken) {
+    throw new Error("No access token in response headers");
+  }
+  localStorage.setItem(JWT_ACCESS_TOKEN_KEY, newAccessToken);
+  return newAccessToken;
 }
 
 axiosInstance.interceptors.request.use(async (config) => {
