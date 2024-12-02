@@ -263,18 +263,20 @@ const AppContent: React.FC = () => {
 
       if (response.data) {
         // refresh latest missed words
-        dispatch(setMissedWords(response.data.missed_words));
+        const latestMissedWords = Array.from(
+          new Set([...missedWords, ...response.data.missed_words])
+        );
+        dispatch(setMissedWords(latestMissedWords));
         // update missed words in local storage
         const userInfo = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
         localStorage.setItem(
           USER_KEY,
           JSON.stringify({
             ...userInfo,
-            missed_words: response.data.missed_words,
+            missed_words: latestMissedWords,
           })
         );
       }
-
       setWordsToDelete(new Set());
       setIsWordEditing(false);
     } catch (error) {
