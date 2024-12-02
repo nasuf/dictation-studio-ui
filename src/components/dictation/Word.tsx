@@ -10,6 +10,7 @@ import { MagicCard } from "@/lib/magic-ui-components/MagicCard";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { ScrollableContainer } from "@/components/dictation/video/Widget";
 
 const { Content, Sider } = Layout;
 
@@ -187,17 +188,18 @@ export const Word: React.FC<WordProps> = ({
 
   const PreviewMode = () => {
     return (
-      <div className="w-full max-w-4xl mx-auto p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {missedWords.map((word, index) => (
-            <div
-              key={index}
-              className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-4 cursor-pointer"
-              onClick={() => speakWord(word)}
-            >
-              <div className="flex items-center justify-between">
-                <span
-                  className={`
+      <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
+        <div className="w-full max-w-4xl mx-auto p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {missedWords.map((word, index) => (
+              <div
+                key={index}
+                className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-4 cursor-pointer"
+                onClick={() => speakWord(word)}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`
                     text-lg font-medium transition-colors duration-300
                     ${
                       wordsToDelete.has(word)
@@ -205,24 +207,25 @@ export const Word: React.FC<WordProps> = ({
                         : "text-gray-900 dark:text-white"
                     }
                   `}
-                >
-                  {word}
-                </span>
-                <div className="flex items-center gap-2">
-                  <SoundOutlined className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <DeleteOutlined
-                    className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteWord(word);
-                    }}
-                  />
+                  >
+                    {word}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <SoundOutlined className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <DeleteOutlined
+                      className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteWord(word);
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </ScrollableContainer>
     );
   };
 
