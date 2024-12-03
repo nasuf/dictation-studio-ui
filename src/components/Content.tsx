@@ -86,9 +86,9 @@ const AppContent: React.FC = () => {
   const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
     useState(false);
   const [currentMissedWords, setCurrentMissedWords] = useState<string[]>([]);
-  const missedWords = useSelector(
-    (state: RootState) => state.user.userInfo?.missed_words || []
-  );
+  const [isWordEditing, setIsWordEditing] = useState(false);
+  const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
+  const [shouldResetWords, setShouldResetWords] = useState(false);
 
   useEffect(() => {
     const pathParts = location.pathname.split("/");
@@ -178,7 +178,7 @@ const AppContent: React.FC = () => {
     });
   };
 
-  const filteredMissedWords = useMemo(() => {
+  const newMissedWords = useMemo(() => {
     return currentMissedWords.filter((word) => {
       const doc = nlp(word);
       if (
@@ -225,15 +225,10 @@ const AppContent: React.FC = () => {
   const handleSaveMissedWords = async () => {
     try {
       setIsSavingWords(true);
-      await api.saveMissedWords(filteredMissedWords);
+      const response = await api.saveMissedWords(newMissedWords);
       message.success(t("missedWordsSaved"));
       setIsMissedWordsModalVisible(false);
-      // distinct filteredMissedWords with missedWords
-      dispatch(
-        setMissedWords(
-          Array.from(new Set([...missedWords, ...filteredMissedWords]))
-        )
-      );
+      dispatch(setMissedWords(response.data.missed_words));
     } catch (error) {
       console.error("Error saving missed words:", error);
       message.error(t("missedWordsSaveFailed"));
@@ -242,11 +237,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const [isWordEditing, setIsWordEditing] = useState(false);
-  const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
-  const [shouldResetWords, setShouldResetWords] = useState(false);
-
-  const handleSubmitDelete = async () => {
+  const handleDeleteMissedWords = async () => {
     try {
       setIsSavingWords(true);
       const response = await api.deleteMissedWords(Array.from(wordsToDelete));
@@ -254,10 +245,7 @@ const AppContent: React.FC = () => {
 
       if (response.data) {
         // refresh latest missed words
-        const latestMissedWords = Array.from(
-          new Set([...missedWords, ...response.data.missed_words])
-        );
-        dispatch(setMissedWords(latestMissedWords));
+        dispatch(setMissedWords(response.data.missed_words));
       }
       setWordsToDelete(new Set());
       setIsWordEditing(false);
@@ -269,7 +257,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleCancelDelete = () => {
+  const handleMissedWordCancelDelete = () => {
     setWordsToDelete(new Set());
     setIsWordEditing(false);
     setShouldResetWords(true);
@@ -327,14 +315,14 @@ const AppContent: React.FC = () => {
           {isWordEditing && (
             <div className="space-x-4 button-container">
               <button
-                onClick={handleCancelDelete}
+                onClick={handleMissedWordCancelDelete}
                 className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
                 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
               >
                 {t("cancel")}
               </button>
               <button
-                onClick={handleSubmitDelete}
+                onClick={handleDeleteMissedWords}
                 disabled={wordsToDelete.size === 0 || isSavingWords}
                 className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
                 dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -392,7 +380,7 @@ const AppContent: React.FC = () => {
         open={isMissedWordsModalVisible}
         onCancel={() => setIsMissedWordsModalVisible(false)}
         footer={
-          filteredMissedWords.length > 0
+          newMissedWords.length > 0
             ? [
                 <Button
                   key="cancel"
@@ -423,7 +411,7 @@ const AppContent: React.FC = () => {
         className="dark:bg-gray-800 dark:text-white"
       >
         {/* if there are no missed words, don't show the filter options */}
-        {filteredMissedWords.length > 0 ? (
+        {newMissedWords.length > 0 ? (
           <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
             <Checkbox
               checked={selectAll}
@@ -451,7 +439,7 @@ const AppContent: React.FC = () => {
         )}
         <div className="p-4 overflow-y-auto max-h-[calc(100vh-400px)] dark:bg-gray-800 custom-scrollbar">
           <div className="flex flex-wrap gap-2">
-            {filteredMissedWords.map((word) => (
+            {newMissedWords.map((word) => (
               <Tag
                 key={word}
                 closable
