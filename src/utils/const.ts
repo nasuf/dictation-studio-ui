@@ -1,5 +1,3 @@
-import { DictationConfig } from "@/utils/type";
-
 export const DEFAULT_DARK_MODE = false;
 export const DEFAULT_LANGUAGE = "en";
 export const USER_PLAN = {
@@ -22,18 +20,6 @@ export const JWT_ACCESS_TOKEN_KEY = "ds_a_token";
 export const JWT_REFRESH_TOKEN_KEY = "ds_r_token";
 export const USER_KEY = "user";
 export const EMAIL_VERIFIED_KEY = "emailVerified";
-
-export const DEFAULT_DICTATION_CONFIG: DictationConfig = {
-  playback_speed: 1,
-  auto_repeat: 0,
-  shortcuts: {
-    repeat: "Tab",
-    next: "Enter",
-    prev: "Shift",
-  },
-};
-
-export const UNAUTHORIZED_EVENT = "UNAUTHORIZED";
 
 export const PLANS = [
   {

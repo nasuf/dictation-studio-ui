@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ShortcutKeys, UserInfo } from "@/utils/type";
-import { DEFAULT_DICTATION_CONFIG } from "@/utils/const";
 
 interface UserState {
   userInfo: UserInfo | null;
@@ -24,9 +23,6 @@ const userSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<UserInfo | null>) => {
       state.userInfo = action.payload;
-      if (state.userInfo && !state.userInfo.dictation_config) {
-        state.userInfo.dictation_config = DEFAULT_DICTATION_CONFIG;
-      }
     },
     clearUser: (state) => {
       state.userInfo = null;

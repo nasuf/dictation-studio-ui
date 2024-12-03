@@ -3,7 +3,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Layout, message } from "antd";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, clearUser, setIsLoginModalVisible } from "./redux/userSlice";
+import { setUser, setIsLoginModalVisible } from "./redux/userSlice";
 import i18n from "./utils/i18n";
 import AppHeader from "@/components/Header";
 import AppContent from "@/components/Content";
@@ -13,15 +13,8 @@ import { api } from "@/api/api";
 import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
-import {
-  DEFAULT_DICTATION_CONFIG,
-  DEFAULT_LANGUAGE,
-  UNAUTHORIZED_EVENT,
-  USER_KEY,
-  USER_ROLE,
-} from "@/utils/const";
+import { DEFAULT_LANGUAGE, USER_KEY } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
-import { localStorageCleanup } from "@/utils/util";
 
 const { Header, Content, Footer } = Layout;
 
@@ -53,18 +46,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleUnauthorized = () => {
-      localStorageCleanup();
-      dispatch(clearUser());
-      dispatch(setIsLoginModalVisible(true));
-    };
-    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
-    return () => {
-      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
-    };
-  }, []);
-
-  useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session) {
@@ -92,18 +73,6 @@ const App: React.FC = () => {
               const response = await api.updateUserInfo(userInfo);
               if (response.status === 200) {
                 const user = response.data.user;
-                if (!user.language) {
-                  user.language = DEFAULT_LANGUAGE;
-                }
-                if (
-                  !user.dictation_config ||
-                  Object.keys(user.dictation_config).length === 0
-                ) {
-                  user.dictation_config = DEFAULT_DICTATION_CONFIG;
-                }
-                if (!user.role) {
-                  user.role = USER_ROLE.USER;
-                }
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));
               } else {

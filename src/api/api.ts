@@ -9,11 +9,13 @@ import {
 import {
   JWT_ACCESS_TOKEN_KEY,
   JWT_REFRESH_TOKEN_KEY,
-  UNAUTHORIZED_EVENT,
+  USER_KEY,
 } from "@/utils/const";
 import { jwtDecode } from "jwt-decode";
 import config from "@/config";
 import { message } from "antd";
+import { setUser } from "@/redux/userSlice";
+import { store } from "@/redux/store";
 
 export const UI_HOST = config.UI_HOST;
 export const SERVICE_HOST = config.SERVICE_HOST;
@@ -31,6 +33,9 @@ async function refreshToken() {
       Authorization: `Bearer ${refreshToken}`,
     },
   });
+  const userInfo = await response.json();
+  localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
+  store.dispatch(setUser(userInfo));
   const newAccessToken = response.headers.get("x-ds-access-token");
   if (!newAccessToken) {
     throw new Error("No access token in response headers");
@@ -57,25 +62,17 @@ axiosInstance.interceptors.request.use(async (config) => {
   return config;
 });
 
-axiosInstance.interceptors.response.use(
-  (response) => {
-    const access_token = response.headers["x-ds-access-token"];
-    const refresh_token = response.headers["x-ds-refresh-token"];
-    if (access_token) {
-      localStorage.setItem(JWT_ACCESS_TOKEN_KEY, access_token);
-    }
-    if (refresh_token) {
-      localStorage.setItem(JWT_REFRESH_TOKEN_KEY, refresh_token);
-    }
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
-    }
-    return Promise.reject(error);
+axiosInstance.interceptors.response.use((response) => {
+  const access_token = response.headers["x-ds-access-token"];
+  const refresh_token = response.headers["x-ds-refresh-token"];
+  if (access_token) {
+    localStorage.setItem(JWT_ACCESS_TOKEN_KEY, access_token);
   }
-);
+  if (refresh_token) {
+    localStorage.setItem(JWT_REFRESH_TOKEN_KEY, refresh_token);
+  }
+  return response;
+});
 
 export const api = {
   getChannels: () => axiosInstance.get("/service/channel"),

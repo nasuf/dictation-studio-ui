@@ -7,15 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  DEFAULT_DICTATION_CONFIG,
-  DEFAULT_LANGUAGE,
-  PLANS,
-  USER_KEY,
-  USER_PLAN,
-  USER_PLAN_DURATION,
-  USER_ROLE,
-} from "@/utils/const";
+import { PLANS, USER_KEY, USER_PLAN, USER_PLAN_DURATION } from "@/utils/const";
 import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/api/api";
 import { message } from "antd";
@@ -356,18 +348,6 @@ export const UpgradePlan: React.FC = () => {
       if (response.data.status === "paid") {
         message.success("Payment successful!");
         const user = response.data.userInfo;
-        if (!user.language) {
-          user.language = DEFAULT_LANGUAGE;
-        }
-        if (
-          !user.dictation_config ||
-          Object.keys(user.dictation_config).length === 0
-        ) {
-          user.dictation_config = DEFAULT_DICTATION_CONFIG;
-        }
-        if (!user.role) {
-          user.role = USER_ROLE.USER;
-        }
         localStorage.setItem(USER_KEY, JSON.stringify(user));
         dispatch(setUser(user));
       } else {
