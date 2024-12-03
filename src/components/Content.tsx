@@ -32,7 +32,6 @@ import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import { api } from "@/api/api";
 import { message } from "antd";
 import { setMissedWords } from "@/redux/userSlice";
-import { USER_KEY } from "@/utils/const";
 
 const { Content } = Layout;
 
@@ -229,14 +228,6 @@ const AppContent: React.FC = () => {
       await api.saveMissedWords(filteredMissedWords);
       message.success(t("missedWordsSaved"));
       setIsMissedWordsModalVisible(false);
-      const userInfo = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-      localStorage.setItem(
-        USER_KEY,
-        JSON.stringify({
-          ...userInfo,
-          missed_words: filteredMissedWords,
-        })
-      );
       // distinct filteredMissedWords with missedWords
       dispatch(
         setMissedWords(
@@ -267,15 +258,6 @@ const AppContent: React.FC = () => {
           new Set([...missedWords, ...response.data.missed_words])
         );
         dispatch(setMissedWords(latestMissedWords));
-        // update missed words in local storage
-        const userInfo = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-        localStorage.setItem(
-          USER_KEY,
-          JSON.stringify({
-            ...userInfo,
-            missed_words: latestMissedWords,
-          })
-        );
       }
       setWordsToDelete(new Set());
       setIsWordEditing(false);

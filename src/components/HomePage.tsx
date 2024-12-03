@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import { message } from "antd";
 import { supabase } from "@/utils/supabaseClient";
+import { EMAIL_VERIFIED_KEY } from "@/utils/const";
 
 const AnimatedSphere = () => {
   return (
@@ -76,7 +77,7 @@ const HomePage: React.FC = () => {
         <Link
           to={confirmationUrl}
           onClick={() => {
-            localStorage.setItem("emailVerified", "true");
+            localStorage.setItem(EMAIL_VERIFIED_KEY, "true");
             supabase.auth.refreshSession();
           }}
           className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 

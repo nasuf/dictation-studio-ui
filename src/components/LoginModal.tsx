@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api, UI_HOST } from "@/api/api";
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from "@/redux/userSlice";
-import { EMAIL_VERIFIED_KEY, USER_KEY } from "@/utils/const";
+import { EMAIL_VERIFIED_KEY } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import {
   BlurredBackground,
@@ -264,7 +264,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   };
 
   const userInfoSetup = (user: any) => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
     localStorage.setItem(EMAIL_VERIFIED_KEY, "true");
     dispatch(setUser(user));
   };

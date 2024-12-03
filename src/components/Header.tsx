@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setLanguage, setUser } from "@/redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import { USER_KEY, USER_ROLE } from "@/utils/const";
+import { USER_ROLE } from "@/utils/const";
 import { GradualSpacing } from "@/lib/magic-ui-components/GradualSpacing";
 import { supabase } from "@/utils/supabaseClient";
 import { localStorageCleanup } from "@/utils/util";
@@ -62,17 +62,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     (lang: string) => {
       toggleLanguage(lang);
       dispatch(setLanguage(lang));
-
-      // Update localStorage
-      const storedUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-      const updatedUser = { ...storedUser, language: lang };
-      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-
-      // Update Redux store
       if (userInfo) {
         const updatedUserInfo = { ...userInfo, language: lang };
         dispatch(setUser(updatedUserInfo));
-        // Save the updated language to the backend
         api.saveUserConfig({ language: lang });
       }
     },

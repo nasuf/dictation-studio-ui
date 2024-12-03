@@ -348,7 +348,6 @@ export const UpgradePlan: React.FC = () => {
       if (response.data.status === "paid") {
         message.success("Payment successful!");
         const user = response.data.userInfo;
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
         dispatch(setUser(user));
       } else {
         message.error("Payment verification failed");
@@ -373,7 +372,6 @@ export const UpgradePlan: React.FC = () => {
         // update user plan in local storage
         const user = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
         user.plan = response.data.plan;
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
         dispatch(setUser(user));
         message.success(t("subscriptionCanceledSuccessfully"));
       } else {

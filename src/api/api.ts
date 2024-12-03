@@ -6,11 +6,7 @@ import {
   Video,
   Channel,
 } from "@/utils/type";
-import {
-  JWT_ACCESS_TOKEN_KEY,
-  JWT_REFRESH_TOKEN_KEY,
-  USER_KEY,
-} from "@/utils/const";
+import { JWT_ACCESS_TOKEN_KEY, JWT_REFRESH_TOKEN_KEY } from "@/utils/const";
 import { jwtDecode } from "jwt-decode";
 import config from "@/config";
 import { message } from "antd";
@@ -34,7 +30,6 @@ async function refreshToken() {
     },
   });
   const userInfo = await response.json();
-  localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
   store.dispatch(setUser(userInfo));
   const newAccessToken = response.headers.get("x-ds-access-token");
   if (!newAccessToken) {

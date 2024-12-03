@@ -73,7 +73,6 @@ const App: React.FC = () => {
               const response = await api.updateUserInfo(userInfo);
               if (response.status === 200) {
                 const user = response.data.user;
-                localStorage.setItem(USER_KEY, JSON.stringify(user));
                 dispatch(setUser(user));
               } else {
                 throw new Error("Failed to update user info");
