@@ -908,7 +908,7 @@ const VideoMain: React.ForwardRefRenderFunction<
             />
             <div
               className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
-              dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-700 dark:border-blue-400 dark:text-blue-200 rounded-md"
+              dark:bg-gradient-to-r dark:from-orange-900 dark:to-gray-800 dark:border-blue-400 dark:text-orange-300 rounded-md"
             >
               <p className="font-bold">
                 {t("videoDictationKeyboardInstructions")}
