@@ -82,7 +82,7 @@ const PlanCard: React.FC<PlanProps> = ({
         <span
           className="absolute -top-3 right-4 text-white px-3 py-1 rounded-full text-sm
                       bg-gradient-to-r from-green-500 to-green-600 hover:bg-gradient-to-r
-                  dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800"
+                  dark:bg-gradient-to-r dark:from-orange-600 dark:to-gray-800 dark:text-orange-300"
         >
           {t("current")}
         </span>
