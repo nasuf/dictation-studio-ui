@@ -68,6 +68,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const subtitlesRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
+  const [videoTitle, setVideoTitle] = useState("");
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [revealedSentences, setRevealedSentences] = useState<number[]>([]);
   const [overallCompletion, setOverallCompletion] = useState(0);
@@ -116,7 +117,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       ]);
 
       setTranscript(transcriptResponse.data.transcript);
-
+      setVideoTitle(transcriptResponse.data.title);
       if (
         progressResponse.data &&
         progressResponse.data.userInput &&
@@ -841,6 +842,11 @@ const VideoMain: React.ForwardRefRenderFunction<
       <div className="flex justify-between w-full max-w-7xl h-full">
         <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-xl mb-4">
+            {videoTitle && (
+              <h1 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200 line-clamp-2">
+                {videoTitle}
+              </h1>
+            )}
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full z-10" />
               <YouTube
