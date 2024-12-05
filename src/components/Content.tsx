@@ -12,11 +12,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { resetNavigation } from "@/redux/navigationSlice";
 import AppSider from "@/components/Sider";
-import { Word } from "@/components/dictation/Word";
+import { Word } from "@/components/dictation/word/WordMain";
 import VideoMain, {
   VideoMainRef,
 } from "@/components/dictation/video/VideoMain";
-import Radio from "@/components/dictation/Radio";
+import Radio from "@/components/dictation/radio/RadioMain";
 import ChannelList from "@/components/dictation/video/ChannelList";
 import VideoList from "@/components/dictation/video/VideoList";
 import ChannelManagement from "@/components/admin/ChannelManagement";
