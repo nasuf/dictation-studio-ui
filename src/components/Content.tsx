@@ -32,39 +32,16 @@ import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import { api } from "@/api/api";
 import { message } from "antd";
 import { setMissedWords } from "@/redux/userSlice";
+import {
+  ARTICLES_AND_DETERMINERS,
+  COMPONENT_STYLE,
+  FILTER_OPTIONS,
+} from "@/utils/const";
 
 const { Content } = Layout;
 
 const isArticleOrDeterminer = (word: string): boolean => {
-  const articlesAndDeterminers = [
-    "a",
-    "an",
-    "the",
-    "this",
-    "that",
-    "these",
-    "those",
-    "my",
-    "your",
-    "his",
-    "her",
-    "its",
-    "our",
-    "their",
-    "some",
-    "any",
-    "many",
-    "much",
-    "few",
-    "little",
-    "several",
-    "enough",
-    "all",
-    "both",
-    "each",
-    "every",
-  ];
-  return articlesAndDeterminers.includes(word.toLowerCase());
+  return ARTICLES_AND_DETERMINERS.includes(word.toLowerCase());
 };
 
 const removePunctuation = (word: string) => {
@@ -97,14 +74,6 @@ const AppContent: React.FC = () => {
     }
   }, [location.pathname, dispatch]);
 
-  const componentStyle = {
-    width: "640px",
-    height: "390px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
   const handleSaveProgress = () => {
     if (videoMainRef.current) {
       videoMainRef.current.saveProgress();
@@ -136,30 +105,8 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
-    {
-      key: "removePrepositions",
-      translationKey: "filterPrepositions",
-      checked: false,
-    },
-    { key: "removePronouns", translationKey: "filterPronouns", checked: false },
-    {
-      key: "removeAuxiliaryVerbs",
-      translationKey: "filterAuxiliaryVerbs",
-      checked: false,
-    },
-    { key: "removeNumbers", translationKey: "filterNumbers", checked: false },
-    {
-      key: "removeArticleOrDeterminer",
-      translationKey: "filterArticlesAndDeterminers",
-      checked: false,
-    },
-    {
-      key: "removeConjunctions",
-      translationKey: "filterConjunctions",
-      checked: false,
-    },
-  ]);
+  const [filterOptions, setFilterOptions] =
+    useState<FilterOption[]>(FILTER_OPTIONS);
 
   const [selectAll, setSelectAll] = useState(false);
 
@@ -354,7 +301,7 @@ const AppContent: React.FC = () => {
                 path="/dictation/word"
                 element={
                   <Word
-                    style={componentStyle}
+                    style={COMPONENT_STYLE}
                     onEditingChange={setIsWordEditing}
                     onWordsToDeleteChange={setWordsToDelete}
                     shouldReset={shouldResetWords}
@@ -363,7 +310,10 @@ const AppContent: React.FC = () => {
               />
               <Route path="/collection/video" element={<div>文章收藏</div>} />
               <Route path="/collection/word" element={<div>单词收藏</div>} />
-              <Route path="/radio" element={<Radio style={componentStyle} />} />
+              <Route
+                path="/radio"
+                element={<Radio style={COMPONENT_STYLE} />}
+              />
               <Route path="/admin/channel" element={<ChannelManagement />} />
               <Route path="/admin/video" element={<VideoManagement />} />
               <Route path="/admin/user" element={<UserManagement />} />

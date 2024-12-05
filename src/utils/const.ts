@@ -79,3 +79,65 @@ export const PLANS = [
     ],
   },
 ];
+
+export const FILTER_OPTIONS = [
+  {
+    key: "removePrepositions",
+    translationKey: "filterPrepositions",
+    checked: false,
+  },
+  { key: "removePronouns", translationKey: "filterPronouns", checked: false },
+  {
+    key: "removeAuxiliaryVerbs",
+    translationKey: "filterAuxiliaryVerbs",
+    checked: false,
+  },
+  { key: "removeNumbers", translationKey: "filterNumbers", checked: false },
+  {
+    key: "removeArticleOrDeterminer",
+    translationKey: "filterArticlesAndDeterminers",
+    checked: false,
+  },
+  {
+    key: "removeConjunctions",
+    translationKey: "filterConjunctions",
+    checked: false,
+  },
+];
+
+export const COMPONENT_STYLE = {
+  width: "640px",
+  height: "390px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+export const ARTICLES_AND_DETERMINERS = [
+  "a",
+  "an",
+  "the",
+  "this",
+  "that",
+  "these",
+  "those",
+  "my",
+  "your",
+  "his",
+  "her",
+  "its",
+  "our",
+  "their",
+  "some",
+  "any",
+  "many",
+  "much",
+  "few",
+  "little",
+  "several",
+  "enough",
+  "all",
+  "both",
+  "each",
+  "every",
+];
