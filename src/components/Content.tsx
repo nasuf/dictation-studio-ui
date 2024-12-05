@@ -1,5 +1,5 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
-import { Layout, Modal, Tag, Checkbox, Empty, Button } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { Layout, message } from "antd";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   CloudUploadOutlined,
@@ -25,28 +25,13 @@ import { useTranslation } from "react-i18next";
 import UserManagement from "@/components/admin/UserManagement";
 import UserProgress from "@/components/profile/Progress";
 import Information from "@/components/profile/Information";
-
-import nlp from "compromise";
-import { FilterOption } from "@/utils/type";
+import { COMPONENT_STYLE } from "@/utils/const";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
+import MissedWordsModal from "@/components/dictation/video/MissedWordsModal";
 import { api } from "@/api/api";
-import { message } from "antd";
-import { setMissedWords } from "@/redux/userSlice";
-import {
-  ARTICLES_AND_DETERMINERS,
-  COMPONENT_STYLE,
-  FILTER_OPTIONS,
-} from "@/utils/const";
+import { setCurrentMissedWords, setMissedWords } from "@/redux/userSlice";
 
 const { Content } = Layout;
-
-const isArticleOrDeterminer = (word: string): boolean => {
-  return ARTICLES_AND_DETERMINERS.includes(word.toLowerCase());
-};
-
-const removePunctuation = (word: string) => {
-  return word.replace(/^[^\w\s]+|[^\w\s]+$/g, "").toLowerCase();
-};
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -62,7 +47,6 @@ const AppContent: React.FC = () => {
   );
   const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
     useState(false);
-  const [currentMissedWords, setCurrentMissedWords] = useState<string[]>([]);
   const [isWordEditing, setIsWordEditing] = useState(false);
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
   const [shouldResetWords, setShouldResetWords] = useState(false);
@@ -92,97 +76,16 @@ const AppContent: React.FC = () => {
 
   const showMissedWordsModal = () => {
     if (videoMainRef.current) {
-      setCurrentMissedWords(videoMainRef.current.getMissedWords());
+      dispatch(setCurrentMissedWords(videoMainRef.current.getMissedWords()));
       setIsMissedWordsModalVisible(true);
     }
   };
-
-  const handleRemoveMissedWord = (word: string) => {
-    if (videoMainRef.current) {
-      const cleanWord = removePunctuation(word);
-      videoMainRef.current.removeMissedWord(cleanWord);
-      setCurrentMissedWords(currentMissedWords.filter((w) => w !== word));
-    }
-  };
-
-  const [filterOptions, setFilterOptions] =
-    useState<FilterOption[]>(FILTER_OPTIONS);
-
-  const [selectAll, setSelectAll] = useState(false);
-
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    setFilterOptions(filterOptions.map((option) => ({ ...option, checked })));
-  };
-
-  const handleFilterChange = (key: string, checked: boolean) => {
-    setFilterOptions((prevOptions) => {
-      const newOptions = prevOptions.map((option) =>
-        option.key === key ? { ...option, checked } : option
-      );
-      setSelectAll(newOptions.every((option) => option.checked));
-      return newOptions;
-    });
-  };
-
-  const newMissedWords = useMemo(() => {
-    return currentMissedWords.filter((word) => {
-      const doc = nlp(word);
-      if (
-        filterOptions.find((o) => o.key === "removePrepositions")?.checked &&
-        doc.prepositions().length > 0
-      )
-        return false;
-      if (
-        filterOptions.find((o) => o.key === "removePronouns")?.checked &&
-        doc.pronouns().length > 0
-      )
-        return false;
-      if (
-        filterOptions.find((o) => o.key === "removeAuxiliaryVerbs")?.checked &&
-        doc.verbs().conjugate().length > 0
-      )
-        return false;
-      if (
-        filterOptions.find((o) => o.key === "removeNumbers")?.checked &&
-        doc.numbers().length > 0
-      )
-        return false;
-      if (
-        filterOptions.find((o) => o.key === "removeArticleOrDeterminer")
-          ?.checked &&
-        isArticleOrDeterminer(word)
-      )
-        return false;
-      if (
-        filterOptions.find((o) => o.key === "removeConjunctions")?.checked &&
-        doc.conjunctions().length > 0
-      )
-        return false;
-      return true;
-    });
-  }, [currentMissedWords, filterOptions]);
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
   const [isSavingWords, setIsSavingWords] = useState(false);
-
-  const handleSaveMissedWords = async () => {
-    try {
-      setIsSavingWords(true);
-      const response = await api.saveMissedWords(newMissedWords);
-      message.success(t("missedWordsSaved"));
-      setIsMissedWordsModalVisible(false);
-      dispatch(setMissedWords(response.data.missed_words));
-    } catch (error) {
-      console.error("Error saving missed words:", error);
-      message.error(t("missedWordsSaveFailed"));
-    } finally {
-      setIsSavingWords(false);
-    }
-  };
 
   const handleDeleteMissedWords = async () => {
     try {
@@ -325,83 +228,11 @@ const AppContent: React.FC = () => {
           </Content>
         </Layout>
       </div>
-      <Modal
-        title={t("missedWordsSummary")}
-        open={isMissedWordsModalVisible}
-        onCancel={() => setIsMissedWordsModalVisible(false)}
-        footer={
-          newMissedWords.length > 0
-            ? [
-                <Button
-                  key="cancel"
-                  onClick={() => setIsMissedWordsModalVisible(false)}
-                  className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
-                >
-                  {t("cancel")}
-                </Button>,
-                <Button
-                  key="save"
-                  type="primary"
-                  loading={isSavingWords}
-                  onClick={handleSaveMissedWords}
-                  className="bg-blue-500 hover:bg-blue-600 dark:bg-orange-500 dark:hover:bg-orange-600"
-                >
-                  {t("save")}
-                </Button>,
-              ]
-            : null
-        }
-        width={800}
-        styles={{
-          body: {
-            maxHeight: "calc(100vh - 250px)",
-            padding: 0,
-          },
-        }}
-        className="dark:bg-gray-800 dark:text-white"
-      >
-        {/* if there are no missed words, don't show the filter options */}
-        {newMissedWords.length > 0 ? (
-          <div className="sticky top-0 bg-white dark:bg-gray-700 z-10 p-4 border-b border-gray-200 dark:border-gray-600">
-            <Checkbox
-              checked={selectAll}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="mb-2 font-bold"
-            >
-              {t("selectAll")}
-            </Checkbox>
-            <br />
-            {filterOptions.map((option) => (
-              <Checkbox
-                key={option.key}
-                checked={option.checked}
-                onChange={(e) =>
-                  handleFilterChange(option.key, e.target.checked)
-                }
-                className="mr-4 mb-2"
-              >
-                {t(option.translationKey)}
-              </Checkbox>
-            ))}
-          </div>
-        ) : (
-          <Empty description={t("noMissedWordsYet")} />
-        )}
-        <div className="p-4 overflow-y-auto max-h-[calc(100vh-400px)] dark:bg-gray-800 custom-scrollbar">
-          <div className="flex flex-wrap gap-2">
-            {newMissedWords.map((word) => (
-              <Tag
-                key={word}
-                closable
-                onClose={() => handleRemoveMissedWord(word)}
-                className="text-base py-1 px-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-              >
-                {word}
-              </Tag>
-            ))}
-          </div>
-        </div>
-      </Modal>
+      <MissedWordsModal
+        visible={isMissedWordsModalVisible}
+        onClose={() => setIsMissedWordsModalVisible(false)}
+        videoMainRef={videoMainRef}
+      />
     </div>
   );
 };

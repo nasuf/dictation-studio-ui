@@ -7,6 +7,7 @@ interface UserState {
   repeatCount: number;
   isSavingProgress: boolean;
   isLoginModalVisible: boolean;
+  currentMissedWords: string[];
 }
 
 const initialState: UserState = {
@@ -15,6 +16,7 @@ const initialState: UserState = {
   repeatCount: 0,
   isSavingProgress: false,
   isLoginModalVisible: false,
+  currentMissedWords: [],
 };
 
 const userSlice = createSlice({
@@ -76,6 +78,9 @@ const userSlice = createSlice({
     setIsLoginModalVisible: (state, action: PayloadAction<boolean>) => {
       state.isLoginModalVisible = action.payload;
     },
+    setCurrentMissedWords: (state, action: PayloadAction<string[]>) => {
+      state.currentMissedWords = action.payload;
+    },
   },
 });
 
@@ -93,5 +98,6 @@ export const {
   setIsSavingProgress,
   setMissedWords,
   setIsLoginModalVisible,
+  setCurrentMissedWords,
 } = userSlice.actions;
 export default userSlice.reducer;
