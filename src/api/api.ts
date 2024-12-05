@@ -9,7 +9,6 @@ import {
 import { JWT_ACCESS_TOKEN_KEY, JWT_REFRESH_TOKEN_KEY } from "@/utils/const";
 import { jwtDecode } from "jwt-decode";
 import config from "@/config";
-import { message } from "antd";
 import { setUser } from "@/redux/userSlice";
 import { store } from "@/redux/store";
 
@@ -45,10 +44,8 @@ axiosInstance.interceptors.request.use(async (config) => {
     const decodedToken = jwtDecode(accessToken);
     const currentTime = Date.now() / 1000;
     if (decodedToken.exp && decodedToken.exp - currentTime < 600) {
-      message.info("Auto login...");
       const newToken = await refreshToken();
       config.headers["Authorization"] = `Bearer ${newToken}`;
-      message.success("Auto login success!");
     } else {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
