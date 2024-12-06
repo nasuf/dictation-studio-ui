@@ -8,8 +8,8 @@ export const USER_PLAN = {
 };
 export const USER_PLAN_DURATION = {
   BASIC: 30,
-  PRO: 30,
-  PREMIUM: 30,
+  PRO: 90,
+  PREMIUM: 180,
 };
 export const USER_ROLE = {
   ADMIN: "Admin",

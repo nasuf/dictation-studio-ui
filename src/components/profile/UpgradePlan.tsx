@@ -393,9 +393,9 @@ export const UpgradePlan: React.FC = () => {
     if (method === "stripe") {
       try {
         const duration =
-          selectedPlan === USER_PLAN.PRO
-            ? USER_PLAN_DURATION.PRO
-            : USER_PLAN_DURATION.PREMIUM;
+          USER_PLAN_DURATION[
+            selectedPlan!.toUpperCase() as keyof typeof USER_PLAN_DURATION
+          ];
 
         const response = await api.createStripeSession(
           selectedPlan!,
