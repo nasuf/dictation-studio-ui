@@ -127,6 +127,17 @@ const enTranslations = {
   wordsDeleteFailed: "Words delete failed",
   missedWordsSaved: "Missed words saved",
   missedWordsSaveFailed: "Missed words save failed",
+  cancelSubscriptionConfirm: "Cancel Subscription Confirmation",
+  cancelSubscriptionWarning:
+    "Are you sure you want to cancel your subscription?",
+  cancelSubscriptionWarning1:
+    "Your subscription will be cancelled at the end of the current billing period",
+  cancelSubscriptionWarning2:
+    "You will lose access to current plan features after the subscription ends",
+  cancelSubscriptionWarning3:
+    "You can resubscribe at any time to regain access once current billing period ends",
+  confirm: "Confirm",
+  cancelling: "Cancelling...",
 };
 
 const zhTranslations = {
@@ -250,6 +261,14 @@ const zhTranslations = {
   wordsDeleteFailed: "单词删除失败",
   missedWordsSaved: "单词已保存",
   missedWordsSaveFailed: "单词保存失败",
+  cancelSubscriptionConfirm: "确认取消订阅",
+  cancelSubscriptionWarning: "您确定要取消订阅吗？",
+  cancelSubscriptionWarning1: "您的订阅将在当前计费周期结束时取消",
+  cancelSubscriptionWarning2: "订阅结束后，您将失去对当前计划功能的访问权限",
+  cancelSubscriptionWarning3:
+    "您可以在当前计费周期结束后，随时重新订阅以恢复访问权限",
+  confirm: "确认",
+  cancelling: "取消中...",
 };
 
 const zhTraditionalTranslations = {
@@ -373,6 +392,14 @@ const zhTraditionalTranslations = {
   wordsDeleteFailed: "單詞刪除失敗",
   missedWordsSaved: "單詞已保存",
   missedWordsSaveFailed: "單詞保存失敗",
+  cancelSubscriptionConfirm: "確認取消訂閱",
+  cancelSubscriptionWarning: "您确定要取消訂閱嗎？",
+  cancelSubscriptionWarning1: "您的訂閱將在當前計費週期結束時取消",
+  cancelSubscriptionWarning2: "訂閱結束後，您將失去對當前計劃功能的訪問權限",
+  cancelSubscriptionWarning3:
+    "您可以在當前計費週期結束後，隨時重新訂閱以恢復訪問權限",
+  confirm: "確認",
+  cancelling: "取消中...",
 };
 
 const jaTranslations = {

@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
 import { PlanProps } from "@/utils/type";
+import { Modal, Button } from "antd";
+import { ExclamationCircleOutlined, LoadingOutlined } from "@ant-design/icons";
 
 const LoadingIcon: React.FC = () => {
   const { t } = useTranslation();
@@ -58,6 +60,8 @@ const PlanCard: React.FC<PlanProps> = ({
   onSelect,
   onCancel,
 }) => {
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const { t } = useTranslation();
   const mounted = useRef(true);
 
@@ -66,6 +70,22 @@ const PlanCard: React.FC<PlanProps> = ({
       mounted.current = false;
     };
   }, []);
+
+  const handleCancelSubscriptionClick = () => {
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    setIsCancelling(true);
+    try {
+      await onCancelSubscription();
+      setIsConfirmModalVisible(false);
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
     <div
@@ -188,7 +208,7 @@ const PlanCard: React.FC<PlanProps> = ({
         )}
       {isCurrent && !currentPlan?.expireTime && (
         <button
-          onClick={onCancelSubscription}
+          onClick={handleCancelSubscriptionClick}
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
             text-white bg-orange-500 hover:bg-orange-600
             dark:bg-red-600 dark:hover:bg-red-700
@@ -208,6 +228,83 @@ const PlanCard: React.FC<PlanProps> = ({
           {t("cancel")}
         </button>
       )}
+
+      <Modal
+        title={
+          <div className="flex items-center gap-2 text-red-500 dark:text-red-400">
+            <ExclamationCircleOutlined className="text-xl" />
+            <span>{t("cancelSubscriptionConfirm")}</span>
+          </div>
+        }
+        open={isConfirmModalVisible}
+        onCancel={() => !isCancelling && setIsConfirmModalVisible(false)}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setIsConfirmModalVisible(false)}
+            disabled={isCancelling}
+            className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+          >
+            {t("cancel")}
+          </Button>,
+          <Button
+            key="confirm"
+            type="primary"
+            danger
+            onClick={handleConfirmCancel}
+            loading={isCancelling}
+            icon={isCancelling ? <LoadingOutlined /> : null}
+            className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+          >
+            {isCancelling ? t("cancelling") : t("confirm")}
+          </Button>,
+        ]}
+        className="dark:bg-gray-800"
+        maskClosable={!isCancelling}
+        closable={!isCancelling}
+        width={480}
+        centered
+      >
+        <div className="py-4">
+          <div className="mb-6">
+            <p className="text-gray-700 dark:text-gray-300 text-base mb-4">
+              {t("cancelSubscriptionWarning")}
+            </p>
+            <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                  <span className="text-gray-600 dark:text-gray-300 text-sm">
+                    1
+                  </span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  {t("cancelSubscriptionWarning1")}
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                  <span className="text-gray-600 dark:text-gray-300 text-sm">
+                    2
+                  </span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  {t("cancelSubscriptionWarning2")}
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                  <span className="text-gray-600 dark:text-gray-300 text-sm">
+                    3
+                  </span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  {t("cancelSubscriptionWarning3")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
