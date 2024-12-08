@@ -92,6 +92,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
   const [configChanged, setConfigChanged] = useState(false);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const [isSavingDictationConfig, setIsSavingDictationConfig] = useState(false);
   // settings
   const autoRepeat = useSelector(
     (state: RootState) => state.user.userInfo?.dictation_config.auto_repeat || 0
@@ -730,11 +731,14 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
 
     try {
+      setIsSavingDictationConfig(true);
       await api.saveUserConfig({ dictation_config: config });
-      message.success(t("configSaved"));
+      message.success(t("dictationConfigUpdated"));
       setConfigChanged(false);
     } catch (error) {
-      message.error(t("configSaveFailed"));
+      message.error(t("dictationConfigUpdateFailed"));
+    } finally {
+      setIsSavingDictationConfig(false);
     }
   }, [playbackSpeed, autoRepeat, shortcuts, configChanged]);
 
@@ -880,7 +884,9 @@ const VideoMain: React.ForwardRefRenderFunction<
                 onOpenChange={handlePopoverVisibleChange}
               >
                 <Button
-                  icon={<SettingOutlined />}
+                  icon={
+                    isSavingDictationConfig ? <Spin /> : <SettingOutlined />
+                  }
                   className="absolute top-2 left-2 z-20 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300"
                 />
               </Popover>
