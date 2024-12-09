@@ -12,32 +12,39 @@ import {
   SkeletonImage,
 } from "./Widget";
 import { resetScrollPosition } from "@/utils/util";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setVideoName } from "@/redux/navigationSlice";
 import { t } from "i18next";
+import { RootState } from "@/redux/store";
+import { setVideos } from "@/redux/videoSlice";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
   const dispatch = useDispatch();
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [progress, setProgress] = useState<{ [key: string]: number }>({});
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
   );
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const videos: { [key: string]: Video[] } = useSelector(
+    (state: RootState) => state.video.videos
+  );
+  const progress = useSelector(
+    (state: RootState) => state.user.userInfo?.dictation_progress
+  );
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [videoResponse, progressResponse] = await Promise.all([
-          api.getVideoList(channelId!),
-          api.getChannelProgress(channelId!),
-        ]);
-        setVideos(videoResponse.data.videos);
-        setProgress(progressResponse.data.progress);
+        if (!videos[channelId!]) {
+          const videoResponse = await api.getVideoList(channelId!);
+          dispatch(
+            setVideos([
+              { channelId: channelId!, videos: videoResponse.data.videos },
+            ])
+          );
+        }
         setLoadedImages(
-          videoResponse.data.videos.reduce(
+          videos[channelId!].reduce(
             (acc: { [key: string]: boolean }, video: Video) => {
               acc[video.video_id] = false;
               return acc;
@@ -71,7 +78,7 @@ const VideoList: React.FC = () => {
 
   return (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
-      {videos.length === 0 ? (
+      {videos[channelId!].length === 0 ? (
         <div className="flex justify-center items-center h-full w-full">
           <Empty
             description={isUnauthorized ? t("unauthorized") : t("comingSoon")}
@@ -79,7 +86,7 @@ const VideoList: React.FC = () => {
         </div>
       ) : (
         <VideoCardGrid>
-          {videos.map((video) => (
+          {videos[channelId!].map((video) => (
             <Link
               key={video.video_id}
               to={`/dictation/video/${channelId}/${video.video_id}`}
@@ -120,7 +127,10 @@ const VideoList: React.FC = () => {
                   }
                 />
                 <Progress
-                  percent={progress[video.video_id] || 0}
+                  percent={
+                    progress?.[`${channelId}:${video.video_id}`]
+                      ?.overallCompletion || 0
+                  }
                   size="small"
                   status="active"
                   style={{ marginTop: "10px" }}

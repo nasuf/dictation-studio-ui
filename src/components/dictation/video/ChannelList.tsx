@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/api";
-import { Channel } from "@/utils/type";
 import {
   ChannelGrid,
   ChannelCard,
@@ -10,20 +9,24 @@ import {
   ChannelName,
   ScrollableContainer,
 } from "@/components/dictation/video/Widget";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setChannelName, resetNavigation } from "@/redux/navigationSlice";
+import { setChannels } from "@/redux/channelSlice";
+import { RootState } from "@/redux/store";
 
 const ChannelList: React.FC = () => {
   const dispatch = useDispatch();
-  const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const channels = useSelector((state: RootState) => state.channel.channels);
 
   useEffect(() => {
     dispatch(resetNavigation());
     const fetchChannels = async () => {
       try {
-        const response = await api.getChannels();
-        setChannels(response.data);
+        if (channels.length === 0) {
+          const response = await api.getChannels();
+          dispatch(setChannels(response.data));
+        }
       } catch (error) {
         console.error("Error fetching channels:", error);
       } finally {

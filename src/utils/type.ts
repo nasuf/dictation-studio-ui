@@ -7,6 +7,15 @@ export interface UserInfo {
   role: string;
   dictation_config: DictationConfig;
   missed_words: string[];
+  dictation_progress: DictationProgress;
+}
+
+export interface DictationProgress {
+  [key: string]: {
+    currentTime: number;
+    overallCompletion: number;
+    userInput: { [key: number]: string };
+  };
 }
 
 export interface Plan {
