@@ -8,6 +8,15 @@ export interface UserInfo {
   dictation_config: DictationConfig;
   missed_words: string[];
   dictation_progress: DictationProgress;
+  duration_data: DurationData;
+}
+
+export interface DurationData {
+  channels: {
+    [key: string]: { duration: number; videos: { [key: string]: number } };
+  };
+  date: { [key: string]: number };
+  duration: number;
 }
 
 export interface DictationProgress {

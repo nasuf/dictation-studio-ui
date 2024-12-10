@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
@@ -9,8 +8,12 @@ import { subYears, format } from "date-fns";
 import { DailyDuration } from "@/utils/type";
 import { motion } from "framer-motion";
 import { USER_PLAN, USER_ROLE } from "@/utils/const";
+import { api } from "@/api/api";
 
 const Information: React.FC = () => {
+  const durationData = useSelector(
+    (state: RootState) => state.user.userInfo?.duration_data
+  );
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [loading, setLoading] = useState(true);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
@@ -20,25 +23,35 @@ const Information: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.getUserDuration();
-        setTotalDuration(response.data.totalDuration);
-        const durationsArray = Object.entries(response.data.dailyDurations).map(
-          ([date, duration]) => ({
+        setLoading(true);
+        if (durationData) {
+          setTotalDuration(durationData.duration);
+          setDailyDurations(
+            Object.entries(durationData.date).map(([date, duration]) => ({
+              date,
+              count: duration as number,
+            }))
+          );
+        } else {
+          const response = await api.getUserDuration();
+          setTotalDuration(response.data.totalDuration);
+          const durationsArray = Object.entries(
+            response.data.dailyDurations
+          ).map(([date, duration]) => ({
             date,
             count: duration as number,
-          })
-        );
-        setDailyDurations(durationsArray);
+          }));
+          setDailyDurations(durationsArray);
+        }
       } catch (error) {
         console.error("Error fetching user duration:", error);
-      }
-      if (userInfo) {
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [userInfo]);
+  }, [durationData]);
 
   const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
