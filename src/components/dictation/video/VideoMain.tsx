@@ -43,6 +43,7 @@ import Timer from "./Timer";
 import { RootState } from "@/redux/store";
 import { store } from "@/redux/store";
 import Settings from "./Settings";
+import { setTranscript } from "@/redux/videoSlice";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -67,7 +68,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const playerRef = useRef<YouTubePlayer | null>(null);
   const subtitlesRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
-  const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [isLoadingTranscript, setIsLoadingTranscript] = useState(true);
   const [videoTitle, setVideoTitle] = useState("");
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
@@ -110,6 +110,11 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
   );
   const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
+  const transcript = useSelector(
+    (state: RootState) =>
+      state.video.videos[channelId!].find((video) => video.video_id === videoId)
+        ?.transcript
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,7 +124,6 @@ const VideoMain: React.ForwardRefRenderFunction<
         api.getUserProgress(channelId!, videoId!),
       ]);
 
-      setTranscript(transcriptResponse.data.transcript);
       setVideoTitle(transcriptResponse.data.title);
       if (
         progressResponse.data &&
@@ -176,7 +180,13 @@ const VideoMain: React.ForwardRefRenderFunction<
       ...item,
       userInput: progress.userInput[index] || "",
     }));
-    setTranscript(newTranscript);
+    dispatch(
+      setTranscript({
+        channelId: channelId!,
+        videoId: videoId!,
+        transcript: newTranscript,
+      })
+    );
 
     const lastInputIndex = Math.max(
       ...Object.keys(progress.userInput).map(Number)
@@ -219,9 +229,24 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const resetProgress = (transcriptData?: TranscriptItem[]) => {
     if (transcriptData) {
-      setTranscript(transcriptData.map((item) => ({ ...item, userInput: "" })));
+      dispatch(
+        setTranscript({
+          channelId: channelId!,
+          videoId: videoId!,
+          transcript: transcriptData.map((item) => ({
+            ...item,
+            userInput: "",
+          })),
+        })
+      );
     } else {
-      setTranscript(transcript.map((item) => ({ ...item, userInput: "" })));
+      dispatch(
+        setTranscript({
+          channelId: channelId!,
+          videoId: videoId!,
+          transcript: transcript!.map((item) => ({ ...item, userInput: "" })),
+        })
+      );
     }
     setRevealedSentences([]);
     setCurrentSentenceIndex(0);
@@ -351,9 +376,9 @@ const VideoMain: React.ForwardRefRenderFunction<
   );
 
   const playCurrentSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
+    if (!playerRef.current || transcript!.length === 0) return;
     clearIntervalIfExists();
-    const currentSentence = transcript[currentSentenceIndex];
+    const currentSentence = transcript![currentSentenceIndex];
     if (autoRepeat > 0) {
       repeatSentence(currentSentence);
     } else {
@@ -363,15 +388,15 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [clearIntervalIfExists, currentSentenceIndex, playSentence, transcript]);
 
   const playNextSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
+    if (!playerRef.current || transcript!.length === 0) return;
     clearIntervalIfExists();
-    const nextIndex = (currentSentenceIndex + 1) % transcript.length;
+    const nextIndex = (currentSentenceIndex + 1) % transcript!.length;
     if (nextIndex === 0) {
       setIsCompleted(true);
       onComplete();
     } else {
       setCurrentSentenceIndex(nextIndex);
-      const nextSentence = transcript[nextIndex];
+      const nextSentence = transcript![nextIndex];
       if (autoRepeat > 0) {
         repeatSentence(nextSentence);
       } else {
@@ -382,12 +407,12 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
 
   const playPreviousSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
+    if (!playerRef.current || transcript!.length === 0) return;
     clearIntervalIfExists();
     const prevIndex =
-      (currentSentenceIndex - 1 + transcript.length) % transcript.length;
+      (currentSentenceIndex - 1 + transcript!.length) % transcript!.length;
     setCurrentSentenceIndex(prevIndex);
-    const prevSentence = transcript[prevIndex];
+    const prevSentence = transcript![prevIndex];
     if (autoRepeat > 0) {
       repeatSentence(prevSentence);
     } else {
@@ -418,14 +443,17 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const saveUserInput = () => {
     if (userInput.trim() !== "") {
-      setTranscript((prevTranscript) => {
-        const newTranscript = [...prevTranscript];
-        newTranscript[currentSentenceIndex] = {
-          ...newTranscript[currentSentenceIndex],
-          userInput: userInput,
-        };
-        return newTranscript;
-      });
+      dispatch(
+        setTranscript({
+          channelId: channelId!,
+          videoId: videoId!,
+          transcript: transcript!.map((item, index) => ({
+            ...item,
+            userInput:
+              index === currentSentenceIndex ? userInput : item.userInput,
+          })),
+        })
+      );
       setRevealedSentences((prev) =>
         prev.includes(currentSentenceIndex)
           ? prev
@@ -435,7 +463,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     setUserInput("");
     dispatch(
       setIsDictationStarted(
-        Object.values(transcript).some(
+        Object.values(transcript!).some(
           (item) => item.userInput !== "" && item.userInput !== null
         )
       )
@@ -520,7 +548,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       return normalized.toLowerCase();
     };
 
-    const missedWords = transcript.flatMap((item, index) => {
+    const missedWords = transcript!.flatMap((item, index) => {
       if (item.userInput && revealedSentences.includes(index)) {
         const { transcriptResult } = compareInputWithTranscript(
           item.userInput,
@@ -538,19 +566,19 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const updateOverallProgress = useCallback(() => {
-    const totalWords = transcript.reduce(
+    const totalWords = transcript!.reduce(
       (sum, item) => sum + item.transcript.split(/\s+/).length,
       0
     );
 
-    const completedWords = transcript.reduce((sum, item, index) => {
+    const completedWords = transcript!.reduce((sum, item, index) => {
       if (revealedSentences.includes(index)) {
         return sum + item.transcript.split(/\s+/).length;
       }
       return sum;
     }, 0);
 
-    const correctWords = transcript.reduce((sum, item, index) => {
+    const correctWords = transcript!.reduce((sum, item, index) => {
       if (item.userInput && revealedSentences.includes(index)) {
         const { completionPercentage } = compareInputWithTranscript(
           item.userInput,
@@ -618,7 +646,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const saveProgress = useCallback(async () => {
     const userInputJson: { [key: number]: string } = {};
-    transcript.forEach((item, index) => {
+    transcript!.forEach((item, index) => {
       if (item.userInput && item.userInput.trim() !== "") {
         userInputJson[index] = item.userInput.trim();
       }
@@ -778,7 +806,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!playerRef.current || transcript.length === 0) return;
+      if (!playerRef.current || transcript!.length === 0) return;
       if (settingShortcut) {
         e.preventDefault();
         dispatch(
@@ -909,7 +937,7 @@ const VideoMain: React.ForwardRefRenderFunction<
               </button>
               <button
                 onClick={playNextSentence}
-                disabled={currentSentenceIndex === transcript.length - 1}
+                disabled={currentSentenceIndex === transcript!.length - 1}
                 className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
               >
                 <StepForwardOutlined className="text-lg" />
@@ -958,7 +986,7 @@ const VideoMain: React.ForwardRefRenderFunction<
                   className="flex-grow overflow-y-auto custom-scrollbar"
                 >
                   <div className="p-4 pb-20">
-                    {transcript.map((item, index) => (
+                    {transcript!.map((item, index) => (
                       <div
                         key={index}
                         className={`subtitle-item ${

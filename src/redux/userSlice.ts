@@ -8,6 +8,7 @@ interface UserState {
   isSavingProgress: boolean;
   isLoginModalVisible: boolean;
   currentMissedWords: string[];
+  isAuthorized: boolean;
 }
 
 const initialState: UserState = {
@@ -17,6 +18,7 @@ const initialState: UserState = {
   isSavingProgress: false,
   isLoginModalVisible: false,
   currentMissedWords: [],
+  isAuthorized: false,
 };
 
 const userSlice = createSlice({
@@ -25,9 +27,11 @@ const userSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<UserInfo | null>) => {
       state.userInfo = action.payload;
+      state.isAuthorized = true;
     },
     clearUser: (state) => {
       state.userInfo = null;
+      state.isAuthorized = false;
     },
     setIsDictationStarted: (state, action: PayloadAction<boolean>) => {
       state.isDictationStarted = action.payload;

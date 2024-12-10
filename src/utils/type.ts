@@ -55,6 +55,7 @@ export interface Video {
   video_id: string;
   link: string;
   title: string;
+  transcript: TranscriptItem[];
 }
 
 export interface ProgressData {

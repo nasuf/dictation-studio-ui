@@ -13,7 +13,7 @@ import { api } from "@/api/api";
 import "../global.css";
 import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
-import { DEFAULT_LANGUAGE, USER_KEY } from "@/utils/const";
+import { DEFAULT_LANGUAGE } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 
 const { Header, Content, Footer } = Layout;
@@ -59,15 +59,9 @@ const App: React.FC = () => {
             username: user_metadata.full_name,
           };
 
-          const storedUserInfo = JSON.parse(
-            localStorage.getItem(USER_KEY) || "{}"
-          );
-
           if (
-            (userInfo.email !== storedUserInfo.email ||
-              userInfo.avatar !== storedUserInfo.avatar ||
-              userInfo.username !== storedUserInfo.username) &&
-            (provider === "google" || (provider === "email" && emailVerified))
+            provider === "google" ||
+            (provider === "email" && emailVerified)
           ) {
             try {
               const response = await api.updateUserInfo(userInfo);
@@ -80,8 +74,6 @@ const App: React.FC = () => {
             } catch (error) {
               message.error(t("loginFailed"));
             }
-          } else {
-            dispatch(setUser(storedUserInfo));
           }
         }
       }

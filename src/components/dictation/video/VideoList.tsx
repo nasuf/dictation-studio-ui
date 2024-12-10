@@ -24,7 +24,9 @@ const VideoList: React.FC = () => {
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
   );
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const isAuthorized = useSelector(
+    (state: RootState) => state.user.isAuthorized
+  );
   const [loading, setLoading] = useState(true);
   const videos: { [key: string]: Video[] } = useSelector(
     (state: RootState) => state.video.videos
@@ -52,10 +54,6 @@ const VideoList: React.FC = () => {
             {}
           )
         );
-      } catch (error: any) {
-        if (error.response && error.response.status === 401) {
-          setIsUnauthorized(true);
-        }
       } finally {
         setLoading(false);
       }
@@ -78,10 +76,12 @@ const VideoList: React.FC = () => {
 
   return (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
-      {videos[channelId!].length === 0 ? (
+      {videos[channelId!] === undefined ||
+      videos[channelId!].length === 0 ||
+      !isAuthorized ? (
         <div className="flex justify-center items-center h-full w-full">
           <Empty
-            description={isUnauthorized ? t("unauthorized") : t("comingSoon")}
+            description={isAuthorized ? t("comingSoon") : t("unauthorized")}
           />
         </div>
       ) : (

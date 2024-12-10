@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { Video } from "@/utils/type";
+import { TranscriptItem, Video } from "@/utils/type";
 import { PayloadAction } from "@reduxjs/toolkit";
 
 interface VideoState {
@@ -23,8 +23,20 @@ const videoSlice = createSlice({
         state.videos[channelId] = videos;
       });
     },
+    setTranscript: (
+      state,
+      action: PayloadAction<{
+        channelId: string;
+        videoId: string;
+        transcript: TranscriptItem[];
+      }>
+    ) => {
+      state.videos[action.payload.channelId].find(
+        (video) => video.video_id === action.payload.videoId
+      )!.transcript = action.payload.transcript;
+    },
   },
 });
 
-export const { setVideos } = videoSlice.actions;
+export const { setVideos, setTranscript } = videoSlice.actions;
 export default videoSlice.reducer;
