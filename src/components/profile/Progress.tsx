@@ -9,7 +9,7 @@ import {
   VideoCardGrid,
   SkeletonImage,
 } from "@/components/dictation/video/Widget";
-import { UserProgressData } from "@/utils/type";
+import { ProgressData } from "@/utils/type";
 import { Link } from "react-router-dom";
 import { resetScrollPosition } from "@/utils/util";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 const { Content, Sider } = Layout;
 
 const UserProgress: React.FC = () => {
-  const [allProgress, setAllProgress] = useState<UserProgressData[]>([]);
+  const [allProgress, setAllProgress] = useState<ProgressData[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>(
     {}
@@ -36,7 +36,7 @@ const UserProgress: React.FC = () => {
         }
         setLoadedImages(
           data.progress.reduce(
-            (acc: { [key: string]: boolean }, item: UserProgressData) => {
+            (acc: { [key: string]: boolean }, item: ProgressData) => {
               acc[item.videoId] = false;
               return acc;
             },

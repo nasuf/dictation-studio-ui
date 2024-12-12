@@ -55,15 +55,9 @@ export interface ProgressData {
   currentTime: number;
   overallCompletion: number;
   duration: number;
-}
-
-export interface UserProgressData {
-  channelId: string;
-  channelName: string;
-  videoId: string;
-  videoTitle: string;
-  videoLink: string;
-  overallCompletion: number;
+  channelName?: string;
+  videoTitle?: string;
+  videoLink?: string;
 }
 
 export interface TranscriptItem {
