@@ -1,4 +1,4 @@
-name: Build and Deploy to VPS
+name: Build and Deploy Dictation Studio UI to VPS
 
 on:
   push:
