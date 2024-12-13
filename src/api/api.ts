@@ -67,7 +67,8 @@ axiosInstance.interceptors.response.use((response) => {
 });
 
 export const api = {
-  getChannels: () => axiosInstance.get("/service/channel"),
+  getChannels: (ignore_visibility: boolean = false) =>
+    axiosInstance.get("/service/channel", { params: { ignore_visibility } }),
   uploadChannels: (channels: { channels: Channel[] }) =>
     axiosInstance.post("/service/channel", channels),
   getVideoList: (channelId: string) =>

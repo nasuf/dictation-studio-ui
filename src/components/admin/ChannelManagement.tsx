@@ -112,7 +112,7 @@ const ChannelManagement: React.FC = () => {
   const fetchChannels = async () => {
     setIsLoading(true);
     try {
-      const response = await api.getChannels();
+      const response = await api.getChannels(true);
       setChannels(response.data);
     } catch (error) {
       console.error("Error fetching channels:", error);

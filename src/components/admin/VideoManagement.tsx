@@ -195,7 +195,7 @@ const VideoManagement: React.FC = () => {
 
   const fetchChannels = async () => {
     try {
-      const response = await api.getChannels();
+      const response = await api.getChannels(true);
       setChannels(response.data);
       if (response.data.length > 0) {
         const firstChannelId = response.data[0].id;
