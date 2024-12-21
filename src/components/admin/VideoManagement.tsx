@@ -10,7 +10,6 @@ import {
   Card,
   Modal,
   Upload,
-  InputNumber,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -24,6 +23,8 @@ import {
   CheckCircleOutlined,
   SaveOutlined,
   CloseOutlined,
+  LockOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -245,6 +246,7 @@ const VideoManagement: React.FC = () => {
         channel_id: selectedChannel,
         video_link: video.link,
         title: video.title,
+        visibility: "hidden",
       }));
 
       formData.append("data", JSON.stringify(videoData));
@@ -316,29 +318,55 @@ const VideoManagement: React.FC = () => {
     setEditingKey("");
   };
 
-  const saveVideo = async (key: string) => {
+  const saveVideo = async (key: string, fieldName?: string) => {
     try {
-      const row = await form.validateFields();
+      let updatedFields: Partial<Video>;
+
+      if (fieldName) {
+        const value = form.getFieldValue(fieldName);
+        updatedFields = { [fieldName]: value } as Partial<Video>;
+      } else {
+        const currentValues = await form.validateFields();
+        const originalVideo = videos.find((v) => v.video_id === key);
+
+        if (!originalVideo) {
+          message.error("Video not found");
+          return;
+        }
+
+        updatedFields = {};
+        (Object.keys(currentValues) as Array<keyof Video>).forEach((field) => {
+          if (currentValues[field] !== originalVideo[field]) {
+            updatedFields[field] = currentValues[field];
+          }
+        });
+
+        if (Object.keys(updatedFields).length === 0) {
+          setEditingKey("");
+          return;
+        }
+      }
+
+      await api.updateVideo(selectedChannel!, key, updatedFields);
       const newData = [...videos];
       const index = newData.findIndex((item) => key === item.video_id);
       if (index > -1) {
-        const item = newData[index];
-        const updatedItem = {
-          ...item,
-          ...row,
+        newData[index] = {
+          ...newData[index],
+          ...updatedFields,
         };
-        newData.splice(index, 1, updatedItem);
-        await api.updateVideo(selectedChannel!, key, updatedItem);
         setVideos(newData);
-        setEditingKey("");
+        if (!fieldName) {
+          setEditingKey("");
+        }
         message.success("Video updated successfully");
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
+      message.error("Failed to update video");
     }
   };
 
-  // 转录文本的保存方法
   const saveTranscript = async (key: string) => {
     try {
       const row = await form.validateFields();
@@ -586,6 +614,31 @@ const VideoManagement: React.FC = () => {
       width: "30%",
     },
     {
+      title: "Visibility",
+      dataIndex: "visibility",
+      key: "visibility",
+      width: "15%",
+      editable: false,
+      render: (visibility: string, record: Video) => (
+        <Select
+          value={visibility}
+          style={{ width: 120 }}
+          onChange={(value) => {
+            form.setFieldsValue({ visibility: value });
+            saveVideo(record.video_id, "visibility");
+          }}
+          className="video-visibility-select"
+        >
+          <Option value="public" className="visibility-option">
+            <GlobalOutlined /> Public
+          </Option>
+          <Option value="hidden" className="visibility-option">
+            <LockOutlined /> Hidden
+          </Option>
+        </Select>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (_: string, record: Video) => {
@@ -778,7 +831,9 @@ const EditableCell: React.FC<any> = ({
   children,
   ...restProps
 }) => {
-  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+  if (dataIndex === "visibility") {
+    return <td {...restProps}>{children}</td>;
+  }
 
   return (
     <td {...restProps}>
@@ -793,7 +848,7 @@ const EditableCell: React.FC<any> = ({
             },
           ]}
         >
-          {inputNode}
+          <Input />
         </Form.Item>
       ) : (
         children

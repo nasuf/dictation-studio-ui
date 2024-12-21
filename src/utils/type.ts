@@ -44,8 +44,9 @@ export interface Channel {
 
 export interface Video {
   video_id: string;
-  link: string;
   title: string;
+  link: string;
+  visibility: string;
 }
 
 export interface ProgressData {

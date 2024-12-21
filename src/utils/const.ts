@@ -141,3 +141,8 @@ export const ARTICLES_AND_DETERMINERS = [
   "each",
   "every",
 ];
+
+export const VISIBILITY_OPTIONS = [
+  { label: "Public", value: "public" },
+  { label: "Private", value: "private" },
+];

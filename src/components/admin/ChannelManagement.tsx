@@ -151,17 +151,33 @@ const ChannelManagement: React.FC = () => {
 
   const save = async (key: string) => {
     try {
-      const row = await form.validateFields();
+      const currentValues = await form.validateFields();
       const newData = [...channels];
       const index = newData.findIndex((item) => key === item.id);
+
       if (index > -1) {
-        const item = newData[index];
+        const originalChannel = channels[index];
+
+        const updatedFields: Partial<Channel> = {};
+        (Object.keys(currentValues) as Array<keyof Channel>).forEach(
+          (field) => {
+            if (currentValues[field] !== originalChannel[field]) {
+              updatedFields[field] = currentValues[field];
+            }
+          }
+        );
+
+        if (Object.keys(updatedFields).length === 0) {
+          setEditingKey("");
+          return;
+        }
+
+        await api.updateChannel(key, updatedFields);
+
         const updatedItem = {
-          ...item,
-          ...row,
+          ...originalChannel,
+          ...updatedFields,
         };
-        // Update the channel in the backend
-        await api.updateChannel(key, updatedItem);
         newData.splice(index, 1, updatedItem);
         setChannels(newData);
         setEditingKey("");
@@ -169,6 +185,7 @@ const ChannelManagement: React.FC = () => {
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
+      message.error("Failed to update channel");
     }
   };
 

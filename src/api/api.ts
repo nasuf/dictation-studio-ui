@@ -145,20 +145,21 @@ export const api = {
   updateVideo: (
     channelId: string,
     videoId: string,
-    videoData: Partial<Video>
+    updatedFields: Partial<Video>
   ) =>
-    axiosInstance.put(`/service/video-list/${channelId}/${videoId}`, videoData),
+    axiosInstance.put(
+      `/service/video-list/${channelId}/${videoId}`,
+      updatedFields
+    ),
 
   getAllProgress: () => axiosInstance.get("/user/all-progress"),
-  saveDictationTime: (channelId: string, videoId: string, time: number) =>
-    axios.post(`/api/dictation/time`, { channelId, videoId, time }),
   saveUserConfig: (config: Partial<UserInfo>) =>
     axiosInstance.post("/user/config", config),
   getUserDuration: () => axiosInstance.get("/user/duration"),
 
   // Add these new methods for channel management
-  updateChannel: (channelId: string, channelData: Partial<Channel>) =>
-    axiosInstance.put(`/service/channel/${channelId}`, channelData),
+  updateChannel: (channelId: string, updatedFields: Partial<Channel>) =>
+    axiosInstance.put(`/service/channel/${channelId}`, updatedFields),
 
   updateChannelVisibility: (channelId: string, visibility: string) =>
     axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
@@ -182,4 +183,12 @@ export const api = {
   deleteMissedWords: (words: string[]) =>
     axiosInstance.delete("/user/missed-words", { data: { words } }),
   cancelSubscription: () => axiosInstance.post("/payment/cancel-subscription"),
+  updateVideoVisibility: (
+    channelId: string,
+    videoId: string,
+    visibility: string
+  ) =>
+    axios.put(`/api/channels/${channelId}/videos/${videoId}/visibility`, {
+      visibility,
+    }),
 };
