@@ -31,7 +31,7 @@ const VideoList: React.FC = () => {
     const fetchData = async () => {
       try {
         const [videoResponse, progressResponse] = await Promise.all([
-          api.getVideoList(channelId!),
+          api.getVideoList(channelId!, false),
           api.getChannelProgress(channelId!),
         ]);
         setVideos(videoResponse.data.videos);

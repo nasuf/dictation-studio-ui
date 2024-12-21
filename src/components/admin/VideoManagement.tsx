@@ -212,7 +212,7 @@ const VideoManagement: React.FC = () => {
   const fetchVideos = async (channelId: string) => {
     setIsLoading(true);
     try {
-      const response = await api.getVideoList(channelId);
+      const response = await api.getVideoList(channelId, true);
       setVideos(response.data.videos);
     } catch (error) {
       console.error("Error fetching videos:", error);

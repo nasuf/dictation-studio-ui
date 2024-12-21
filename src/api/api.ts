@@ -71,8 +71,10 @@ export const api = {
     axiosInstance.get("/service/channel", { params: { ignore_visibility } }),
   uploadChannels: (channels: { channels: Channel[] }) =>
     axiosInstance.post("/service/channel", channels),
-  getVideoList: (channelId: string) =>
-    axiosInstance.get(`/service/video-list/${channelId}`),
+  getVideoList: (channelId: string, ignore_visibility: boolean = false) =>
+    axiosInstance.get(`/service/video-list/${channelId}`, {
+      params: { ignore_visibility },
+    }),
   getVideoTranscript: (channelId: string, videoId: string) =>
     axiosInstance.get(`/service/video-transcript/${channelId}/${videoId}`),
   uploadVideos: async (formData: FormData) => {
