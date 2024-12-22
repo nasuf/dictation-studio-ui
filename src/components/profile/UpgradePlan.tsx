@@ -17,6 +17,7 @@ import { setUser } from "@/redux/userSlice";
 import { PlanProps } from "@/utils/type";
 import { Modal, Button } from "antd";
 import { ExclamationCircleOutlined, LoadingOutlined } from "@ant-design/icons";
+import { ScrollableContainer } from "@/components/dictation/video/Widget";
 
 const LoadingIcon: React.FC = () => {
   const { t } = useTranslation();
@@ -90,7 +91,7 @@ const PlanCard: React.FC<PlanProps> = ({
   return (
     <div
       className={`
-        relative rounded-lg p-6
+        relative rounded-lg p-10
         dark:bg-gray-800 bg-white
         transition-all duration-300
         hover:border-2 hover:border-green-500
@@ -194,13 +195,14 @@ const PlanCard: React.FC<PlanProps> = ({
             }
             className={`
               w-full py-4 px-6 rounded-xl font-semibold text-center
-            transition-all duration-300
+              transition-all duration-300
               ${
                 currentPlan !== undefined &&
                 (!isCurrent || (isCurrent && currentPlan?.expireTime !== null))
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
                   : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
               }
+              min-w-[200px] mx-auto block
             `}
           >
             {t("selectPlan")}
@@ -212,7 +214,7 @@ const PlanCard: React.FC<PlanProps> = ({
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
             text-white bg-orange-500 hover:bg-orange-600
             dark:bg-red-600 dark:hover:bg-red-700
-            transition-all duration-300"
+            transition-all duration-300 min-w-[200px] mx-auto block"
         >
           {t("cancelSubscription")}
         </button>
@@ -223,7 +225,7 @@ const PlanCard: React.FC<PlanProps> = ({
           className="w-full py-4 px-6 rounded-xl font-semibold text-center
             text-gray-700 bg-gray-200 hover:bg-gray-300
             dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
-            transition-all duration-300"
+            transition-all duration-300 min-w-[200px] mx-auto block"
         >
           {t("cancel")}
         </button>
@@ -345,7 +347,7 @@ const PaymentOptions: React.FC<{
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <h3 className="text-xl font-semibold mb-6 dark:text-white">
+      <h3 className="text-xl font-semibold mb-6 pl-10 pr-10 dark:text-white">
         {t("selectSubscriptionMethod")}
       </h3>
 
@@ -518,8 +520,8 @@ export const UpgradePlan: React.FC = () => {
   }, [location.search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="text-center mb-12">
+    <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar flex flex-col items-center">
+      <div className="text-center mb-12 mt-12">
         <h2 className="text-3xl font-bold mb-4 dark:text-white">
           {t("choosePlanTitle")}
         </h2>
@@ -579,6 +581,6 @@ export const UpgradePlan: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </ScrollableContainer>
   );
 };
