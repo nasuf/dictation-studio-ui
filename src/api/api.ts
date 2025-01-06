@@ -193,4 +193,5 @@ export const api = {
     axios.put(`/api/channels/${channelId}/videos/${videoId}/visibility`, {
       visibility,
     }),
+  clearCache: () => axiosInstance.post("/service/clear-cache"),
 };

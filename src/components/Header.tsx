@@ -124,6 +124,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {t("adminPanel")}
         </Menu.Item>
       )}
+      {userInfo?.role === USER_ROLE.ADMIN && (
+        <Menu.Item
+          key="clear-cache"
+          onClick={() => api.clearCache()}
+          className="header-menu-item"
+        >
+          {t("clearCache")}
+        </Menu.Item>
+      )}
       <Menu.Item key="logout" onClick={logout} className="header-menu-item">
         {t("logout")}
       </Menu.Item>
