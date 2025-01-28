@@ -185,13 +185,5 @@ export const api = {
   deleteMissedWords: (words: string[]) =>
     axiosInstance.delete("/user/missed-words", { data: { words } }),
   cancelSubscription: () => axiosInstance.post("/payment/cancel-subscription"),
-  updateVideoVisibility: (
-    channelId: string,
-    videoId: string,
-    visibility: string
-  ) =>
-    axios.put(`/api/channels/${channelId}/videos/${videoId}/visibility`, {
-      visibility,
-    }),
   clearCache: () => axiosInstance.post("/service/clear-cache"),
 };

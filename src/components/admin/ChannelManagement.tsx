@@ -235,6 +235,23 @@ const ChannelManagement: React.FC = () => {
       ),
     },
     {
+      title: "Link",
+      dataIndex: "link",
+      key: "link",
+      editable: true,
+      render: (text: string, record: Channel) => (
+        <span
+          className={`channel-link ${
+            record.visibility === "hidden" ? "channel-hidden" : ""
+          }`}
+        >
+          <a href={text} target="_blank" rel="noopener noreferrer">
+            {text}
+          </a>
+        </span>
+      ),
+    },
+    {
       title: "Image",
       dataIndex: "image_url",
       key: "image",
