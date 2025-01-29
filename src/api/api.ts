@@ -159,12 +159,13 @@ export const api = {
     axiosInstance.post("/user/config", config),
   getUserDuration: () => axiosInstance.get("/user/duration"),
 
-  // Add these new methods for channel management
   updateChannel: (channelId: string, updatedFields: Partial<Channel>) =>
     axiosInstance.put(`/service/channel/${channelId}`, updatedFields),
 
   updateChannelVisibility: (channelId: string, visibility: string) =>
     axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
+  updateChannelLanguage: (channelId: string, language: string) =>
+    axiosInstance.put(`/service/channel/${channelId}`, { language }),
   restoreTranscript: (channelId: string, videoId: string) =>
     axiosInstance.post(`/service/${channelId}/${videoId}/restore-transcript`),
   updateUserInfo: (userInfo: Partial<UserInfo>) => {

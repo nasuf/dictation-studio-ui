@@ -66,6 +66,39 @@ const AddChannelForm: React.FC<{
                 >
                   <Input placeholder="Image URL" />
                 </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, "link"]}
+                  rules={[{ required: true, message: "Missing channel link" }]}
+                >
+                  <Input placeholder="Channel Link" />
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, "language"]}
+                  rules={[
+                    { required: true, message: "Missing channel language" },
+                  ]}
+                >
+                  <Select placeholder="Channel Language">
+                    <Option value="en">English</Option>
+                    <Option value="zh">Chinese</Option>
+                    <Option value="ja">Japanese</Option>
+                    <Option value="ko">Korean</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, "visibility"]}
+                  rules={[
+                    { required: true, message: "Missing channel visibility" },
+                  ]}
+                >
+                  <Select placeholder="Channel Visibility">
+                    <Option value="public">Public</Option>
+                    <Option value="hidden">Hidden</Option>
+                  </Select>
+                </Form.Item>
                 <MinusCircleOutlined onClick={() => remove(name)} />
               </Space>
             ))}
@@ -203,6 +236,17 @@ const ChannelManagement: React.FC = () => {
     }
   };
 
+  const updateChannelLanguage = async (channelId: string, language: string) => {
+    try {
+      await api.updateChannelLanguage(channelId, language);
+      message.success("Channel language updated successfully");
+      fetchChannels(); // Refresh the channel list
+    } catch (error) {
+      console.error("Error updating channel language:", error);
+      message.error("Failed to update channel language");
+    }
+  };
+
   const columns = [
     {
       title: "Name",
@@ -295,6 +339,32 @@ const ChannelManagement: React.FC = () => {
       ),
     },
     {
+      title: "Language",
+      dataIndex: "language",
+      key: "language",
+      render: (language: string, record: Channel) => (
+        <Select
+          value={language}
+          style={{ width: 120 }}
+          onChange={(value) => updateChannelLanguage(record.id, value)}
+          className="channel-language-select"
+        >
+          <Option value="en" className="language-option">
+            English
+          </Option>
+          <Option value="zh" className="language-option">
+            Chinese
+          </Option>
+          <Option value="ja" className="language-option">
+            Japanese
+          </Option>
+          <Option value="ko" className="language-option">
+            Korean
+          </Option>
+        </Select>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (_: any, record: Channel) => {
@@ -378,7 +448,7 @@ const ChannelManagement: React.FC = () => {
         open={isAddChannelModalVisible}
         onCancel={() => setIsAddChannelModalVisible(false)}
         footer={null}
-        width={800}
+        width={1000}
       >
         <AddChannelForm onFinish={onFinish} isLoading={isLoading} form={form} />
       </Modal>
