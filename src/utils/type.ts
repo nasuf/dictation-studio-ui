@@ -40,6 +40,8 @@ export interface Channel {
   id: string;
   image_url: string;
   visibility: string;
+  language: string;
+  link: string;
 }
 
 export interface Video {

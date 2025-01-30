@@ -17,15 +17,13 @@ import {
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
-  LockOutlined,
-  GlobalOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { Channel } from "@/utils/type";
-import { USER_ROLE } from "@/utils/const";
+import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -131,21 +129,29 @@ const ChannelManagement: React.FC = () => {
   const [isAddChannelModalVisible, setIsAddChannelModalVisible] =
     useState(false);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
-
   const [editingKey, setEditingKey] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
+    LANGUAGES.All
+  );
+  const [selectedVisibility, setSelectedVisibility] = useState<string>(
+    VISIBILITY_OPTIONS.All
+  );
 
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
 
   useEffect(() => {
-    fetchChannels();
-  }, []);
+    fetchChannels(selectedLanguage, selectedVisibility);
+  }, [selectedLanguage, selectedVisibility]);
 
-  const fetchChannels = async () => {
+  const fetchChannels = async (
+    language: string = LANGUAGES.All,
+    visibility: string = VISIBILITY_OPTIONS.All
+  ) => {
     setIsLoading(true);
     try {
-      const response = await api.getChannels(true);
+      const response = await api.getChannels(visibility, language);
       setChannels(response.data);
     } catch (error) {
       console.error("Error fetching channels:", error);
@@ -229,7 +235,7 @@ const ChannelManagement: React.FC = () => {
     try {
       await api.updateChannelVisibility(channelId, visibility);
       message.success("Channel visibility updated successfully");
-      fetchChannels(); // Refresh the channel list
+      fetchChannels(selectedLanguage, selectedVisibility); // Refresh the channel list
     } catch (error) {
       console.error("Error updating channel visibility:", error);
       message.error("Failed to update channel visibility");
@@ -240,7 +246,7 @@ const ChannelManagement: React.FC = () => {
     try {
       await api.updateChannelLanguage(channelId, language);
       message.success("Channel language updated successfully");
-      fetchChannels(); // Refresh the channel list
+      fetchChannels(selectedLanguage, selectedVisibility); // Refresh the channel list
     } catch (error) {
       console.error("Error updating channel language:", error);
       message.error("Failed to update channel language");
@@ -329,12 +335,13 @@ const ChannelManagement: React.FC = () => {
           onChange={(value) => updateChannelVisibility(record.id, value)}
           className="channel-visibility-select"
         >
-          <Option value="public" className="visibility-option">
-            <GlobalOutlined /> Public
-          </Option>
-          <Option value="hidden" className="visibility-option">
-            <LockOutlined /> Hidden
-          </Option>
+          {Object.entries(VISIBILITY_OPTIONS)
+            .filter(([_, value]) => value !== "all")
+            .map(([key, value]) => (
+              <Option key={value} value={value} className="visibility-option">
+                {key}
+              </Option>
+            ))}
         </Select>
       ),
     },
@@ -349,18 +356,13 @@ const ChannelManagement: React.FC = () => {
           onChange={(value) => updateChannelLanguage(record.id, value)}
           className="channel-language-select"
         >
-          <Option value="en" className="language-option">
-            English
-          </Option>
-          <Option value="zh" className="language-option">
-            Chinese
-          </Option>
-          <Option value="ja" className="language-option">
-            Japanese
-          </Option>
-          <Option value="ko" className="language-option">
-            Korean
-          </Option>
+          {Object.entries(LANGUAGES)
+            .filter(([_, value]) => value !== "all")
+            .map(([key, value]) => (
+              <Option key={value} value={value} className="language-option">
+                {key}
+              </Option>
+            ))}
         </Select>
       ),
     },
@@ -416,10 +418,42 @@ const ChannelManagement: React.FC = () => {
     };
   });
 
+  const handleLanguageChange = (value: string) => {
+    setSelectedLanguage(value);
+  };
+
+  const handleVisibilityChange = (value: string) => {
+    setSelectedVisibility(value);
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <Card title="Channel Management">
         <Space style={{ marginBottom: 16 }}>
+          <Select
+            style={{ width: 200 }}
+            placeholder="Select Language"
+            onChange={handleLanguageChange}
+            value={selectedLanguage}
+          >
+            {Object.entries(LANGUAGES).map(([key, value]) => (
+              <Option key={value} value={value}>
+                {key}
+              </Option>
+            ))}
+          </Select>
+          <Select
+            style={{ width: 200 }}
+            placeholder="Select Visibility"
+            onChange={handleVisibilityChange}
+            value={selectedVisibility}
+          >
+            {Object.entries(VISIBILITY_OPTIONS).map(([key, value]) => (
+              <Option key={value} value={value}>
+                {key}
+              </Option>
+            ))}
+          </Select>
           <Button
             type="primary"
             onClick={() => setIsAddChannelModalVisible(true)}

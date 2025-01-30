@@ -142,7 +142,16 @@ export const ARTICLES_AND_DETERMINERS = [
   "every",
 ];
 
-export const VISIBILITY_OPTIONS = [
-  { label: "Public", value: "public" },
-  { label: "Private", value: "private" },
-];
+export const VISIBILITY_OPTIONS = {
+  Public: "public",
+  Private: "private",
+  All: "all",
+};
+
+export const LANGUAGES = {
+  English: "en",
+  Chinese: "zh",
+  Japanese: "ja",
+  Korean: "ko",
+  All: "all",
+};

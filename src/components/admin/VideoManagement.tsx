@@ -32,7 +32,7 @@ import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import getYoutubeId from "get-youtube-id";
 import { Channel, TranscriptItem, Video } from "@/utils/type";
-import { USER_ROLE } from "@/utils/const";
+import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -196,7 +196,10 @@ const VideoManagement: React.FC = () => {
 
   const fetchChannels = async () => {
     try {
-      const response = await api.getChannels(true);
+      const response = await api.getChannels(
+        VISIBILITY_OPTIONS.All,
+        LANGUAGES.All
+      );
       setChannels(response.data);
       if (response.data.length > 0) {
         const firstChannelId = response.data[0].id;

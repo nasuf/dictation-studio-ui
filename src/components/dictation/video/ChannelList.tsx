@@ -12,6 +12,8 @@ import {
 } from "@/components/dictation/video/Widget";
 import { useDispatch } from "react-redux";
 import { setChannelName, resetNavigation } from "@/redux/navigationSlice";
+import { VISIBILITY_OPTIONS } from "@/utils/const";
+import { LANGUAGES } from "@/utils/const";
 
 const ChannelList: React.FC = () => {
   const dispatch = useDispatch();
@@ -22,7 +24,10 @@ const ChannelList: React.FC = () => {
     dispatch(resetNavigation());
     const fetchChannels = async () => {
       try {
-        const response = await api.getChannels();
+        const response = await api.getChannels(
+          VISIBILITY_OPTIONS.Public,
+          LANGUAGES.All
+        );
         setChannels(response.data);
       } catch (error) {
         console.error("Error fetching channels:", error);
