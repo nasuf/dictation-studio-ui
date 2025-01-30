@@ -23,8 +23,6 @@ import {
   CheckCircleOutlined,
   SaveOutlined,
   CloseOutlined,
-  LockOutlined,
-  GlobalOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -215,7 +213,10 @@ const VideoManagement: React.FC = () => {
   const fetchVideos = async (channelId: string) => {
     setIsLoading(true);
     try {
-      const response = await api.getVideoList(channelId, true);
+      const response = await api.getVideoList(
+        channelId,
+        VISIBILITY_OPTIONS.All
+      );
       setVideos(response.data.videos);
     } catch (error) {
       console.error("Error fetching videos:", error);
@@ -632,12 +633,13 @@ const VideoManagement: React.FC = () => {
           }}
           className="video-visibility-select"
         >
-          <Option value="public" className="visibility-option">
-            <GlobalOutlined /> Public
-          </Option>
-          <Option value="hidden" className="visibility-option">
-            <LockOutlined /> Hidden
-          </Option>
+          {Object.entries(VISIBILITY_OPTIONS)
+            .filter(([_, value]) => value !== "all")
+            .map(([key, value]) => (
+              <Option key={value} value={value} className="visibility-option">
+                {key}
+              </Option>
+            ))}
         </Select>
       ),
     },

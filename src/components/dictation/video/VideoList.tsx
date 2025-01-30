@@ -15,6 +15,7 @@ import { resetScrollPosition } from "@/utils/util";
 import { useDispatch } from "react-redux";
 import { setVideoName } from "@/redux/navigationSlice";
 import { t } from "i18next";
+import { VISIBILITY_OPTIONS } from "@/utils/const";
 
 const VideoList: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
@@ -31,7 +32,7 @@ const VideoList: React.FC = () => {
     const fetchData = async () => {
       try {
         const [videoResponse, progressResponse] = await Promise.all([
-          api.getVideoList(channelId!, false),
+          api.getVideoList(channelId!, VISIBILITY_OPTIONS.Public),
           api.getChannelProgress(channelId!),
         ]);
         setVideos(videoResponse.data.videos);
