@@ -186,5 +186,4 @@ export const api = {
   deleteMissedWords: (words: string[]) =>
     axiosInstance.delete("/user/missed-words", { data: { words } }),
   cancelSubscription: () => axiosInstance.post("/payment/cancel-subscription"),
-  clearCache: () => axiosInstance.post("/service/clear-cache"),
 };
