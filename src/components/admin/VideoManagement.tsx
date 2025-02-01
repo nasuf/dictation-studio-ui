@@ -720,7 +720,7 @@ const VideoManagement: React.FC = () => {
       <Card title="Video Management">
         <Space style={{ marginBottom: 16 }}>
           <Select
-            style={{ width: 200 }}
+            style={{ width: 250 }}
             placeholder="Select a channel"
             onChange={handleChannelChange}
             value={selectedChannel || undefined}

@@ -430,6 +430,7 @@ const ChannelManagement: React.FC = () => {
     <div style={{ padding: "20px" }}>
       <Card title="Channel Management">
         <Space style={{ marginBottom: 16 }}>
+          <span style={{ marginRight: 10, marginLeft: 10 }}>Languages:</span>
           <Select
             style={{ width: 200 }}
             placeholder="Select Language"
@@ -442,6 +443,7 @@ const ChannelManagement: React.FC = () => {
               </Option>
             ))}
           </Select>
+          <span style={{ marginRight: 10, marginLeft: 10 }}>Visibility:</span>
           <Select
             style={{ width: 200 }}
             placeholder="Select Visibility"
@@ -458,6 +460,7 @@ const ChannelManagement: React.FC = () => {
             type="primary"
             onClick={() => setIsAddChannelModalVisible(true)}
             className="add-channel-button"
+            style={{ marginLeft: 10 }}
           >
             Add Channel
           </Button>
