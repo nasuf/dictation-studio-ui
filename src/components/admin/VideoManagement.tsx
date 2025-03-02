@@ -171,6 +171,7 @@ const VideoManagement: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
+  const [selectedChannelLink, setSelectedChannelLink] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddVideoModalVisible, setIsAddVideoModalVisible] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
@@ -202,6 +203,7 @@ const VideoManagement: React.FC = () => {
       if (response.data.length > 0) {
         const firstChannelId = response.data[0].id;
         setSelectedChannel(firstChannelId);
+        setSelectedChannelLink(response.data[0].link);
         fetchVideos(firstChannelId);
       }
     } catch (error) {
@@ -704,6 +706,9 @@ const VideoManagement: React.FC = () => {
 
   const handleChannelChange = (value: string) => {
     setSelectedChannel(value);
+    setSelectedChannelLink(
+      channels.find((channel) => channel.id === value)?.link || ""
+    );
     fetchVideos(value);
   };
 
@@ -734,10 +739,7 @@ const VideoManagement: React.FC = () => {
           <Button
             type="link"
             onClick={() => {
-              window.open(
-                `https://www.youtube.com/channel/${selectedChannel}`,
-                "_blank"
-              );
+              window.open(selectedChannelLink, "_blank");
             }}
           >
             Open Channel
