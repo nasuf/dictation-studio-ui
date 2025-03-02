@@ -731,6 +731,17 @@ const VideoManagement: React.FC = () => {
               </Option>
             ))}
           </Select>
+          <Button
+            type="link"
+            onClick={() => {
+              window.open(
+                `https://www.youtube.com/channel/${selectedChannel}`,
+                "_blank"
+              );
+            }}
+          >
+            Open Channel
+          </Button>
           <Button type="primary" onClick={showAddVideoModal}>
             Add Videos
           </Button>

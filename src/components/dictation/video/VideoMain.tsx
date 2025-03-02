@@ -870,6 +870,8 @@ const VideoMain: React.ForwardRefRenderFunction<
                     disablekb: 1,
                     iv_load_policy: 3,
                     fs: 0,
+                    cc_load_policy: 0,
+                    cc_lang_pref: "en",
                   },
                 }}
                 onReady={onVideoReady}
