@@ -60,7 +60,13 @@ const ChannelList: React.FC = () => {
             <ChannelCard
               hoverable
               cover={
-                <ChannelImage alt={channel.name} src={channel.image_url} />
+                <ChannelImage
+                  alt={channel.name}
+                  src={channel.image_url}
+                  onError={(e) => {
+                    e.currentTarget.src = "/404.jpg";
+                  }}
+                />
               }
               styles={{ body: { padding: 0 } }}
             >
