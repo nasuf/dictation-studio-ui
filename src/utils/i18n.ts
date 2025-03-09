@@ -139,6 +139,12 @@ const enTranslations = {
     "You can resubscribe at any time to regain access once current billing period ends",
   confirm: "Confirm",
   cancelling: "Cancelling...",
+  language: "Language",
+  languageAutoDetectHint: "Auto-detect will guess language based on content",
+  channelList: "Channel List",
+  allLanguages: "All Languages",
+  noChannelsFound: "No channels found for this language.",
+  channelLanguage: "Channel Language",
 };
 
 const zhTranslations = {
@@ -271,6 +277,12 @@ const zhTranslations = {
     "您可以在当前计费周期结束后，随时重新订阅以恢复访问权限",
   confirm: "确认",
   cancelling: "取消中...",
+  language: "语言",
+  languageAutoDetectHint: "自动检测将根据内容猜测语言",
+  channelList: "频道列表",
+  allLanguages: "所有语言",
+  noChannelsFound: "未找到此语言的频道。",
+  channelLanguage: "频道语言",
 };
 
 const zhTraditionalTranslations = {
@@ -403,6 +415,12 @@ const zhTraditionalTranslations = {
     "您可以在當前計費週期結束後，隨時重新訂閱以恢復訪問權限",
   confirm: "確認",
   cancelling: "取消中...",
+  language: "语言",
+  languageAutoDetectHint: "自动检测将根据内容猜测语言",
+  channelList: "頻道列表",
+  allLanguages: "所有語言",
+  noChannelsFound: "未找到此語言的頻道。",
+  channelLanguage: "頻道語言",
 };
 
 const jaTranslations = {
@@ -499,6 +517,12 @@ const jaTranslations = {
   prev: "前へ",
   noProgressDataAvailable: "聴写進捗はありません",
   upgradePlan: "プランをアップグレード",
+  language: "言語",
+  languageAutoDetectHint: "自動検出はコンテンツに基づいて言語を推測します",
+  channelList: "チャンネルリスト",
+  allLanguages: "すべての言語",
+  noChannelsFound: "この言語のチャンネルは見つかりませんでした。",
+  channelLanguage: "チャンネル言語",
 };
 
 const koTranslations = {
@@ -594,6 +618,12 @@ const koTranslations = {
   prev: "이전",
   noProgressDataAvailable: "듣기 진행 상황이 없습니다",
   upgradePlan: "플랜 업그레이드",
+  language: "언어",
+  languageAutoDetectHint: "자동 감지는 내용을 기반으로 언어를 추측합니다",
+  channelList: "채널 목록",
+  allLanguages: "모든 언어",
+  noChannelsFound: "이 언어에 대한 채널을 찾을 수 없습니다.",
+  channelLanguage: "채널 언어",
 };
 
 i18n.use(initReactI18next).init({

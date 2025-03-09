@@ -30,6 +30,9 @@ import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import MissedWordsModal from "@/components/dictation/video/MissedWordsModal";
 import { api } from "@/api/api";
 import { setCurrentMissedWords, setMissedWords } from "@/redux/userSlice";
+import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
+import { Select } from "antd";
+import { Channel } from "@/utils/type";
 
 const { Content } = Layout;
 
@@ -38,7 +41,7 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const videoMainRef = useRef<VideoMainRef>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isDictationStarted = useSelector(
     (state: RootState) => state.user.isDictationStarted
   );
@@ -50,13 +53,85 @@ const AppContent: React.FC = () => {
   const [isWordEditing, setIsWordEditing] = useState(false);
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
   const [shouldResetWords, setShouldResetWords] = useState(false);
+  const [isSavingWords, setIsSavingWords] = useState(false);
+
+  // 频道列表状态
+  const [allChannels, setAllChannels] = useState<Channel[]>([]);
+  const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
+  const [isLoadingChannels, setIsLoadingChannels] = useState(false);
+
+  // 初始语言设置为用户界面语言或默认为All
+  const currentUILang = i18n.language;
+  const initialLang =
+    currentUILang === "en"
+      ? LANGUAGES.English
+      : currentUILang === "zh"
+      ? LANGUAGES.Chinese
+      : currentUILang === "ja"
+      ? LANGUAGES.Japanese
+      : currentUILang === "ko"
+      ? LANGUAGES.Korean
+      : LANGUAGES.All;
+
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLang);
+
+  const isChannelListPage =
+    location.pathname === "/" ||
+    location.pathname === "/dictation" ||
+    location.pathname === "/dictation/video";
+
+  const isVideoPage =
+    location.pathname.includes("/dictation/video/") &&
+    location.pathname.split("/").length > 4;
+
+  // 获取所有频道数据
+  const fetchAllChannels = async () => {
+    if (allChannels.length > 0) return; // 已经加载过则不再重复加载
+
+    setIsLoadingChannels(true);
+    try {
+      const response = await api.getChannels(
+        VISIBILITY_OPTIONS.Public,
+        LANGUAGES.All
+      );
+      setAllChannels(response.data);
+      filterChannelsByLanguage(response.data, selectedLanguage);
+    } catch (error) {
+      console.error("Error fetching channels:", error);
+    } finally {
+      setIsLoadingChannels(false);
+    }
+  };
+
+  // 根据语言过滤频道
+  const filterChannelsByLanguage = (channels: Channel[], language: string) => {
+    if (language === LANGUAGES.All) {
+      setFilteredChannels(channels);
+    } else {
+      const filtered = channels.filter(
+        (channel) => channel.language === language
+      );
+      setFilteredChannels(filtered);
+    }
+  };
 
   useEffect(() => {
     const pathParts = location.pathname.split("/");
     if (pathParts[1] !== "dictation" || pathParts[2] !== "video") {
       dispatch(resetNavigation());
     }
-  }, [location.pathname, dispatch]);
+
+    // 如果是频道列表页面，加载频道数据
+    if (isChannelListPage) {
+      fetchAllChannels();
+    }
+  }, [location.pathname, dispatch, isChannelListPage]);
+
+  useEffect(() => {
+    if (allChannels.length > 0) {
+      filterChannelsByLanguage(allChannels, selectedLanguage);
+    }
+  }, [selectedLanguage, allChannels]);
 
   const handleSaveProgress = () => {
     if (videoMainRef.current) {
@@ -70,10 +145,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const isVideoPage = /^\/dictation\/video\/[^/]+\/[^/]+$/.test(
-    location.pathname
-  );
-
   const showMissedWordsModal = () => {
     if (videoMainRef.current) {
       dispatch(setCurrentMissedWords(videoMainRef.current.getMissedWords()));
@@ -85,8 +156,6 @@ const AppContent: React.FC = () => {
     navigate(-1);
   };
 
-  const [isSavingWords, setIsSavingWords] = useState(false);
-
   const handleDeleteMissedWords = async () => {
     try {
       setIsSavingWords(true);
@@ -94,7 +163,6 @@ const AppContent: React.FC = () => {
       message.success(t("wordsDeletedSuccess"));
 
       if (response.data) {
-        // refresh latest missed words
         dispatch(setMissedWords(response.data.missed_words));
       }
       setWordsToDelete(new Set());
@@ -116,6 +184,18 @@ const AppContent: React.FC = () => {
     }, 0);
   };
 
+  const handleLanguageChange = (value: string) => {
+    setSelectedLanguage(value);
+  };
+
+  const languageOptions = [
+    { label: t("allLanguages"), value: LANGUAGES.All },
+    { label: "English", value: LANGUAGES.English },
+    { label: "中文", value: LANGUAGES.Chinese },
+    { label: "日本語", value: LANGUAGES.Japanese },
+    { label: "한국어", value: LANGUAGES.Korean },
+  ];
+
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-6">
@@ -128,6 +208,20 @@ const AppContent: React.FC = () => {
             <ArrowLeftOutlined className="mr-2" />
             <span>{t("goBack")}</span>
           </button>
+          {isChannelListPage && (
+            <div className="flex items-center">
+              <span className="mr-2 text-gray-600 dark:text-gray-300">
+                {t("channelLanguage")}:
+              </span>
+              <Select
+                value={selectedLanguage}
+                onChange={handleLanguageChange}
+                style={{ width: 150 }}
+                options={languageOptions}
+                className="dark:bg-gray-700"
+              />
+            </div>
+          )}
           {isVideoPage && (
             <div className="space-x-4 button-container">
               <button
@@ -189,9 +283,33 @@ const AppContent: React.FC = () => {
           <AppSider />
           <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 custom-scrollbar">
             <Routes>
-              <Route path="/" element={<ChannelList />} />
-              <Route path="/dictation" element={<ChannelList />} />
-              <Route path="/dictation/video" element={<ChannelList />} />
+              <Route
+                path="/"
+                element={
+                  <ChannelList
+                    channels={filteredChannels}
+                    isLoading={isLoadingChannels}
+                  />
+                }
+              />
+              <Route
+                path="/dictation"
+                element={
+                  <ChannelList
+                    channels={filteredChannels}
+                    isLoading={isLoadingChannels}
+                  />
+                }
+              />
+              <Route
+                path="/dictation/video"
+                element={
+                  <ChannelList
+                    channels={filteredChannels}
+                    isLoading={isLoadingChannels}
+                  />
+                }
+              />
               <Route
                 path="/dictation/video/:channelId"
                 element={<VideoList />}

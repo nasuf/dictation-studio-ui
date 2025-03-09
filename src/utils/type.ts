@@ -27,6 +27,7 @@ export interface DictationConfig {
         next: "Enter";
         prev: "Shift";
       };
+  language?: string; // 'en', 'zh', 'ja', 'ko'
 }
 
 export interface ShortcutKeys {

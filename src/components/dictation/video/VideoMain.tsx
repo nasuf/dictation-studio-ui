@@ -38,11 +38,17 @@ import {
   setIsDictationStarted,
   setIsSavingProgress,
 } from "@/redux/userSlice";
-import nlp from "compromise";
 import Timer from "./Timer";
 import { RootState } from "@/redux/store";
 import { store } from "@/redux/store";
 import Settings from "./Settings";
+import {
+  cleanString,
+  splitWords,
+  calculateSimilarity,
+  normalizeWord,
+  detectLanguage,
+} from "@/utils/languageUtils";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -448,40 +454,73 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const compareInputWithTranscript = (input: string, transcript: string) => {
-    const cleanString = (str: string) => {
-      return str
-        .toLowerCase()
-        .replace(/[^\w\s]|_/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-    };
+    const language = detectLanguage(transcript);
 
-    const cleanInput = cleanString(input);
-    const cleanTranscript = cleanString(transcript);
+    const cleanedInput = cleanString(input, language);
+    const cleanedTranscript = cleanString(transcript, language);
 
-    const inputWords = cleanInput.split(/\s+/);
-    const transcriptWords = cleanTranscript.split(/\s+/);
-    const originalTranscriptWords = transcript.split(/\s+/);
+    const inputWords = splitWords(cleanedInput, language);
+    const transcriptWords = splitWords(cleanedTranscript, language);
+    const originalTranscriptWords = splitWords(transcript, language);
 
     const usedIndices = new Set<number>();
 
     const inputResult = inputWords.map((word) => {
-      const index = transcriptWords.findIndex(
-        (w, i) => w === word && !usedIndices.has(i)
-      );
-      if (index !== -1) {
-        usedIndices.add(index);
+      if (["zh", "ja", "ko"].includes(language)) {
+        const similarityThreshold = word.length === 1 ? 0.6 : 0.8;
+
+        let bestMatchIndex = -1;
+        let bestMatchScore = 0;
+
+        transcriptWords.forEach((transcriptWord, i) => {
+          if (!usedIndices.has(i)) {
+            const similarity = calculateSimilarity(word, transcriptWord);
+            if (
+              similarity > similarityThreshold &&
+              similarity > bestMatchScore
+            ) {
+              bestMatchIndex = i;
+              bestMatchScore = similarity;
+            }
+          }
+        });
+
+        if (bestMatchIndex !== -1) {
+          usedIndices.add(bestMatchIndex);
+          return {
+            word: originalTranscriptWords[bestMatchIndex],
+            color: "#00827F",
+            isCorrect: true,
+            similarity: bestMatchScore,
+          };
+        }
+
         return {
-          word: originalTranscriptWords[index], // Use the original word with correct case and punctuation
-          color: "#00827F",
-          isCorrect: true,
+          word,
+          color: "#C41E3A",
+          isCorrect: false,
+          similarity: 0,
+        };
+      } else {
+        const index = transcriptWords.findIndex(
+          (w, i) => w === word && !usedIndices.has(i)
+        );
+
+        if (index !== -1) {
+          usedIndices.add(index);
+          return {
+            word: originalTranscriptWords[index],
+            color: "#00827F",
+            isCorrect: true,
+          };
+        }
+
+        return {
+          word,
+          color: "#C41E3A",
+          isCorrect: false,
         };
       }
-      return {
-        word,
-        color: "#C41E3A",
-        isCorrect: false,
-      };
     });
 
     const transcriptResult = originalTranscriptWords.map((word, index) => {
@@ -500,24 +539,14 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const populateMissedWords = () => {
     const removePunctuation = (word: string) => {
-      return word.replace(/^[^\w\s]+|[^\w\s]+$/g, "");
+      const language = detectLanguage(word);
+      return cleanString(word, language);
     };
 
-    const normalizeWord = (word: string) => {
-      word = word.replace(/['']s$/, "");
+    const normalizeWordWithLanguage = (word: string) => {
+      const language = detectLanguage(word);
 
-      const doc = nlp(word);
-      let normalized = word;
-
-      if (doc.nouns().length > 0) {
-        normalized = doc.nouns().toSingular().text();
-      }
-
-      if (doc.verbs().length > 0) {
-        normalized = doc.verbs().toInfinitive().text();
-      }
-
-      return normalized.toLowerCase();
+      return normalizeWord(word, language);
     };
 
     const missedWords = transcript.flatMap((item, index) => {
@@ -529,7 +558,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         return transcriptResult
           .filter((word) => !word.isCorrect)
           .map((word) => removePunctuation(word.word))
-          .map(normalizeWord)
+          .map(normalizeWordWithLanguage)
           .filter((word) => word.length > 0);
       }
       return [];
@@ -609,7 +638,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [revealedSentences, transcript, updateOverallProgress]);
 
   const getTimeSinceLastSave = () => {
-    return Math.floor((Date.now() - lastSaveTime) / 1000); // Convert to seconds
+    return Math.floor((Date.now() - lastSaveTime) / 1000);
   };
 
   const resetLastSaveTime = () => {
@@ -717,16 +746,14 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
   }, [stopTimer]);
 
-  const saveUserConfig = useCallback(async () => {
-    if (!configChanged) return;
-
+  const handleSaveSettings = async () => {
     const config: DictationConfig = {
       playback_speed: playbackSpeed,
       auto_repeat: autoRepeat,
       shortcuts: {
-        repeat: shortcuts?.repeat,
-        next: shortcuts?.next,
-        prev: shortcuts?.prev,
+        repeat: shortcuts.repeat,
+        prev: shortcuts.prev,
+        next: shortcuts.next,
       },
     };
 
@@ -735,17 +762,18 @@ const VideoMain: React.ForwardRefRenderFunction<
       await api.saveUserConfig({ dictation_config: config });
       message.success(t("dictationConfigUpdated"));
       setConfigChanged(false);
-    } catch (error) {
+    } catch (e) {
+      console.error(e);
       message.error(t("dictationConfigUpdateFailed"));
     } finally {
       setIsSavingDictationConfig(false);
     }
-  }, [playbackSpeed, autoRepeat, shortcuts, configChanged]);
+  };
 
   const handlePopoverVisibleChange = (visible: boolean) => {
     if (!visible && configChanged) {
       setConfigChanged(false);
-      saveUserConfig();
+      handleSaveSettings();
     }
   };
 
