@@ -67,7 +67,7 @@ const enTranslations = {
   information: "Information",
   dictationProgress: "Dictation Progress",
   homePageDescription:
-    "Improve your English listening with daily dictation exercises.",
+    "Improve your foreign language listening with daily dictation exercises.",
   startDictation: "Start Dictation",
   selectAll: "Select All",
   filterPrepositions: "Remove Prepositions",
