@@ -211,7 +211,7 @@ const AppContent: React.FC = () => {
           {isChannelListPage && (
             <div className="flex items-center">
               <span className="mr-2 text-gray-600 dark:text-gray-300">
-                {t("channelLanguage")}:
+                {t("language")}:
               </span>
               <Select
                 value={selectedLanguage}

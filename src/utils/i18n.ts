@@ -144,7 +144,19 @@ const enTranslations = {
   channelList: "Channel List",
   allLanguages: "All Languages",
   noChannelsFound: "No channels found for this language.",
-  channelLanguage: "Channel Language",
+  pleaseInputLink: "Please input video link",
+  pleaseInputTitle: "Please input video title",
+  videoLink: "YouTube Video Link",
+  videoTitle: "Video Title",
+  getSubtitle: "Get Subtitles",
+  uploadSubtitle: "Upload SRT",
+  addVideo: "Add Video",
+  fetchingVideoTitle: "Fetching video title...",
+  invalidYoutubeLink: "Invalid YouTube link, cannot extract video ID",
+  videoTitleFetchSuccess: "Video title fetched successfully",
+  videoTitleFetchFailed: "Failed to fetch video title, please enter manually",
+  fileUploadSuccess: "{{filename}} uploaded successfully",
+  fileUploadFailed: "{{filename}} upload failed",
 };
 
 const zhTranslations = {
@@ -282,7 +294,19 @@ const zhTranslations = {
   channelList: "频道列表",
   allLanguages: "所有语言",
   noChannelsFound: "未找到此语言的频道。",
-  channelLanguage: "频道语言",
+  pleaseInputLink: "请输入视频链接",
+  pleaseInputTitle: "请输入视频标题",
+  videoLink: "YouTube视频链接",
+  videoTitle: "视频标题",
+  getSubtitle: "获取字幕",
+  uploadSubtitle: "上传SRT字幕",
+  addVideo: "添加视频",
+  fetchingVideoTitle: "正在获取视频标题...",
+  invalidYoutubeLink: "无效的YouTube链接，无法提取视频ID",
+  videoTitleFetchSuccess: "视频标题获取成功",
+  videoTitleFetchFailed: "无法获取视频标题，请手动输入",
+  fileUploadSuccess: "{{filename}} 上传成功",
+  fileUploadFailed: "{{filename}} 上传失败",
 };
 
 const zhTraditionalTranslations = {
@@ -420,7 +444,19 @@ const zhTraditionalTranslations = {
   channelList: "頻道列表",
   allLanguages: "所有語言",
   noChannelsFound: "未找到此語言的頻道。",
-  channelLanguage: "頻道語言",
+  pleaseInputLink: "請輸入視頻鏈接",
+  pleaseInputTitle: "請輸入視頻標題",
+  videoLink: "YouTube視頻鏈接",
+  videoTitle: "視頻標題",
+  getSubtitle: "獲取字幕",
+  uploadSubtitle: "上傳SRT字幕",
+  addVideo: "添加視頻",
+  fetchingVideoTitle: "正在獲取視頻標題...",
+  invalidYoutubeLink: "無效的YouTube鏈接，無法提取視頻ID",
+  videoTitleFetchSuccess: "視頻標題獲取成功",
+  videoTitleFetchFailed: "無法獲取視頻標題，請手動輸入",
+  fileUploadSuccess: "{{filename}} 上傳成功",
+  fileUploadFailed: "{{filename}} 上傳失敗",
 };
 
 const jaTranslations = {
@@ -522,7 +558,20 @@ const jaTranslations = {
   channelList: "チャンネルリスト",
   allLanguages: "すべての言語",
   noChannelsFound: "この言語のチャンネルは見つかりませんでした。",
-  channelLanguage: "チャンネル言語",
+  pleaseInputLink: "動画リンクを入力してください",
+  pleaseInputTitle: "動画タイトルを入力してください",
+  videoLink: "YouTube動画リンク",
+  videoTitle: "動画タイトル",
+  getSubtitle: "字幕を取得",
+  uploadSubtitle: "SRT字幕をアップロード",
+  addVideo: "動画を追加",
+  fetchingVideoTitle: "動画タイトルを取得中...",
+  invalidYoutubeLink: "無効なYouTubeリンク、動画IDを抽出できません",
+  videoTitleFetchSuccess: "動画タイトルの取得に成功しました",
+  videoTitleFetchFailed:
+    "動画タイトルの取得に失敗しました、手動で入力してください",
+  fileUploadSuccess: "{{filename}} のアップロードに成功しました",
+  fileUploadFailed: "{{filename}} のアップロードに失敗しました",
 };
 
 const koTranslations = {
@@ -623,7 +672,21 @@ const koTranslations = {
   channelList: "채널 목록",
   allLanguages: "모든 언어",
   noChannelsFound: "이 언어에 대한 채널을 찾을 수 없습니다.",
-  channelLanguage: "채널 언어",
+  pleaseInputLink: "동영상 링크를 입력하세요",
+  pleaseInputTitle: "동영상 제목을 입력하세요",
+  videoLink: "YouTube 동영상 링크",
+  videoTitle: "동영상 제목",
+  getSubtitle: "자막 가져오기",
+  uploadSubtitle: "SRT 자막 업로드",
+  addVideo: "동영상 추가",
+  fetchingVideoTitle: "동영상 제목을 가져오는 중...",
+  invalidYoutubeLink:
+    "유효하지 않은 YouTube 링크, 동영상 ID를 추출할 수 없습니다",
+  videoTitleFetchSuccess: "동영상 제목을 성공적으로 가져왔습니다",
+  videoTitleFetchFailed:
+    "동영상 제목을 가져오지 못했습니다, 수동으로 입력해주세요",
+  fileUploadSuccess: "{{filename}} 업로드 성공",
+  fileUploadFailed: "{{filename}} 업로드 실패",
 };
 
 i18n.use(initReactI18next).init({

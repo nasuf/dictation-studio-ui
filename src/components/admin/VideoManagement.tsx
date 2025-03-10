@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Form,
   Select,
@@ -18,11 +18,14 @@ import {
   MergeCellsOutlined,
   UndoOutlined,
   CloudDownloadOutlined,
-  DownloadOutlined,
   UploadOutlined,
-  CheckCircleOutlined,
+  CheckOutlined,
   SaveOutlined,
   CloseOutlined,
+  SearchOutlined,
+  LoadingOutlined,
+  CloseCircleOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -31,6 +34,9 @@ import { Navigate } from "react-router-dom";
 import getYoutubeId from "get-youtube-id";
 import { Channel, TranscriptItem, Video } from "@/utils/type";
 import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
+import axios from "axios";
+import { useTranslation } from "react-i18next";
+import _ from "lodash";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -48,11 +54,59 @@ const extractVideoId = (url: string): string => {
   return "";
 };
 
-const customUploadStyles = `
-  .ant-upload-list-text {
-    display: none !important;
+const fetchVideoTitle = async (
+  videoLink: string,
+  fieldIndex: number,
+  form: any,
+  setLoadingStates?: React.Dispatch<
+    React.SetStateAction<{ [key: string]: boolean }>
+  >,
+  translateFn?: Function
+) => {
+  if (!videoLink) {
+    return;
   }
-`;
+
+  const t = translateFn || ((key: string) => key);
+
+  try {
+    if (setLoadingStates) {
+      setLoadingStates((prev) => ({ ...prev, [videoLink]: true }));
+    }
+
+    const loadingMessage = message.loading(t("fetchingVideoTitle"), 0);
+
+    const videoId = extractVideoId(videoLink);
+    if (!videoId) {
+      loadingMessage();
+      message.error(t("invalidYoutubeLink"));
+      if (setLoadingStates) {
+        setLoadingStates((prev) => ({ ...prev, [videoLink]: false }));
+      }
+      return;
+    }
+
+    const response = await axios.get(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+    );
+
+    const title = response.data.title;
+
+    const updatedFields = form.getFieldsValue();
+    updatedFields.video_links[fieldIndex].title = title;
+    form.setFieldsValue(updatedFields);
+
+    loadingMessage();
+    message.success(t("videoTitleFetchSuccess"));
+  } catch (error) {
+    console.error("Error fetching video title:", error);
+    message.error(t("videoTitleFetchFailed"));
+  } finally {
+    if (setLoadingStates) {
+      setLoadingStates((prev) => ({ ...prev, [videoLink]: false }));
+    }
+  }
+};
 
 const AddVideosForm: React.FC<{
   onFinish: (values: any) => void;
@@ -61,55 +115,132 @@ const AddVideosForm: React.FC<{
   handleSrtUpload: (videoLink: string, file: File) => void;
   srtFiles: { [key: string]: File };
 }> = ({ onFinish, isLoading, form, handleSrtUpload, srtFiles }) => {
+  const { t } = useTranslation();
+  const [titleLoadingStates, setTitleLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [uploadStatus, setUploadStatus] = useState<{
+    [key: string]: "success" | "error" | "loading" | null;
+  }>({});
+
+  const debouncedFetchTitle = useCallback(
+    _.debounce((videoLink: string, fieldIndex: number) => {
+      if (videoLink) {
+        fetchVideoTitle(videoLink, fieldIndex, form, setTitleLoadingStates, t);
+      }
+    }, 1000),
+    [form, t]
+  );
+
   const openSubtitleDownloader = (videoLink: string) => {
-    const url = `https://downsub.com/?url=${encodeURIComponent(videoLink)}`;
-    window.open(url, "_blank");
+    const videoId = extractVideoId(videoLink);
+    if (videoId) {
+      window.open(
+        `https://downsub.com/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${videoId}`,
+        "_blank"
+      );
+    } else {
+      message.error(t("invalidYoutubeLink"));
+    }
+  };
+
+  const handleSrtUploadWithStatus = (videoLink: string, file: File) => {
+    try {
+      setUploadStatus((prev) => ({ ...prev, [videoLink]: "loading" }));
+
+      handleSrtUpload(videoLink, file);
+
+      setTimeout(() => {
+        setUploadStatus((prev) => ({ ...prev, [videoLink]: "success" }));
+        message.success(t("fileUploadSuccess", { filename: file.name }));
+      }, 500);
+    } catch (error) {
+      console.error("Error uploading SRT:", error);
+      setUploadStatus((prev) => ({ ...prev, [videoLink]: "error" }));
+      message.error(t("fileUploadFailed", { filename: file.name }));
+    }
+  };
+
+  const handleManualTitleFetch = (videoLink: string, fieldIndex: number) => {
+    fetchVideoTitle(videoLink, fieldIndex, form, setTitleLoadingStates, t);
   };
 
   return (
-    <>
-      <style>{customUploadStyles}</style>
-      <Form form={form} onFinish={onFinish}>
-        <Form.List name="video_links">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <div key={key} style={{ marginBottom: 16 }}>
-                  <Space
-                    style={{ display: "flex", marginBottom: 8 }}
-                    align="baseline"
+    <Form
+      form={form}
+      name="dynamic_video_form"
+      onFinish={onFinish}
+      autoComplete="off"
+    >
+      <Form.List name="video_links">
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map(({ key, name, ...restField }) => (
+              <div key={key} style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", marginBottom: 8 }}>
+                  {/* Video link input */}
+                  <Form.Item
+                    {...restField}
+                    name={[name, "link"]}
+                    rules={[{ required: true, message: t("pleaseInputLink") }]}
+                    style={{ flex: "1", marginRight: 8, marginBottom: 0 }}
                   >
-                    <Form.Item
-                      {...restField}
-                      name={[name, "link"]}
-                      rules={[
-                        { required: true, message: "Missing video link" },
-                      ]}
-                    >
-                      <Input placeholder="YouTube video link" />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "title"]}
-                      rules={[
-                        { required: true, message: "Missing video title" },
-                      ]}
-                    >
-                      <Input placeholder="Video title" />
-                    </Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Space>
-                  <Space align="center" style={{ width: "100%" }}>
-                    <Button
-                      onClick={() =>
-                        openSubtitleDownloader(
+                    <Input
+                      placeholder={t("videoLink")}
+                      onChange={(e) => {
+                        const videoLink = e.target.value;
+                        debouncedFetchTitle(videoLink, name);
+                      }}
+                      suffix={
+                        titleLoadingStates[
                           form.getFieldValue(["video_links", name, "link"])
+                        ] ? (
+                          <LoadingOutlined style={{ color: "#1890ff" }} />
+                        ) : (
+                          <SearchOutlined
+                            style={{ cursor: "pointer", color: "#1890ff" }}
+                            onClick={() => {
+                              const videoLink = form.getFieldValue([
+                                "video_links",
+                                name,
+                                "link",
+                              ]);
+                              handleManualTitleFetch(videoLink, name);
+                            }}
+                          />
                         )
                       }
-                      icon={<DownloadOutlined />}
-                    >
-                      Get Subtitles
-                    </Button>
+                    />
+                  </Form.Item>
+
+                  {/* Video title input */}
+                  <Form.Item
+                    {...restField}
+                    name={[name, "title"]}
+                    rules={[{ required: true, message: t("pleaseInputTitle") }]}
+                    style={{ flex: "1", marginRight: 8, marginBottom: 0 }}
+                  >
+                    <Input placeholder={t("videoTitle")} />
+                  </Form.Item>
+
+                  {/* Get subtitles button */}
+                  <Button
+                    onClick={() => {
+                      const videoLink = form.getFieldValue([
+                        "video_links",
+                        name,
+                        "link",
+                      ]);
+                      openSubtitleDownloader(videoLink);
+                    }}
+                    style={{ marginRight: 8 }}
+                    icon={<DownloadOutlined />}
+                  >
+                    {t("getSubtitle")}
+                  </Button>
+
+                  {/* Upload subtitle button */}
+                  <Form.Item style={{ marginBottom: 0, marginRight: 8 }}>
                     <Upload
                       beforeUpload={(file) => {
                         const videoLink = form.getFieldValue([
@@ -117,46 +248,100 @@ const AddVideosForm: React.FC<{
                           name,
                           "link",
                         ]);
-                        handleSrtUpload(videoLink, file);
+                        handleSrtUploadWithStatus(videoLink, file);
                         return false;
                       }}
+                      showUploadList={false}
                     >
-                      <Button icon={<UploadOutlined />}>Upload SRT</Button>
+                      <Button
+                        icon={<UploadOutlined />}
+                        loading={
+                          uploadStatus[
+                            form.getFieldValue(["video_links", name, "link"])
+                          ] === "loading"
+                        }
+                      >
+                        {t("uploadSubtitle")}
+                      </Button>
                     </Upload>
-                    {srtFiles[
-                      extractVideoId(
-                        form.getFieldValue(["video_links", name, "link"])
-                      )
-                    ] ? (
-                      <CheckCircleOutlined
-                        style={{ color: "#52c41a", fontSize: "24px" }}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                  </Space>
+                  </Form.Item>
+
+                  {/* Upload status icons */}
+                  {uploadStatus[
+                    form.getFieldValue(["video_links", name, "link"])
+                  ] === "success" && (
+                    <CheckOutlined
+                      style={{
+                        color: "#52c41a",
+                        fontSize: "20px",
+                        marginRight: 8,
+                      }}
+                    />
+                  )}
+                  {uploadStatus[
+                    form.getFieldValue(["video_links", name, "link"])
+                  ] === "error" && (
+                    <CloseCircleOutlined
+                      style={{
+                        color: "#ff4d4f",
+                        fontSize: "20px",
+                        marginRight: 8,
+                      }}
+                    />
+                  )}
+
+                  {/* Delete button */}
+                  <Button
+                    type="text"
+                    icon={<MinusCircleOutlined />}
+                    onClick={() => remove(name)}
+                    style={{ marginLeft: "auto" }}
+                  />
                 </div>
-              ))}
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  Add Video
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={isLoading}>
-            Upload Videos
-          </Button>
-        </Form.Item>
-      </Form>
-    </>
+
+                {/* Display uploaded file name */}
+                {srtFiles[form.getFieldValue(["video_links", name, "link"])]
+                  ?.name && (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      paddingLeft: 8,
+                      color: "#52c41a",
+                    }}
+                  >
+                    <CheckOutlined style={{ marginRight: 4 }} />
+                    {
+                      srtFiles[
+                        form.getFieldValue(["video_links", name, "link"])
+                      ]?.name
+                    }
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Add video button */}
+            <Form.Item>
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
+                icon={<PlusOutlined />}
+              >
+                {t("addVideo")}
+              </Button>
+            </Form.Item>
+          </>
+        )}
+      </Form.List>
+
+      {/* Submit button */}
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={isLoading}>
+          {t("submit")}
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
 
