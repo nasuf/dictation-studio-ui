@@ -116,6 +116,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
   );
   const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
+  const [isImeComposing, setIsImeComposing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -389,9 +390,10 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const playPreviousSentence = useCallback(() => {
     if (!playerRef.current || transcript.length === 0) return;
+    if (currentSentenceIndex === 0) return;
+
     clearIntervalIfExists();
-    const prevIndex =
-      (currentSentenceIndex - 1 + transcript.length) % transcript.length;
+    const prevIndex = currentSentenceIndex - 1;
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
     if (autoRepeat > 0) {
@@ -807,6 +809,13 @@ const VideoMain: React.ForwardRefRenderFunction<
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!playerRef.current || transcript.length === 0) return;
+
+      // Check if the current focus is on the input field and whether IME is composing
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement?.tagName === "INPUT" ||
+        activeElement?.tagName === "TEXTAREA";
+
       if (settingShortcut) {
         e.preventDefault();
         dispatch(
@@ -817,30 +826,40 @@ const VideoMain: React.ForwardRefRenderFunction<
         );
         setSettingShortcut(null);
       } else {
-        switch (e.code) {
-          case shortcuts?.repeat:
-            e.preventDefault();
-            playCurrentSentence();
-            break;
-          case shortcuts?.prev:
-            e.preventDefault();
-            playPreviousSentence();
-            break;
-          case shortcuts?.next:
-            e.preventDefault();
-            saveUserInput();
-            revealCurrentSentence();
-            updateOverallProgress();
+        // Only trigger shortcuts in the following cases:
+        // 1. Not focused in input field, or
+        // 2. In input field but not in IME composition state, or
+        // 3. Pressed Enter key (allow submission)
+        if (
+          !isInputFocused ||
+          (!isImeComposing && isInputFocused) ||
+          e.code === shortcuts?.next
+        ) {
+          switch (e.code) {
+            case shortcuts?.repeat:
+              e.preventDefault();
+              playCurrentSentence();
+              break;
+            case shortcuts?.prev:
+              e.preventDefault();
+              playPreviousSentence();
+              break;
+            case shortcuts?.next:
+              e.preventDefault();
+              saveUserInput();
+              revealCurrentSentence();
+              updateOverallProgress();
 
-            if (isFirstEnterAfterRestore) {
-              setIsFirstEnterAfterRestore(false);
-            }
+              if (isFirstEnterAfterRestore) {
+                setIsFirstEnterAfterRestore(false);
+              }
 
-            stopCurrentSentence();
-            requestAnimationFrame(() => {
-              playNextSentence();
-            });
-            break;
+              stopCurrentSentence();
+              requestAnimationFrame(() => {
+                playNextSentence();
+              });
+              break;
+          }
         }
       }
     };
@@ -856,10 +875,18 @@ const VideoMain: React.ForwardRefRenderFunction<
     stopCurrentSentence,
     playNextSentence,
     playCurrentSentence,
-    playNextSentence,
+    playPreviousSentence,
     saveUserInput,
-    stopCurrentSentence,
+    isImeComposing,
   ]);
+
+  const handleCompositionStart = () => {
+    setIsImeComposing(true);
+  };
+
+  const handleCompositionEnd = () => {
+    setIsImeComposing(false);
+  };
 
   const settingsContent = (
     <Settings
@@ -948,6 +975,8 @@ const VideoMain: React.ForwardRefRenderFunction<
             <input
               value={userInput}
               onChange={handleUserInput}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
               placeholder={t("inputPlaceHolder")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500 transition duration-300 ease-in-out"
             />
