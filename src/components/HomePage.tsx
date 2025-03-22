@@ -6,7 +6,6 @@ import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import { message } from "antd";
 import { supabase } from "@/utils/supabaseClient";
 import { EMAIL_VERIFIED_KEY } from "@/utils/const";
-import { motion } from "framer-motion";
 
 const AnimatedSphere = () => {
   return (
@@ -44,7 +43,7 @@ const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
   }, [text]);
 
   return (
-    <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white relative z-10">
+    <h1 className="text-6xl font-bold mb-6 text-white">
       <span ref={textRef}></span>
       <span className="animate-blink-cursor">|</span>
     </h1>
@@ -54,60 +53,52 @@ const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [isSignUpPendingConfirmation, setIsSignUpPendingConfirmation] =
+    useState(false);
+  const [confirmationUrl, setConfirmationUrl] = useState("");
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const emailVerified = params.get("email_verified");
-    if (emailVerified === "true") {
-      localStorage.setItem(EMAIL_VERIFIED_KEY, "true");
-      message.success(t("emailVerified"));
-    } else if (params.get("email_confirm") === "true") {
-      setShowEmailConfirm(true);
+    const queryParams = new URLSearchParams(location.search);
+    const confirmationUrl = queryParams.get("confirmation_url");
+
+    if (location.pathname.includes("/signup-confirmation") && confirmationUrl) {
+      setIsSignUpPendingConfirmation(true);
+      setConfirmationUrl(confirmationUrl);
     }
-  }, [location, t]);
+    if (location.pathname.includes("/signup-success")) {
+      setIsSignUpPendingConfirmation(false);
+      message.success(t("signupSuccess"));
+    }
+  }, [location]);
 
   const HomeContent = () => (
     <>
-      {showEmailConfirm ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-        >
-          <Link
-            to="/login"
-            className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
+      {isSignUpPendingConfirmation ? (
+        <Link
+          to={confirmationUrl}
+          onClick={() => {
+            localStorage.setItem(EMAIL_VERIFIED_KEY, "true");
+            supabase.auth.refreshSession();
+          }}
+          className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
                      transform transition duration-300 hover:scale-110 hover:bg-purple-500
-                     animate-pulse relative z-10"
-          >
-            Click here to confirm your email
-          </Link>
-        </motion.div>
+                     animate-pulse"
+        >
+          Click here to confirm your email
+        </Link>
       ) : (
         <>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="text-xl mb-12 max-w-2xl text-white/90 relative z-10"
-          >
+          <p className="text-xl mb-12 animate-fade-in-up max-w-2xl">
             {t("homePageDescription")}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+          </p>
+          <Link
+            to="/dictation/video"
+            className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
+                     transform transition duration-300 hover:scale-110 hover:bg-purple-500
+                     animate-pulse"
           >
-            <Link
-              to="/dictation/video"
-              className="inline-block bg-purple-600 text-white font-bold py-3 px-8 rounded-full 
-                       transform transition duration-300 hover:scale-110 hover:bg-purple-500
-                       animate-pulse relative z-10"
-            >
-              {t("startDictation")}
-            </Link>
-          </motion.div>
+            {t("startDictation")}
+          </Link>
         </>
       )}
     </>
@@ -115,7 +106,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background animation */}
       <div className="absolute inset-0 z-0">
         <Canvas>
           <ambientLight intensity={0.5} />
@@ -123,20 +113,7 @@ const HomePage: React.FC = () => {
           <AnimatedSphere />
         </Canvas>
       </div>
-
-      {/* Floating blurred circles */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"></div>
-      <div className="absolute top-1/3 right-1/3 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl"></div>
-
-      {/* Subtle radial gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent to-black/30 z-0"></div>
-
-      {/* Content with subtle backdrop blur */}
-      <div className="relative z-10 text-center">
-        {/* Subtle backdrop blur only behind text */}
-        <div className="absolute inset-0 -m-10 backdrop-blur-sm bg-transparent rounded-full"></div>
-
+      <div className="z-10 text-center">
         <TypewriterEffect text="Dictation Studio" />
         <HomeContent />
       </div>
