@@ -905,6 +905,75 @@ const VideoManagement: React.FC = () => {
     setIsAddVideoModalVisible(true);
   };
 
+  // Check if the text ends with a sentence-ending punctuation mark in various languages
+  const isCompleteSentence = (text: string): boolean => {
+    const trimmedText = text.trim();
+
+    // Regular expression that matches sentence-ending punctuation in multiple languages
+    // English: . ! ?
+    // Chinese/Japanese: 。 ！ ？
+    // Korean: . ! ? (same as English but used in Korean context)
+    // Also includes other full-width variants used in Asian languages
+    return /[.!?。！？｡!?]$/.test(trimmedText);
+  };
+
+  // Function to automatically merge transcript items
+  const autoMergeTranscripts = () => {
+    if (currentTranscript.length < 2) {
+      message.info("Need at least 2 transcript items to merge");
+      return;
+    }
+
+    // Save current state to history before making changes
+    setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+    // Sort by start time
+    const sortedTranscript = [...currentTranscript].sort(
+      (a, b) => a.start - b.start
+    );
+    const result: TranscriptItem[] = [];
+
+    let current: TranscriptItem | null = null;
+
+    for (const item of sortedTranscript) {
+      // If there's no current item, set the current item as the first item
+      if (!current) {
+        current = { ...item };
+        continue;
+      }
+
+      // Check if the current item is a complete sentence
+      const isCurrentComplete = isCompleteSentence(current.transcript);
+
+      // Check if merging would exceed the 10-second time limit
+      const wouldExceedTimeLimit = item.end - current.start > 10;
+
+      // If current item is a complete sentence or merging would exceed time limit, save current item and start a new one
+      if (isCurrentComplete || wouldExceedTimeLimit) {
+        result.push(current);
+        current = { ...item };
+      } else {
+        // Otherwise merge the current item with the next item
+        current = {
+          start: current.start,
+          end: item.end,
+          transcript: `${current.transcript} ${item.transcript}`,
+        };
+      }
+    }
+
+    // Add the last item
+    if (current) {
+      result.push(current);
+    }
+
+    // Update transcript state
+    setCurrentTranscript(result);
+    message.success(
+      `Auto-merged transcript: ${currentTranscript.length} items → ${result.length} items`
+    );
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <Card title="Video Management">
@@ -973,6 +1042,7 @@ const VideoManagement: React.FC = () => {
             key="loadOriginal"
             onClick={loadOriginalTranscript}
             icon={<CloudDownloadOutlined />}
+            size="middle"
           >
             Load Original Transcript
           </Button>,
@@ -981,14 +1051,24 @@ const VideoManagement: React.FC = () => {
             onClick={undoMerge}
             disabled={transcriptHistory.length === 0}
             icon={<UndoOutlined />}
+            size="middle"
           >
             Undo
+          </Button>,
+          <Button
+            key="autoMerge"
+            onClick={autoMergeTranscripts}
+            icon={<MergeCellsOutlined />}
+            size="middle"
+          >
+            Auto Merge
           </Button>,
           <Button
             key="merge"
             onClick={mergeTranscripts}
             disabled={selectedRows.length < 2}
             icon={<MergeCellsOutlined />}
+            size="middle"
           >
             Merge Selected
           </Button>,
@@ -997,11 +1077,15 @@ const VideoManagement: React.FC = () => {
             key="update"
             onClick={updateFullTranscript}
             type="primary"
+            size="middle"
           >
             Update Full Transcript
           </Button>,
         ]}
-        width={800}
+        width={1000}
+        style={{
+          maxWidth: "95vw",
+        }}
       >
         {isTranscriptLoading ? (
           <div className="flex justify-center items-center h-full">
