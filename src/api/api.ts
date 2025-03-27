@@ -186,4 +186,13 @@ export const api = {
   deleteMissedWords: (words: string[]) =>
     axiosInstance.delete("/user/missed-words", { data: { words } }),
   cancelSubscription: () => axiosInstance.post("/payment/cancel-subscription"),
+  generateVerificationCode: (duration: string) => {
+    return axiosInstance.post("/payment/generate-code", { duration });
+  },
+  verifyMembershipCode: (code: string) => {
+    return axiosInstance.post("/payment/verify-code", { code });
+  },
+  getAllVerificationCodes: () => {
+    return axiosInstance.get("/payment/verification-codes");
+  },
 };
