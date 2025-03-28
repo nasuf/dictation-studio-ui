@@ -31,6 +31,7 @@ const { Text, Paragraph } = Typography;
 // 添加校验码类型定义
 interface VerificationCode {
   code_part: string;
+  full_code: string;
   duration: string;
   days: number;
   created_at: string;
@@ -235,16 +236,22 @@ const UserManagement: React.FC = () => {
     fetchVerificationCodes();
   };
 
-  // 格式化剩余时间
   const formatRemainingTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  // 复制校验码（这里只是示例，实际上我们没有完整的校验码）
-  const copyCodeToClipboard = () => {
-    message.info("Full code is not available in the list view");
+  const copyCodeToClipboard = (fullCode: string) => {
+    navigator.clipboard.writeText(fullCode).then(
+      () => {
+        message.success("Code copied to clipboard");
+      },
+      (err) => {
+        console.error("Could not copy text: ", err);
+        message.error("Failed to copy code");
+      }
+    );
   };
 
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
@@ -529,10 +536,10 @@ const UserManagement: React.FC = () => {
               key={code.code_part}
               className="dark:border-gray-700"
               actions={[
-                <Tooltip title="This is only a partial code">
+                <Tooltip title="Copy full verification code">
                   <Button
                     icon={<CopyOutlined />}
-                    onClick={() => copyCodeToClipboard()}
+                    onClick={() => copyCodeToClipboard(code.full_code)}
                     className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
                   >
                     Copy
@@ -544,7 +551,7 @@ const UserManagement: React.FC = () => {
                 title={
                   <div className="flex items-center gap-2 dark:text-white">
                     <span className="font-mono dark:text-blue-300">
-                      {code.code_part}...
+                      {code.full_code}
                     </span>
                     <Tag
                       color={
