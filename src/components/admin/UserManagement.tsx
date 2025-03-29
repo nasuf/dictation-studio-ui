@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
-import { USER_PLAN, USER_ROLE } from "@/utils/const";
+import { USER_ROLE } from "@/utils/const";
 import {
   CopyOutlined,
   ClockCircleOutlined,
@@ -50,7 +50,6 @@ const UserManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [codeForm] = Form.useForm();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [showDuration, setShowDuration] = useState(false);
   const [generatedCode, setGeneratedCode] = useState("");
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [isCodesModalVisible, setIsCodesModalVisible] = useState(false);
@@ -68,6 +67,13 @@ const UserManagement: React.FC = () => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [showCustomDaysInput, setShowCustomDaysInput] = useState(false);
   const [customDaysValue, setCustomDaysValue] = useState<number | null>(null);
+  const [showEditCustomDaysInput, setShowEditCustomDaysInput] = useState(false);
+  const [editCustomDaysValue, setEditCustomDaysValue] = useState<number | null>(
+    null
+  );
+  const [isRoleModalVisible, setIsRoleModalVisible] = useState(false);
+  const [roleForm] = Form.useForm();
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -86,7 +92,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const showEditModal = () => {
+  const showMembershipModal = () => {
     if (selectedUsers.length === 0) {
       message.warning("Please select users to edit");
       return;
@@ -95,8 +101,17 @@ const UserManagement: React.FC = () => {
 
     // Set default values for the form
     form.setFieldsValue({
-      duration: 30, // Set default duration
+      durationOption: "30days", // Set default duration
     });
+  };
+
+  const showRoleModal = () => {
+    if (selectedUsers.length === 0) {
+      message.warning("Please select users to edit");
+      return;
+    }
+    setIsRoleModalVisible(true);
+    roleForm.resetFields();
   };
 
   const showCodeGeneratorModal = () => {
@@ -146,10 +161,23 @@ const UserManagement: React.FC = () => {
     );
   };
 
-  const handlePlanChange = (value: string) => {
-    setShowDuration(value === USER_PLAN.PRO || value === USER_PLAN.PREMIUM);
-    if (!value || value === USER_PLAN.FREE) {
-      form.setFieldValue("duration", undefined);
+  const handleDurationChange = (value: string) => {
+    if (value === "custom") {
+      setShowEditCustomDaysInput(true);
+      form.setFieldValue("durationOption", "custom");
+      setEditCustomDaysValue(null);
+    } else {
+      setShowEditCustomDaysInput(false);
+
+      if (value === "30days") {
+        form.setFieldValue("durationOption", "30days");
+      } else if (value === "60days") {
+        form.setFieldValue("durationOption", "60days");
+      } else if (value === "90days") {
+        form.setFieldValue("durationOption", "90days");
+      } else if (value === "permanent") {
+        form.setFieldValue("durationOption", "permanent");
+      }
     }
   };
 
@@ -158,46 +186,101 @@ const UserManagement: React.FC = () => {
     try {
       const values = await form.validateFields();
       const emails = selectedUsers.map((user) => user.email);
-      const updates: Promise<any>[] = [];
 
-      if (values.plan) {
-        updates.push(
-          api.updateUserPlan(
-            emails,
-            values.plan,
-            values.plan === USER_PLAN.PRO || values.plan === USER_PLAN.PREMIUM
-              ? values.duration
-              : undefined
-          )
-        );
+      // 确定天数
+      let duration;
+      if (values.durationOption === "custom" && editCustomDaysValue) {
+        duration = editCustomDaysValue;
+      } else if (values.durationOption === "30days") {
+        duration = 30;
+      } else if (values.durationOption === "60days") {
+        duration = 60;
+      } else if (values.durationOption === "90days") {
+        duration = 90;
+      } else if (values.durationOption === "permanent") {
+        duration = -1; // 永久
       }
 
-      if (values.role) {
-        updates.push(api.updateUserRole(emails, values.role));
-      }
+      // 更新用户计划 - 只传递天数，让后端决定计划名称
+      if (duration !== undefined) {
+        try {
+          const response = await api.updateUserDuration(emails, duration);
 
-      const results = await Promise.all(updates);
-
-      const allSuccessful = results.every(
-        (response) =>
-          response.data.results &&
-          response.data.results.every((r: any) => r.success)
-      );
-
-      if (allSuccessful) {
-        message.success("Users updated successfully");
-        setIsEditModalVisible(false);
-        setSelectedUsers([]);
-        form.resetFields();
-        fetchUsers();
+          if (
+            response.data.results &&
+            response.data.results.every((r: any) => r.success)
+          ) {
+            message.success("User memberships updated successfully");
+            setIsEditModalVisible(false);
+            setSelectedUsers([]);
+            form.resetFields();
+            fetchUsers();
+          } else {
+            // 显示具体的错误信息
+            const failedUpdates = response.data.results.filter(
+              (r: any) => !r.success
+            );
+            if (failedUpdates.length > 0) {
+              message.error(
+                `Failed updates: ${failedUpdates
+                  .map((r: any) => `${r.email}: ${r.error}`)
+                  .join(", ")}`
+              );
+            } else {
+              message.error("Some membership updates failed");
+            }
+          }
+        } catch (error: any) {
+          console.error("API error:", error);
+          if (error.response) {
+            // 显示服务器返回的错误信息
+            message.error(
+              `Update failed: ${error.response.data.error || "Server error"}`
+            );
+          } else {
+            message.error("Failed to connect to server");
+          }
+        }
       } else {
-        message.error("Some updates failed");
+        message.warning("Please select a membership duration");
       }
     } catch (error) {
-      console.error("Error updating users:", error);
-      message.error("Failed to update users");
+      console.error("Error updating user memberships:", error);
+      message.error("Failed to update user memberships");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleRoleSubmit = async () => {
+    setIsUpdatingRole(true);
+    try {
+      const values = await roleForm.validateFields();
+      const emails = selectedUsers.map((user) => user.email);
+
+      if (values.role) {
+        const response = await api.updateUserRole(emails, values.role);
+
+        if (
+          response.data.results &&
+          response.data.results.every((r: any) => r.success)
+        ) {
+          message.success("User roles updated successfully");
+          setIsRoleModalVisible(false);
+          setSelectedUsers([]);
+          roleForm.resetFields();
+          fetchUsers();
+        } else {
+          message.error("Some role updates failed");
+        }
+      } else {
+        message.warning("Please select a role");
+      }
+    } catch (error) {
+      console.error("Error updating user roles:", error);
+      message.error("Failed to update user roles");
+    } finally {
+      setIsUpdatingRole(false);
     }
   };
 
@@ -333,31 +416,44 @@ const UserManagement: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Card
-        title="User Management"
+        className="dark:bg-gray-800 dark:text-white shadow-md"
+        title={
+          <div className="text-xl font-semibold dark:text-white">
+            User Management
+          </div>
+        }
         extra={
-          <div className="flex gap-2">
-            <button
-              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
-       dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
-              onClick={showEditModal}
+          <div className="flex items-center gap-2">
+            <Button
+              type="primary"
+              onClick={showMembershipModal}
               disabled={selectedUsers.length === 0}
+              className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
             >
-              Edit Selected Users ({selectedUsers.length})
-            </button>
-            <button
-              className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
-       dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
+              Edit Membership
+            </Button>
+            <Button
+              type="primary"
+              onClick={showRoleModal}
+              disabled={selectedUsers.length === 0}
+              className="dark:bg-green-600 dark:hover:bg-green-700 dark:border-green-600"
+            >
+              Edit Role
+            </Button>
+            <Button
+              type="primary"
               onClick={showCodeGeneratorModal}
+              className="dark:bg-purple-600 dark:hover:bg-purple-700 dark:border-purple-600"
             >
               Generate Membership Code
-            </button>
-            <button
-              className="flex items-center justify-center px-4 py-2 bg-purple-500 text-white shadow-md rounded-md hover:bg-purple-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50
-       dark:bg-purple-700 dark:text-white dark:hover:bg-purple-800"
+            </Button>
+            <Button
+              type="primary"
               onClick={showCodesModal}
+              className="dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:border-cyan-600"
             >
               View Active Codes
-            </button>
+            </Button>
           </div>
         }
       >
@@ -373,50 +469,193 @@ const UserManagement: React.FC = () => {
         />
       </Card>
 
-      {/* Edit Users Modal */}
+      {/* Edit Membership Modal */}
       <Modal
-        confirmLoading={isUpdating}
-        title={`Edit Users (${selectedUsers.length} selected)`}
+        title="Edit Membership"
         open={isEditModalVisible}
-        onOk={handleEditSubmit}
         onCancel={() => {
           setIsEditModalVisible(false);
+          setShowEditCustomDaysInput(false);
+          setEditCustomDaysValue(null);
           form.resetFields();
         }}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsEditModalVisible(false);
+              setShowEditCustomDaysInput(false);
+              setEditCustomDaysValue(null);
+              form.resetFields();
+            }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={isUpdating}
+            onClick={handleEditSubmit}
+            disabled={
+              isUpdating ||
+              (showEditCustomDaysInput &&
+                (!editCustomDaysValue || editCustomDaysValue <= 0))
+            }
+          >
+            Update
+          </Button>,
+        ]}
+        className="dark:bg-gray-800 dark:text-white"
+        styles={{
+          header: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          body: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          footer: {
+            background: "var(--color-bg-container)",
+            borderTop: "1px solid var(--color-border)",
+          },
+          mask: {
+            backdropFilter: "blur(4px)",
+          },
+          content: {
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+            borderBottom: "none",
+          },
+        }}
       >
-        <Form form={form}>
-          <Form.Item name="plan" label="Plan">
+        <Form form={form} layout="vertical" className="dark:text-white">
+          <Form.Item
+            name="durationOption"
+            label={<span className="dark:text-white">Membership Duration</span>}
+            rules={[
+              { required: true, message: "Please select membership duration" },
+            ]}
+          >
             <Select
-              allowClear
-              placeholder="Select new plan"
-              onChange={handlePlanChange}
+              placeholder="Select membership duration"
+              onChange={handleDurationChange}
+              className="dark:bg-gray-700 dark:text-white"
             >
-              <Option value={USER_PLAN.FREE}>Free</Option>
-              <Option value={USER_PLAN.PRO}>Pro</Option>
-              <Option value={USER_PLAN.PREMIUM}>Premium</Option>
+              <Option value="30days">30 Days</Option>
+              <Option value="60days">60 Days</Option>
+              <Option value="90days">90 Days</Option>
+              <Option value="permanent">Permanent</Option>
+              <Option value="custom">Custom Days</Option>
             </Select>
           </Form.Item>
-          {showDuration && (
+
+          {showEditCustomDaysInput && (
             <Form.Item
-              name="duration"
-              label="Duration (days)"
-              rules={[{ required: true, message: "Please input duration" }]}
+              name="customDays"
+              label={<span className="dark:text-white">Enter Custom Days</span>}
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter number of days",
+                },
+                {
+                  type: "number",
+                  min: 1,
+                  message: "Days must be greater than 0",
+                },
+              ]}
             >
               <InputNumber
                 min={1}
-                max={3650}
-                defaultValue={30}
-                style={{ width: "100%" }}
-                addonAfter="days"
+                placeholder="Enter number of days"
+                className="w-full dark:bg-gray-700 dark:text-white"
+                onChange={(value) => {
+                  setEditCustomDaysValue(value as number);
+                  form.setFieldValue("customDays", value);
+                }}
               />
             </Form.Item>
           )}
-          <Form.Item name="role" label="Role">
-            <Select allowClear placeholder="Select new role">
+
+          <div className="text-gray-500 dark:text-gray-400 mt-2">
+            <span className="font-bold">
+              Selected users ({selectedUsers.length}):
+            </span>
+            <br />
+            <ul>
+              {selectedUsers.map((user) => (
+                <li key={user.email}>{user.email}</li>
+              ))}
+            </ul>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Edit Role Modal */}
+      <Modal
+        title="Edit Role"
+        open={isRoleModalVisible}
+        onCancel={() => {
+          setIsRoleModalVisible(false);
+          roleForm.resetFields();
+        }}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsRoleModalVisible(false);
+              roleForm.resetFields();
+            }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={isUpdatingRole}
+            onClick={handleRoleSubmit}
+          >
+            Update
+          </Button>,
+        ]}
+        className="dark:bg-gray-800 dark:text-white"
+        styles={{
+          header: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          body: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          footer: {
+            background: "var(--color-bg-container)",
+            borderTop: "1px solid var(--color-border)",
+          },
+          mask: {
+            backdropFilter: "blur(4px)",
+          },
+          content: {
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+            borderBottom: "none",
+          },
+        }}
+      >
+        <Form form={roleForm} layout="vertical" className="dark:text-white">
+          <Form.Item
+            name="role"
+            label={<span className="dark:text-white">Role</span>}
+            rules={[{ required: true, message: "Please select a role" }]}
+          >
+            <Select
+              placeholder="Select role"
+              className="dark:bg-gray-700 dark:text-white"
+            >
               <Option value={USER_ROLE.USER}>User</Option>
               <Option value={USER_ROLE.ADMIN}>Admin</Option>
             </Select>
           </Form.Item>
+
           <div className="text-gray-500 dark:text-gray-400 mt-2">
             <span className="font-bold">
               Selected users ({selectedUsers.length}):

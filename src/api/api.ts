@@ -201,4 +201,7 @@ export const api = {
   generateCustomVerificationCode: (days: number) => {
     return axiosInstance.post("/payment/generate-custom-code", { days });
   },
+  updateUserDuration: (emails: string[], duration: number) => {
+    return axiosInstance.post("/user/update-duration", { emails, duration });
+  },
 };
