@@ -198,4 +198,7 @@ export const api = {
   assignVerificationCode: (code: string, userEmail: string) => {
     return axiosInstance.post("/payment/assign-code", { code, userEmail });
   },
+  generateCustomVerificationCode: (days: number) => {
+    return axiosInstance.post("/payment/generate-custom-code", { days });
+  },
 };

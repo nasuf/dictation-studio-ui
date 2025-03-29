@@ -66,6 +66,8 @@ const UserManagement: React.FC = () => {
     { label: string; value: string }[]
   >([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [showCustomDaysInput, setShowCustomDaysInput] = useState(false);
+  const [customDaysValue, setCustomDaysValue] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -100,6 +102,8 @@ const UserManagement: React.FC = () => {
   const showCodeGeneratorModal = () => {
     setIsCodeModalVisible(true);
     setGeneratedCode("");
+    setShowCustomDaysInput(false);
+    setCustomDaysValue(null);
     codeForm.resetFields();
   };
 
@@ -108,7 +112,18 @@ const UserManagement: React.FC = () => {
       setIsGeneratingCode(true);
       const values = await codeForm.validateFields();
 
-      const response = await api.generateVerificationCode(values.duration);
+      let response;
+      if (values.duration === "custom") {
+        if (!customDaysValue || customDaysValue <= 0) {
+          message.error("Please enter a valid number of days");
+          setIsGeneratingCode(false);
+          return;
+        }
+        response = await api.generateCustomVerificationCode(customDaysValue);
+      } else {
+        response = await api.generateVerificationCode(values.duration);
+      }
+
       setGeneratedCode(response.data.code);
       message.success("Verification code generated successfully");
     } catch (error) {
@@ -423,19 +438,33 @@ const UserManagement: React.FC = () => {
         onCancel={() => {
           setIsCodeModalVisible(false);
           setGeneratedCode("");
+          setShowCustomDaysInput(false);
+          setCustomDaysValue(null);
         }}
         footer={[
-          <Button key="cancel" onClick={() => setIsCodeModalVisible(false)}>
-            Close
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsCodeModalVisible(false);
+              setGeneratedCode("");
+              setShowCustomDaysInput(false);
+              setCustomDaysValue(null);
+            }}
+          >
+            Cancel
           </Button>,
           <Button
             key="generate"
             type="primary"
             loading={isGeneratingCode}
             onClick={handleGenerateCode}
-            disabled={isGeneratingCode}
+            disabled={
+              isGeneratingCode ||
+              (showCustomDaysInput &&
+                (!customDaysValue || customDaysValue <= 0))
+            }
           >
-            {generatedCode ? "Generate New Code" : "Generate Code"}
+            Generate
           </Button>,
         ]}
         className="dark:bg-gray-800 dark:text-white"
@@ -470,13 +499,50 @@ const UserManagement: React.FC = () => {
             <Select
               placeholder="Select membership duration"
               className="dark:bg-gray-700 dark:text-white"
+              onChange={(value) => {
+                if (value === "custom") {
+                  setShowCustomDaysInput(true);
+                  codeForm.setFieldValue("customDays", undefined);
+                } else {
+                  setShowCustomDaysInput(false);
+                }
+              }}
             >
-              <Option value="1month">1 Month</Option>
-              <Option value="3months">3 Months</Option>
-              <Option value="6months">6 Months</Option>
+              <Option value="30days">30 Days</Option>
+              <Option value="60days">60 Days</Option>
+              <Option value="90days">90 Days</Option>
               <Option value="permanent">Permanent</Option>
+              <Option value="custom">Custom Days</Option>
             </Select>
           </Form.Item>
+
+          {showCustomDaysInput && (
+            <Form.Item
+              name="customDays"
+              label={<span className="dark:text-white">Enter Custom Days</span>}
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter number of days",
+                },
+                {
+                  type: "number",
+                  min: 1,
+                  message: "Days must be greater than 0",
+                },
+              ]}
+            >
+              <InputNumber
+                min={1}
+                placeholder="Enter number of days"
+                className="w-full dark:bg-gray-700 dark:text-white"
+                onChange={(value) => {
+                  setCustomDaysValue(value as number);
+                  codeForm.setFieldsValue({ customDays: value });
+                }}
+              />
+            </Form.Item>
+          )}
         </Form>
 
         {generatedCode && (
@@ -623,29 +689,37 @@ const UserManagement: React.FC = () => {
                       color={
                         code.duration === "permanent"
                           ? "gold"
-                          : code.duration === "6months"
+                          : code.duration === "90days"
                           ? "green"
-                          : code.duration === "3months"
+                          : code.duration === "60days"
                           ? "blue"
+                          : code.duration.startsWith("custom_")
+                          ? "purple"
                           : "cyan"
                       }
                       className={
                         code.duration === "permanent"
                           ? "dark:bg-yellow-600 dark:text-white"
-                          : code.duration === "6months"
+                          : code.duration === "90days"
                           ? "dark:bg-green-600 dark:text-white"
-                          : code.duration === "3months"
+                          : code.duration === "60days"
                           ? "dark:bg-blue-600 dark:text-white"
+                          : code.duration.startsWith("custom_")
+                          ? "dark:bg-purple-600 dark:text-white"
                           : "dark:bg-cyan-600 dark:text-white"
                       }
                     >
                       {code.duration === "permanent"
                         ? "Permanent"
-                        : code.duration === "6months"
-                        ? "6 Months"
-                        : code.duration === "3months"
-                        ? "3 Months"
-                        : "1 Month"}
+                        : code.duration === "90days"
+                        ? "90 Days"
+                        : code.duration === "60days"
+                        ? "60 Days"
+                        : code.duration === "30days"
+                        ? "30 Days"
+                        : code.duration.startsWith("custom_")
+                        ? `${code.days} Days`
+                        : `${code.days} Days`}
                     </Tag>
                   </div>
                 }
