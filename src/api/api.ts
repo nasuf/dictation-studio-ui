@@ -195,4 +195,7 @@ export const api = {
   getAllVerificationCodes: () => {
     return axiosInstance.get("/payment/verification-codes");
   },
+  assignVerificationCode: (code: string, userEmail: string) => {
+    return axiosInstance.post("/payment/assign-code", { code, userEmail });
+  },
 };

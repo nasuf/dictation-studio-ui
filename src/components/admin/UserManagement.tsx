@@ -23,6 +23,7 @@ import {
   CopyOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 
 const { Option } = Select;
@@ -57,6 +58,14 @@ const UserManagement: React.FC = () => {
     VerificationCode[]
   >([]);
   const [isLoadingCodes, setIsLoadingCodes] = useState(false);
+  const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+  const [selectedCode, setSelectedCode] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [assignForm] = Form.useForm();
+  const [userOptions, setUserOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -252,6 +261,54 @@ const UserManagement: React.FC = () => {
         message.error("Failed to copy code");
       }
     );
+  };
+
+  // 显示分发校验码的模态框
+  const showAssignCodeModal = (code: string) => {
+    setSelectedCode(code);
+    setIsAssignModalVisible(true);
+    assignForm.resetFields();
+    fetchUserOptions();
+  };
+
+  // 获取用户列表用于下拉选择
+  const fetchUserOptions = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await api.getAllUsers();
+      const options = response.data.users.map((user: UserInfo) => ({
+        label: `${user.username} (${user.email})`,
+        value: user.email,
+      }));
+      setUserOptions(options);
+    } catch (error) {
+      console.error("Error fetching users for dropdown:", error);
+      message.error("Failed to load users");
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // 处理分发校验码
+  const handleAssignCode = async () => {
+    try {
+      setIsAssigning(true);
+      const values = await assignForm.validateFields();
+
+      await api.assignVerificationCode(selectedCode, values.userEmail);
+      message.success(
+        `Verification code successfully assigned to ${values.userEmail}`
+      );
+
+      // 关闭模态框并刷新校验码列表
+      setIsAssignModalVisible(false);
+      fetchVerificationCodes();
+    } catch (error) {
+      console.error("Error assigning verification code:", error);
+      message.error("Failed to assign verification code");
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
@@ -536,6 +593,15 @@ const UserManagement: React.FC = () => {
               key={code.code_part}
               className="dark:border-gray-700"
               actions={[
+                <Tooltip title="Assign to user">
+                  <Button
+                    icon={<UserAddOutlined />}
+                    onClick={() => showAssignCodeModal(code.full_code)}
+                    className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 mr-2"
+                  >
+                    Assign
+                  </Button>
+                </Tooltip>,
                 <Tooltip title="Copy full verification code">
                   <Button
                     icon={<CopyOutlined />}
@@ -602,6 +668,82 @@ const UserManagement: React.FC = () => {
             </List.Item>
           )}
         />
+      </Modal>
+
+      {/* 分发校验码的模态框 */}
+      <Modal
+        title="Assign Verification Code"
+        open={isAssignModalVisible}
+        onCancel={() => setIsAssignModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsAssignModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button
+            key="assign"
+            type="primary"
+            loading={isAssigning}
+            onClick={handleAssignCode}
+          >
+            Assign
+          </Button>,
+        ]}
+        className="dark:bg-gray-800 dark:text-white"
+        styles={{
+          header: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          body: {
+            background: "var(--color-bg-container)",
+            color: "var(--color-text)",
+          },
+          footer: {
+            background: "var(--color-bg-container)",
+            borderTop: "1px solid var(--color-border)",
+          },
+          mask: {
+            backdropFilter: "blur(4px)",
+          },
+          content: {
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+            borderBottom: "none",
+          },
+        }}
+      >
+        <Form form={assignForm} layout="vertical">
+          <Form.Item
+            name="userEmail"
+            label={<span className="dark:text-white">Select User</span>}
+            rules={[{ required: true, message: "Please select a user" }]}
+          >
+            <Select
+              showSearch
+              placeholder="Search and select user"
+              optionFilterProp="label"
+              loading={isLoadingUsers}
+              options={userOptions}
+              className="dark:bg-gray-700 dark:text-white"
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            />
+          </Form.Item>
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+            <Text strong className="dark:text-white">
+              Selected Code:
+            </Text>
+            <Paragraph className="p-2 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded font-mono">
+              <span className="dark:text-white">{selectedCode}</span>
+            </Paragraph>
+            <Text type="secondary" className="block mt-2 dark:text-gray-300">
+              This code will be assigned to the specified user and activated
+              immediately.
+            </Text>
+          </div>
+        </Form>
       </Modal>
     </div>
   );
