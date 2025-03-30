@@ -12,11 +12,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/api/api";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
 import { PlanProps } from "@/utils/type";
-import { Modal, Button } from "antd";
-import { ExclamationCircleOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Modal, Button, Form, Input } from "antd";
+import {
+  ExclamationCircleOutlined,
+  LoadingOutlined,
+  CreditCardOutlined,
+  KeyOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { ScrollableContainer } from "@/components/dictation/video/Widget";
 
 const LoadingIcon: React.FC = () => {
@@ -320,9 +325,10 @@ interface SubscriptionOption {
 const PaymentOptions: React.FC<{
   onSelect: (method: string, subscriptionType: "recurring" | "onetime") => void;
   planPrice: number;
-}> = ({ onSelect, planPrice }) => {
+  isLoading?: boolean;
+  selectedPayment?: string | null;
+}> = ({ onSelect, planPrice, isLoading = false, selectedPayment = null }) => {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<"recurring" | "onetime">(
     "recurring"
   );
@@ -339,6 +345,12 @@ const PaymentOptions: React.FC<{
       description: t("onetimeDescription"), // "One-time purchase, no auto-renewal"
     },
   ];
+
+  useEffect(() => {
+    if (selectedPayment) {
+      console.log(`Selected payment method: ${selectedPayment}`);
+    }
+  }, [selectedPayment]);
 
   return (
     <motion.div
@@ -399,11 +411,10 @@ const PaymentOptions: React.FC<{
 
       <button
         onClick={async () => {
-          setIsLoading(true);
           try {
             await onSelect("stripe", selectedType);
-          } finally {
-            setIsLoading(false);
+          } catch (error) {
+            console.error("Error selecting payment method:", error);
           }
         }}
         disabled={isLoading}
@@ -434,10 +445,14 @@ const PaymentOptions: React.FC<{
 
 export const UpgradePlan: React.FC = () => {
   const { t } = useTranslation();
-  const { userInfo } = useSelector((state: RootState) => state.user);
-  const currentPlan = userInfo?.plan;
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const location = useLocation();
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyForm] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("plans");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -489,8 +504,13 @@ export const UpgradePlan: React.FC = () => {
     method: string,
     subscriptionType: "recurring" | "onetime"
   ) => {
+    // 设置选中的支付方式
+    setSelectedPayment(method);
+
     if (method === "stripe") {
       try {
+        setIsLoading(true); // 使用 isLoading 状态
+
         const duration =
           USER_PLAN_DURATION[
             selectedPlan!.toUpperCase() as keyof typeof USER_PLAN_DURATION
@@ -506,7 +526,52 @@ export const UpgradePlan: React.FC = () => {
       } catch (error) {
         console.error("Error creating Stripe session:", error);
         message.error(t("paymentInitFailed"));
+      } finally {
+        setIsLoading(false); // 使用 isLoading 状态
       }
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    try {
+      setIsVerifying(true);
+      const values = await verifyForm.validateFields();
+
+      const response = await api.verifyMembershipCode(values.code);
+
+      if (response.data && response.data.plan) {
+        message.success("Membership activated successfully!");
+        // 刷新用户信息
+        await fetchUserInfo();
+      }
+    } catch (error: any) {
+      console.error("Error verifying code:", error);
+      if (error.response && error.response.data && error.response.data.error) {
+        message.error(`Verification failed: ${error.response.data.error}`);
+      } else {
+        message.error("Failed to verify code. Please try again.");
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const fetchUserInfo = async () => {
+    try {
+      // 从 Redux 状态中获取当前用户的邮箱
+      const userEmail = userInfo?.email;
+
+      if (!userEmail) {
+        console.error("User email not found");
+        return;
+      }
+
+      const response = await api.loadUserInfo(userEmail);
+      if (response.data) {
+        dispatch(setUser(response.data));
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
     }
   };
 
@@ -519,68 +584,272 @@ export const UpgradePlan: React.FC = () => {
     }
   }, [location.search]);
 
+  useEffect(() => {
+    // 获取当前用户的计划信息
+    if (userInfo && userInfo.plan) {
+      setCurrentPlan(userInfo.plan);
+    }
+  }, [userInfo]);
+
   return (
-    <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar flex flex-col items-center">
-      <div className="text-center mb-12 mt-12">
-        <h2 className="text-3xl font-bold mb-4 dark:text-white">
+    <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
+      <div className="text-center mb-8 mt-8">
+        <h2 className="text-3xl font-bold mb-2 dark:text-white">
           {t("choosePlanTitle")}
         </h2>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          {t("choosePlanDescription")}
+        </p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {!selectedPlan ? (
-          <motion.div
-            key="plans"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {PLANS.map((plan) => (
-              <PlanCard
-                key={plan.id}
-                {...plan}
-                isCurrent={currentPlan?.name === plan.id}
-                currentPlan={currentPlan}
-                onSelect={() => handleSelectPlan(plan.id)}
-                onCancel={() => setSelectedPlan(null)}
-                onCancelSubscription={() => cancelSubscription()}
-              />
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="payment"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col lg:flex-row justify-center items-start gap-8 max-w-5xl mx-auto"
-          >
-            <div className="w-full lg:w-2/5">
-              <div className="sticky top-8">
-                <PlanCard
-                  {...PLANS.find((p) => p.id === selectedPlan)!}
-                  toBeCanceled={true}
-                  onSelect={() => {}}
-                  onCancel={() => setSelectedPlan(null)}
-                  onCancelSubscription={() => {}}
-                />
-              </div>
-            </div>
+      <div className="w-full max-w-6xl mx-auto mb-8">
+        {/* Custom tab component with better dark mode support */}
+        <div className="flex justify-center mb-6">
+          <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
+            <button
+              onClick={() => setActiveTab("plans")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                activeTab === "plans"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              <CreditCardOutlined />
+              <span>{t("purchasePlans")}</span>
+            </button>
 
-            <div className="w-full lg:w-3/5 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-              <div className="max-w-lg mx-auto">
-                <PaymentOptions
-                  onSelect={handleSelectPayment}
-                  planPrice={
-                    PLANS.find((p) => p.id === selectedPlan)?.price || 0
-                  }
-                />
+            <button
+              onClick={() => setActiveTab("code")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                activeTab === "code"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              <KeyOutlined />
+              <span>{t("activateWithCode")}</span>
+            </button>
+
+            {currentPlan && currentPlan.name !== USER_PLAN.FREE && (
+              <button
+                onClick={() => setActiveTab("manage")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                  activeTab === "manage"
+                    ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <SyncOutlined />
+                <span>{t("manageSubscription")}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tab content */}
+        <div className="mt-6">
+          {/* Purchase plans content */}
+          {activeTab === "plans" && (
+            <AnimatePresence mode="wait">
+              {!selectedPlan ? (
+                <motion.div
+                  key="plans"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-6"
+                >
+                  {PLANS.map((plan) => (
+                    <PlanCard
+                      key={plan.id}
+                      {...plan}
+                      isCurrent={currentPlan?.name === plan.id}
+                      currentPlan={currentPlan}
+                      onSelect={() => handleSelectPlan(plan.id)}
+                      onCancel={() => setSelectedPlan(null)}
+                      onCancelSubscription={() => cancelSubscription()}
+                    />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="payment"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex flex-col lg:flex-row justify-center items-start gap-8 max-w-5xl mx-auto mt-6"
+                >
+                  <div className="w-full lg:w-2/5">
+                    <div className="sticky top-8">
+                      <PlanCard
+                        {...PLANS.find((p) => p.id === selectedPlan)!}
+                        toBeCanceled={true}
+                        onSelect={() => {}}
+                        onCancel={() => setSelectedPlan(null)}
+                        onCancelSubscription={() => {}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="w-full lg:w-3/5 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div className="max-w-lg mx-auto">
+                      <PaymentOptions
+                        onSelect={handleSelectPayment}
+                        planPrice={
+                          PLANS.find((p) => p.id === selectedPlan)?.price || 0
+                        }
+                        isLoading={isLoading}
+                        selectedPayment={selectedPayment}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+
+          {/* Activate code content */}
+          {activeTab === "code" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-md mx-auto mt-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg"
+            >
+              {/* Code redemption form */}
+              <div className="text-center mb-6">
+                <div className="text-blue-500 mb-4 text-4xl">
+                  <KeyOutlined />
+                </div>
+                <h3 className="text-xl font-bold dark:text-white">
+                  {t("redeemMembershipCode")}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  {t("enterVerificationCodeBelow")}
+                </p>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              {/* Verification code input form */}
+              <Form form={verifyForm} layout="vertical">
+                <Form.Item
+                  name="code"
+                  label={
+                    <span className="dark:text-white">
+                      {t("verificationCode")}
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: t("pleaseEnterVerificationCode"),
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder={t("enterVerificationCode")}
+                    className="dark:bg-gray-700 dark:text-white"
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleVerifyCode}
+                    loading={isVerifying}
+                    className="w-full"
+                  >
+                    {t("activateMembership")}
+                  </Button>
+                </Form.Item>
+              </Form>
+
+              {/* Help text */}
+              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                <p>{t("verificationCodeDescription")}</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Manage subscription content */}
+          {activeTab === "manage" &&
+            currentPlan &&
+            currentPlan.name !== USER_PLAN.FREE && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-md mx-auto mt-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg"
+              >
+                {/* Current membership details */}
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold dark:text-white">
+                    {t("currentMembership")}
+                  </h3>
+                </div>
+
+                {/* Membership information */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium dark:text-white">
+                      {t("plan")}:
+                    </span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {t(currentPlan.name.toLowerCase() + "Plan")}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium dark:text-white">
+                      {t("status")}:
+                    </span>
+                    <span className="font-medium">
+                      {currentPlan.isRecurring === true ? (
+                        <span className="text-green-600 dark:text-green-400">
+                          {t("activeRecurring")}
+                        </span>
+                      ) : (
+                        <span className="text-blue-600 dark:text-blue-400">
+                          {t("active")}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium dark:text-white">
+                      {t("expires")}:
+                    </span>
+                    <span className="font-medium dark:text-white">
+                      {currentPlan.expireTime &&
+                      typeof currentPlan.expireTime === "string"
+                        ? new Date(currentPlan.expireTime).toLocaleDateString()
+                        : t("notAvailable")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Cancel subscription button (only for recurring plans) */}
+                {currentPlan.isRecurring === true && (
+                  <Button
+                    danger
+                    size="large"
+                    onClick={() => {
+                      Modal.confirm({
+                        title: t("cancelSubscriptionConfirm"),
+                        icon: <ExclamationCircleOutlined />,
+                        content: t("cancelSubscriptionWarning"),
+                        onOk: cancelSubscription,
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    {t("cancelSubscription")}
+                  </Button>
+                )}
+              </motion.div>
+            )}
+        </div>
+      </div>
     </ScrollableContainer>
   );
 };

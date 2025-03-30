@@ -98,6 +98,8 @@ const enTranslations = {
   dictationActivities: "Dictation Activities",
   upgradePlan: "Upgrade Plan",
   choosePlanTitle: "Dictation Plans",
+  choosePlanDescription:
+    "Choose the plan that works best for you, or activate a membership code if you have one.",
   freePlan: "Free Plan",
   basicPlan: "Basic Plan",
   proPlan: "Pro Plan",
@@ -158,6 +160,23 @@ const enTranslations = {
   videoTitleFetchFailed: "Failed to fetch video title, please enter manually",
   fileUploadSuccess: "{{filename}} uploaded successfully",
   fileUploadFailed: "{{filename}} upload failed",
+  purchasePlans: "Purchase Plans",
+  activateWithCode: "Activate with Code",
+  manageSubscription: "Manage Subscription",
+  redeemMembershipCode: "Redeem Your Membership Code",
+  enterVerificationCodeBelow:
+    "Enter your verification code below to activate your membership",
+  verificationCode: "Verification Code",
+  pleaseEnterVerificationCode: "Please enter your verification code",
+  enterVerificationCode: "Enter your verification code",
+  activateMembership: "Activate Membership",
+  verificationCodeDescription:
+    "If you received a code from an administrator or through a promotion, you can use it here to activate your membership benefits.",
+  currentMembership: "Current Membership",
+  status: "Status",
+  activeRecurring: "Active (Recurring)",
+  active: "Active",
+  expires: "Expires",
 };
 
 const zhTranslations = {
@@ -253,6 +272,7 @@ const zhTranslations = {
   dictationActivities: "听写记录",
   upgradePlan: "升级计划",
   choosePlanTitle: "听写计划",
+  choosePlanDescription: "选择最适合您的计划，或通过激活码激活您的会员资格。",
   freePlan: "免费计划",
   basicPlan: "基础计划",
   proPlan: "专业计划",
@@ -309,6 +329,23 @@ const zhTranslations = {
   videoTitleFetchFailed: "无法获取视频标题，请手动输入",
   fileUploadSuccess: "{{filename}} 上传成功",
   fileUploadFailed: "{{filename}} 上传失败",
+  purchasePlans: "Purchase Plans",
+  activateWithCode: "Activate with Code",
+  manageSubscription: "Manage Subscription",
+  redeemMembershipCode: "Redeem Your Membership Code",
+  enterVerificationCodeBelow:
+    "Enter your verification code below to activate your membership",
+  verificationCode: "Verification Code",
+  pleaseEnterVerificationCode: "Please enter your verification code",
+  enterVerificationCode: "Enter your verification code",
+  activateMembership: "Activate Membership",
+  verificationCodeDescription:
+    "If you received a code from an administrator or through a promotion, you can use it here to activate your membership benefits.",
+  currentMembership: "Current Membership",
+  status: "Status",
+  activeRecurring: "Active (Recurring)",
+  active: "Active",
+  expires: "Expires",
 };
 
 const zhTraditionalTranslations = {
@@ -404,6 +441,7 @@ const zhTraditionalTranslations = {
   dictationActivities: "聽寫記錄",
   upgradePlan: "升級計劃",
   choosePlanTitle: "聽寫計劃",
+  choosePlanDescription: "選擇最適合您的計劃，或通過激活碼激活您的會員資格。",
   freePlan: "免費計劃",
   basicPlan: "基础計劃",
   proPlan: "專業計劃",
@@ -460,6 +498,22 @@ const zhTraditionalTranslations = {
   videoTitleFetchFailed: "無法獲取視頻標題，請手動輸入",
   fileUploadSuccess: "{{filename}} 上傳成功",
   fileUploadFailed: "{{filename}} 上傳失敗",
+  purchasePlans: "購買計劃",
+  activateWithCode: "激活碼",
+  manageSubscription: "管理訂閱",
+  redeemMembershipCode: "兌換會員碼",
+  enterVerificationCodeBelow: "輸入您的驗證碼以激活會員資格",
+  verificationCode: "驗證碼",
+  pleaseEnterVerificationCode: "請輸入您的驗證碼",
+  enterVerificationCode: "輸入您的驗證碼",
+  activateMembership: "激活會員",
+  verificationCodeDescription:
+    "如果您從管理員或透過促銷活動收到了驗證碼，可以在此處使用它來激活您的會員權益。",
+  currentMembership: "當前會員",
+  status: "狀態",
+  activeRecurring: "活躍（自動續費）",
+  active: "活躍",
+  expires: "到期時間",
 };
 
 const jaTranslations = {
@@ -576,6 +630,23 @@ const jaTranslations = {
     "動画タイトルの取得に失敗しました、手動で入力してください",
   fileUploadSuccess: "{{filename}} のアップロードに成功しました",
   fileUploadFailed: "{{filename}} のアップロードに失敗しました",
+  purchasePlans: "プラン購入",
+  activateWithCode: "コードで有効化",
+  manageSubscription: "サブスクリプション管理",
+  redeemMembershipCode: "メンバーシップコードを引き換える",
+  enterVerificationCodeBelow:
+    "認証コードを入力してメンバーシップを有効化してください",
+  verificationCode: "認証コード",
+  pleaseEnterVerificationCode: "認証コードを入力してください",
+  enterVerificationCode: "認証コードを入力",
+  activateMembership: "メンバーシップを有効化",
+  verificationCodeDescription:
+    "管理者またはプロモーションから受け取ったコードを使用して、メンバーシップ特典を有効化できます。",
+  currentMembership: "現在のメンバーシップ",
+  status: "ステータス",
+  activeRecurring: "アクティブ（自動更新）",
+  active: "アクティブ",
+  expires: "有効期限",
 };
 
 const koTranslations = {
@@ -692,6 +763,22 @@ const koTranslations = {
     "동영상 제목을 가져오지 못했습니다, 수동으로 입력해주세요",
   fileUploadSuccess: "{{filename}} 업로드 성공",
   fileUploadFailed: "{{filename}} 업로드 실패",
+  purchasePlans: "플랜 구매",
+  activateWithCode: "코드로 활성화",
+  manageSubscription: "구독 관리",
+  redeemMembershipCode: "멤버십 코드 사용",
+  enterVerificationCodeBelow: "인증 코드를 입력하여 멤버십을 활성화하세요",
+  verificationCode: "인증 코드",
+  pleaseEnterVerificationCode: "인증 코드를 입력해주세요",
+  enterVerificationCode: "인증 코드 입력",
+  activateMembership: "멤버십 활성화",
+  verificationCodeDescription:
+    "관리자 또는 프로모션을 통해 받은 코드를 사용하여 멤버십 혜택을 활성화할 수 있습니다.",
+  currentMembership: "현재 멤버십",
+  status: "상태",
+  activeRecurring: "활성 (자동 갱신)",
+  active: "활성",
+  expires: "만료일",
 };
 
 i18n.use(initReactI18next).init({
