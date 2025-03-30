@@ -198,7 +198,7 @@ const UserManagement: React.FC = () => {
       } else if (values.durationOption === "90days") {
         duration = 90;
       } else if (values.durationOption === "permanent") {
-        duration = -1; // 永久
+        duration = 365 * 100; // 永久
       }
 
       // 更新用户计划 - 只传递天数，让后端决定计划名称
