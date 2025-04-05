@@ -504,12 +504,12 @@ export const UpgradePlan: React.FC = () => {
     method: string,
     subscriptionType: "recurring" | "onetime"
   ) => {
-    // 设置选中的支付方式
+    // Set selected payment method
     setSelectedPayment(method);
 
     if (method === "stripe") {
       try {
-        setIsLoading(true); // 使用 isLoading 状态
+        setIsLoading(true); // Use isLoading state
 
         const duration =
           USER_PLAN_DURATION[
@@ -527,7 +527,7 @@ export const UpgradePlan: React.FC = () => {
         console.error("Error creating Stripe session:", error);
         message.error(t("paymentInitFailed"));
       } finally {
-        setIsLoading(false); // 使用 isLoading 状态
+        setIsLoading(false); // Use isLoading state
       }
     }
   };
@@ -541,7 +541,7 @@ export const UpgradePlan: React.FC = () => {
 
       if (response.data && response.data.plan) {
         message.success("Membership activated successfully!");
-        // 刷新用户信息
+        // Refresh user information
         await fetchUserInfo();
       }
     } catch (error: any) {
@@ -558,7 +558,7 @@ export const UpgradePlan: React.FC = () => {
 
   const fetchUserInfo = async () => {
     try {
-      // 从 Redux 状态中获取当前用户的邮箱
+      // Get current user email from Redux state
       const userEmail = userInfo?.email;
 
       if (!userEmail) {
@@ -585,7 +585,7 @@ export const UpgradePlan: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
-    // 获取当前用户的计划信息
+    // Get current user plan information
     if (userInfo && userInfo.plan) {
       setCurrentPlan(userInfo.plan);
     }

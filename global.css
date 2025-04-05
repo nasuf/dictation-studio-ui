@@ -64,7 +64,7 @@ body {
 }
 
 .dark .ant-menu-item-selected a,
-.dark .ant-menu-item:hover a,
+.dark .ant-menu-item-selected span,
 .dark .ant-menu-submenu-selected > .ant-menu-submenu-title,
 .dark .ant-menu-submenu:hover > .ant-menu-submenu-title,
 .dark .ant-menu-submenu-open > .ant-menu-submenu-title {
@@ -120,6 +120,16 @@ body {
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .subtitle-content {

@@ -204,4 +204,15 @@ export const api = {
   updateUserDuration: (emails: string[], duration: number) => {
     return axiosInstance.post("/user/update-duration", { emails, duration });
   },
+  checkDictationQuota: (channelId: string, videoId: string) => {
+    return axiosInstance.get(`/user/dictation_quota`, {
+      params: { channelId, videoId },
+    });
+  },
+  registerDictationVideo: (channelId: string, videoId: string) => {
+    return axiosInstance.post(`/user/register_dictation`, {
+      channelId,
+      videoId,
+    });
+  },
 };

@@ -60,20 +60,9 @@ const AppContent: React.FC = () => {
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [isLoadingChannels, setIsLoadingChannels] = useState(false);
 
-  // 初始语言设置为用户界面语言或默认为All
-  const currentUILang = i18n.language;
-  const initialLang =
-    currentUILang === "en"
-      ? LANGUAGES.English
-      : currentUILang === "zh"
-      ? LANGUAGES.Chinese
-      : currentUILang === "ja"
-      ? LANGUAGES.Japanese
-      : currentUILang === "ko"
-      ? LANGUAGES.Korean
-      : LANGUAGES.All;
-
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLang);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
+    LANGUAGES.All
+  );
 
   const isChannelListPage =
     location.pathname === "/" ||
@@ -114,6 +103,27 @@ const AppContent: React.FC = () => {
       setFilteredChannels(filtered);
     }
   };
+
+  useEffect(() => {
+    // Set initial language to user interface language or default to All
+    const uiLanguage = i18n.language;
+    if (uiLanguage === "zh-CN" || uiLanguage === "zh-TW") {
+      setSelectedLanguage(LANGUAGES.Chinese);
+    } else if (uiLanguage === "ja") {
+      setSelectedLanguage(LANGUAGES.Japanese);
+    } else if (uiLanguage === "ko") {
+      setSelectedLanguage(LANGUAGES.Korean);
+    } else {
+      setSelectedLanguage(LANGUAGES.All);
+    }
+  }, []);
+
+  useEffect(() => {
+    // If on channels page, load channel data
+    if (location.pathname === "/") {
+      dispatch(fetchAllChannels() as any);
+    }
+  }, [dispatch, location.pathname]);
 
   useEffect(() => {
     const pathParts = location.pathname.split("/");

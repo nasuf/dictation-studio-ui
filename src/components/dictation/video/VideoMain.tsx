@@ -61,6 +61,15 @@ export interface VideoMainRef {
   resetProgress: (transcriptData?: TranscriptItem[]) => void;
 }
 
+// Add new interface for video dictation quota
+interface QuotaResponse {
+  used: number;
+  limit: number;
+  canProceed: boolean;
+  startDate?: string;
+  endDate?: string;
+}
+
 const VideoMain: React.ForwardRefRenderFunction<
   VideoMainRef,
   VideoMainProps
@@ -117,31 +126,101 @@ const VideoMain: React.ForwardRefRenderFunction<
   );
   const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
   const [isImeComposing, setIsImeComposing] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<QuotaResponse | null>(null);
+  const [isCheckingQuota, setIsCheckingQuota] = useState(true);
+  const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
+
+  // Check user's dictation quota
+  const checkQuota = async () => {
+    try {
+      const quotaResponse = await api.checkDictationQuota(channelId!, videoId!);
+      if (quotaResponse.data) {
+        setQuotaInfo(quotaResponse.data);
+        return quotaResponse.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error checking quota:", error);
+      return null;
+    }
+  };
+
+  // If user cannot proceed (exceeded quota), show prompt and don't load content
+  const handleQuotaExceeded = (quotaData: QuotaResponse) => {
+    Modal.info({
+      title: t("dictationQuotaExceeded"),
+      content: (
+        <div>
+          <p>{t("basicPlanLimitMessage")}</p>
+          <p>
+            {t("usedQuota", {
+              used: quotaData.used,
+              limit: quotaData.limit,
+              startDate: quotaData.startDate
+                ? new Date(quotaData.startDate).toLocaleDateString()
+                : "",
+              endDate: quotaData.endDate
+                ? new Date(quotaData.endDate).toLocaleDateString()
+                : "",
+            })}
+          </p>
+          <Button
+            type="primary"
+            onClick={() => (window.location.href = "/profile/upgrade-plan")}
+            style={{ marginTop: 16 }}
+          >
+            {t("upgradePlan")}
+          </Button>
+        </div>
+      ),
+      okText: t("iKnow"),
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingTranscript(true);
-      const [transcriptResponse, progressResponse] = await Promise.all([
-        api.getVideoTranscript(channelId!, videoId!),
-        api.getUserProgress(channelId!, videoId!),
-      ]);
+      setIsCheckingQuota(true);
 
-      setTranscript(transcriptResponse.data.transcript);
-      setVideoTitle(transcriptResponse.data.title);
-      if (
-        progressResponse.data &&
-        progressResponse.data.userInput &&
-        Object.keys(progressResponse.data.userInput).length > 0
-      ) {
-        restoreUserProgress(
-          progressResponse.data,
-          transcriptResponse.data.transcript
-        );
-      } else {
-        setCurrentSentenceIndex(0);
-        dispatch(setIsDictationStarted(false));
+      try {
+        // If user can proceed, load data normally
+        const quotaData = await checkQuota();
+        if (quotaData && !quotaData.canProceed) {
+          handleQuotaExceeded(quotaData);
+          // We still load progress to let user see what they've done before
+        }
+
+        const [transcriptResponse, progressResponse] = await Promise.all([
+          api.getVideoTranscript(channelId!, videoId!),
+          api.getUserProgress(channelId!, videoId!),
+        ]);
+
+        setTranscript(transcriptResponse.data.transcript);
+        setVideoTitle(transcriptResponse.data.title);
+
+        if (
+          progressResponse.data &&
+          progressResponse.data.userInput &&
+          Object.keys(progressResponse.data.userInput).length > 0
+        ) {
+          // Already has progress, already counted in quota
+          setHasRegisteredVideo(true);
+          restoreUserProgress(
+            progressResponse.data,
+            transcriptResponse.data.transcript
+          );
+        } else {
+          // New video, not yet counted in quota
+          setCurrentSentenceIndex(0);
+          dispatch(setIsDictationStarted(false));
+        }
+      } catch (error) {
+        // Even if quota check fails, we allow proceeding to avoid blocking main functionality
+        console.error("Error fetching progress:", error);
+      } finally {
+        setIsLoadingTranscript(false);
+        setIsCheckingQuota(false);
       }
-      setIsLoadingTranscript(false);
     };
 
     const loadDictationConfig = async () => {
@@ -765,7 +844,6 @@ const VideoMain: React.ForwardRefRenderFunction<
       message.success(t("dictationConfigUpdated"));
       setConfigChanged(false);
     } catch (e) {
-      console.error(e);
       message.error(t("dictationConfigUpdateFailed"));
     } finally {
       setIsSavingDictationConfig(false);
@@ -899,16 +977,72 @@ const VideoMain: React.ForwardRefRenderFunction<
     />
   );
 
+  // Add listener for user's first input to register video to quota
+  useEffect(() => {
+    // Only register when user starts typing and the video hasn't been registered yet
+    if (
+      userInput &&
+      userInput.length > 0 &&
+      !hasRegisteredVideo &&
+      quotaInfo?.canProceed
+    ) {
+      const registerVideo = async () => {
+        try {
+          await api.registerDictationVideo(channelId!, videoId!);
+          setHasRegisteredVideo(true);
+
+          // Update quota information
+          checkQuota();
+        } catch (error) {
+          console.error("Error registering video:", error);
+        }
+      };
+
+      registerVideo();
+    }
+  }, [userInput, hasRegisteredVideo, channelId, videoId, quotaInfo]);
+
+  // Add periodic refresh of quota information
+  useEffect(() => {
+    // Refresh quota information every 30 seconds to ensure UI shows the latest data
+    const intervalId = setInterval(() => {
+      if (!isLoadingTranscript) {
+        checkQuota();
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [isLoadingTranscript]);
+
   return (
     <div className="flex justify-center items-start h-full w-full p-5">
       <div className="flex justify-between w-full max-w-7xl h-full">
-        <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto hide-scrollbar">
           <div className="w-full max-w-xl mb-4">
+            {/* Group quota info into a single line display */}
+            {quotaInfo && (!userInfo?.plan || !userInfo?.plan?.name) && (
+              <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
+                <p className="text-md text-blue-700 dark:text-blue-300">
+                  {t("freeUserQuotaHeader", {
+                    used: quotaInfo.used,
+                    limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
+                  })}
+                  <span className="mx-1">•</span>
+                  <span className="text-sm text-blue-600 dark:text-blue-200">
+                    {t("freeUserQuotaRenewal", {
+                      endDate: quotaInfo.endDate,
+                    })}
+                  </span>
+                </p>
+              </div>
+            )}
+
             {videoTitle && (
               <h1 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200 line-clamp-2">
                 {videoTitle}
               </h1>
             )}
+
             <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full z-10" />
               <YouTube
@@ -992,7 +1126,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         </div>
 
         <div className="flex-1 flex flex-col h-full max-w-2xl">
-          {isLoadingTranscript ? (
+          {isLoadingTranscript || isCheckingQuota ? (
             <div className="flex items-center justify-center h-full">
               <Spin size="large" />
             </div>
@@ -1014,7 +1148,7 @@ const VideoMain: React.ForwardRefRenderFunction<
               <div className="flex-grow mt-4 flex flex-col subtitle-container overflow-hidden">
                 <div
                   ref={subtitlesRef}
-                  className="flex-grow overflow-y-auto custom-scrollbar"
+                  className="flex-grow overflow-y-auto hide-scrollbar"
                 >
                   <div className="p-4 pb-20">
                     {transcript.map((item, index) => (

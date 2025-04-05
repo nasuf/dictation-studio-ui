@@ -177,6 +177,16 @@ const enTranslations = {
   activeRecurring: "Active (Recurring)",
   active: "Active",
   expires: "Expires",
+  dictationQuotaExceeded: "Dictation Limit Reached",
+  basicPlanLimitMessage:
+    "Free users can dictate up to 4 videos every 30 days. You've reached your limit for the current period. Subscribe to any plan to enjoy unlimited dictations.",
+  basicPlanQuotaInfo:
+    "Free User: {{used}}/{{limit}} videos ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "Free User Quota: {{used}}/{{limit}} videos",
+  freeUserQuotaRenewal: "Your quota will reset on {{endDate}}",
+  infiniteVideos: "unlimited videos",
+  upgradeNow: "Subscribe Now",
+  failedToLoadDictation: "Failed to load dictation data",
 };
 
 const zhTranslations = {
@@ -321,7 +331,7 @@ const zhTranslations = {
   videoLink: "YouTube视频链接",
   videoTitle: "视频标题",
   getSubtitle: "获取字幕",
-  uploadSubtitle: "上传SRT字幕",
+  uploadSubtitle: "上传SRT",
   addVideo: "添加视频",
   fetchingVideoTitle: "正在获取视频标题...",
   invalidYoutubeLink: "无效的YouTube链接，无法提取视频ID",
@@ -329,23 +339,32 @@ const zhTranslations = {
   videoTitleFetchFailed: "无法获取视频标题，请手动输入",
   fileUploadSuccess: "{{filename}} 上传成功",
   fileUploadFailed: "{{filename}} 上传失败",
-  purchasePlans: "Purchase Plans",
-  activateWithCode: "Activate with Code",
-  manageSubscription: "Manage Subscription",
-  redeemMembershipCode: "Redeem Your Membership Code",
-  enterVerificationCodeBelow:
-    "Enter your verification code below to activate your membership",
-  verificationCode: "Verification Code",
-  pleaseEnterVerificationCode: "Please enter your verification code",
-  enterVerificationCode: "Enter your verification code",
-  activateMembership: "Activate Membership",
+  purchasePlans: "购买计划",
+  activateWithCode: "激活码",
+  manageSubscription: "管理订阅",
+  redeemMembershipCode: "兑换会员码",
+  enterVerificationCodeBelow: "输入您的验证码以激活会员资格",
+  verificationCode: "验证码",
+  pleaseEnterVerificationCode: "请输入您的验证码",
+  enterVerificationCode: "输入您的验证码",
+  activateMembership: "激活会员",
   verificationCodeDescription:
-    "If you received a code from an administrator or through a promotion, you can use it here to activate your membership benefits.",
-  currentMembership: "Current Membership",
-  status: "Status",
-  activeRecurring: "Active (Recurring)",
-  active: "Active",
-  expires: "Expires",
+    "如果您从管理员或通过促销活动收到了验证码，可以在此处使用它来激活您的会员权益。",
+  currentMembership: "当前会员",
+  status: "状态",
+  activeRecurring: "活跃（自动续费）",
+  active: "活跃",
+  expires: "到期时间",
+  dictationQuotaExceeded: "听写次数已达上限",
+  basicPlanLimitMessage:
+    "免费用户每30天可以听写4个视频。您已用完本期配额。订阅任意计划即可享受无限听写。",
+  basicPlanQuotaInfo:
+    "免费用户：已用 {{used}}/{{limit}} 个视频 ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "免费用户配额：{{used}}/{{limit}} 个视频",
+  freeUserQuotaRenewal: "您的配额将于 {{endDate}} 重置",
+  infiniteVideos: "无限制视频",
+  upgradeNow: "立即订阅",
+  failedToLoadDictation: "加载听写数据失败",
 };
 
 const zhTraditionalTranslations = {
@@ -503,7 +522,7 @@ const zhTraditionalTranslations = {
   manageSubscription: "管理訂閱",
   redeemMembershipCode: "兌換會員碼",
   enterVerificationCodeBelow: "輸入您的驗證碼以激活會員資格",
-  verificationCode: "驗證碼",
+  verificationCode: "認證碼",
   pleaseEnterVerificationCode: "請輸入您的驗證碼",
   enterVerificationCode: "輸入您的驗證碼",
   activateMembership: "激活會員",
@@ -514,6 +533,16 @@ const zhTraditionalTranslations = {
   activeRecurring: "活躍（自動續費）",
   active: "活躍",
   expires: "到期時間",
+  dictationQuotaExceeded: "聽寫次數已達上限",
+  basicPlanLimitMessage:
+    "免費用戶每月只能聽寫4個視頻。您已用完本月配額。訂閱任意會員計劃即可享受無限聽寫。",
+  basicPlanQuotaInfo:
+    "免費用戶：已用 {{used}}/{{limit}} 個視頻 ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "免費用戶配額：{{used}}/{{limit}} 個視頻",
+  freeUserQuotaRenewal: "您的配額將於 {{endDate}} 重置",
+  infiniteVideos: "無限制視頻",
+  upgradeNow: "立即訂閱",
+  failedToLoadDictation: "加載聽寫數據失敗",
 };
 
 const jaTranslations = {
@@ -530,6 +559,7 @@ const jaTranslations = {
     "Tabキーを押してディクテーションを開始するか現在の文を繰り返し、Enterキーを押して次の文に進みます。または設置中でカスタマイズできます。",
   wordDictationKeyboardInstructions:
     "Enterキーを押して回答を送信し、検証します。もう一度Enterキーを押して次の単語を取得します。Tabキーを押すかカードをクリックして単語の発音を再生します。",
+  inputPlaceHolder: "聞いた内容を入力してください",
   completionRate: "完了率",
   accuracyRate: "正確率",
   yourInput: "あなたの入力",
@@ -624,10 +654,10 @@ const jaTranslations = {
   uploadSubtitle: "SRT字幕をアップロード",
   addVideo: "動画を追加",
   fetchingVideoTitle: "動画タイトルを取得中...",
-  invalidYoutubeLink: "無効なYouTubeリンク、動画IDを抽出できません",
-  videoTitleFetchSuccess: "動画タイトルの取得に成功しました",
+  invalidYoutubeLink: "無効なYouTube リンク、動画IDを抽出できません",
+  videoTitleFetchSuccess: "動画タイトルを成功して取得しました",
   videoTitleFetchFailed:
-    "動画タイトルの取得に失敗しました、手動で入力してください",
+    "動画タイトルを取得できませんでした, 手動で入力してください",
   fileUploadSuccess: "{{filename}} のアップロードに成功しました",
   fileUploadFailed: "{{filename}} のアップロードに失敗しました",
   purchasePlans: "プラン購入",
@@ -641,12 +671,22 @@ const jaTranslations = {
   enterVerificationCode: "認証コードを入力",
   activateMembership: "メンバーシップを有効化",
   verificationCodeDescription:
-    "管理者またはプロモーションから受け取ったコードを使用して、メンバーシップ特典を有効化できます。",
+    "管理者またはプロモーションを通過して受け取ったコードを使用して、メンバーシップ特典を有効化できます。",
   currentMembership: "現在のメンバーシップ",
   status: "ステータス",
   activeRecurring: "アクティブ（自動更新）",
   active: "アクティブ",
   expires: "有効期限",
+  dictationQuotaExceeded: "利用制限に達しました",
+  basicPlanLimitMessage:
+    "無料ユーザーは月に4つのビデオのみ利用できます。今月の制限に達しました。無制限のディクテーションを楽しむには、任意のプランにご登録ください。",
+  basicPlanQuotaInfo:
+    "無料ユーザー: {{used}}/{{limit}} ビデオ ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "無料ユーザー配分：{{used}}/{{limit}} ビデオ",
+  freeUserQuotaRenewal: "配分は {{endDate}} にリセットされます",
+  infiniteVideos: "無制限のビデオ",
+  upgradeNow: "今すぐ登録",
+  failedToLoadDictation: "ディクテーションデータの読み込みに失敗しました",
 };
 
 const koTranslations = {
@@ -732,8 +772,8 @@ const koTranslations = {
   unauthorized: "미승인",
   comingSoon: "준비중...",
   markAsCorrect: "정확하다고 표시",
-  dictationConfigUpdated: "聴写設定が更新されました",
-  dictationConfigUpdateFailed: "聴写設定の更新に失敗しました",
+  dictationConfigUpdated: "듣기 설정이 업데이트되었습니다",
+  dictationConfigUpdateFailed: "듣기 설정 업데이트에 실패했습니다",
   playbackSpeed: "재생 속도",
   autoRepeat: "자동 반복",
   shortcutKeys: "단축키",
@@ -779,6 +819,16 @@ const koTranslations = {
   activeRecurring: "활성 (자동 갱신)",
   active: "활성",
   expires: "만료일",
+  dictationQuotaExceeded: "받아쓰기 제한 도달",
+  basicPlanLimitMessage:
+    "무료 사용자는 한 달에 4개의 동영상만 받아쓰기할 수 있습니다. 이번 달 할당량을 모두 사용했습니다. 무제한 받아쓰기를 즐기려면 플랜에 가입하세요.",
+  basicPlanQuotaInfo:
+    "무료 사용자: {{used}}/{{limit}} 동영상 ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "무료 사용자 할당량: {{used}}/{{limit}} 동영상",
+  freeUserQuotaRenewal: "할당량은 {{endDate}}에 재설정됩니다",
+  infiniteVideos: "무제한 동영상",
+  upgradeNow: "지금 구독하기",
+  failedToLoadDictation: "받아쓰기 데이터 로드 실패",
 };
 
 i18n.use(initReactI18next).init({
