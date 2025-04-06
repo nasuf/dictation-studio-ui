@@ -189,21 +189,27 @@ const PlanCard: React.FC<PlanProps> = ({
         ))}
       </div>
 
+      {/* For paid plans, show select button when not current or free user */}
       {id !== USER_PLAN.FREE &&
         !toBeCanceled &&
-        (!isCurrent || (isCurrent && currentPlan?.expireTime)) && (
+        (!isCurrent ||
+          (isCurrent && currentPlan?.expireTime) ||
+          currentPlan?.name === USER_PLAN.FREE) && (
           <button
             onClick={onSelect}
             disabled={
               currentPlan !== undefined &&
-              (!isCurrent || (isCurrent && currentPlan?.expireTime !== null))
+              (!isCurrent || (isCurrent && currentPlan?.expireTime !== null)) &&
+              currentPlan?.name !== USER_PLAN.FREE
             }
             className={`
               w-full py-4 px-6 rounded-xl font-semibold text-center
               transition-all duration-300
               ${
                 currentPlan !== undefined &&
-                (!isCurrent || (isCurrent && currentPlan?.expireTime !== null))
+                (!isCurrent ||
+                  (isCurrent && currentPlan?.expireTime !== null)) &&
+                currentPlan?.name !== USER_PLAN.FREE
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
                   : "text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
               }
@@ -213,17 +219,20 @@ const PlanCard: React.FC<PlanProps> = ({
             {t("selectPlan")}
           </button>
         )}
-      {isCurrent && !currentPlan?.expireTime && (
-        <button
-          onClick={handleCancelSubscriptionClick}
-          className="w-full py-4 px-6 rounded-xl font-semibold text-center
+
+      {isCurrent &&
+        !currentPlan?.expireTime &&
+        currentPlan?.name !== USER_PLAN.FREE && (
+          <button
+            onClick={handleCancelSubscriptionClick}
+            className="w-full py-4 px-6 rounded-xl font-semibold text-center
             text-white bg-orange-500 hover:bg-orange-600
             dark:bg-red-600 dark:hover:bg-red-700
             transition-all duration-300 min-w-[200px] mx-auto block"
-        >
-          {t("cancelSubscription")}
-        </button>
-      )}
+          >
+            {t("cancelSubscription")}
+          </button>
+        )}
       {toBeCanceled && (
         <button
           onClick={onCancel}
@@ -452,7 +461,7 @@ export const UpgradePlan: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyForm] = Form.useForm();
-  const [activeTab, setActiveTab] = useState("plans");
+  const [activeTab, setActiveTab] = useState("code");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -576,20 +585,36 @@ export const UpgradePlan: React.FC = () => {
   };
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const sessionId = queryParams.get("payment_session_id");
-
+    // Verify payment session if session_id is in URL params
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
     if (sessionId) {
       verifyPayment(sessionId);
     }
-  }, [location.search]);
 
-  useEffect(() => {
-    // Get current user plan information
-    if (userInfo && userInfo.plan) {
-      setCurrentPlan(userInfo.plan);
-    }
-  }, [userInfo]);
+    // Get user plan info
+    const fetchUserPlan = async () => {
+      try {
+        if (userInfo) {
+          // For Free users, create a currentPlan object
+          if (!userInfo.plan || userInfo.plan.name === USER_PLAN.FREE) {
+            setCurrentPlan({
+              name: USER_PLAN.FREE,
+              expireTime: null,
+              isRecurring: false,
+            });
+          } else {
+            // For paid users, set their plan details
+            setCurrentPlan(userInfo.plan);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user plan:", error);
+      }
+    };
+
+    fetchUserPlan();
+  }, [userInfo, dispatch]);
 
   return (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
@@ -607,18 +632,6 @@ export const UpgradePlan: React.FC = () => {
         <div className="flex justify-center mb-6">
           <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
             <button
-              onClick={() => setActiveTab("plans")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
-                activeTab === "plans"
-                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
-            >
-              <CreditCardOutlined />
-              <span>{t("purchasePlans")}</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab("code")}
               className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
                 activeTab === "code"
@@ -628,6 +641,18 @@ export const UpgradePlan: React.FC = () => {
             >
               <KeyOutlined />
               <span>{t("activateWithCode")}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("plans")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                activeTab === "plans"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              <CreditCardOutlined />
+              <span>{t("purchasePlans")}</span>
             </button>
 
             {currentPlan && currentPlan.name !== USER_PLAN.FREE && (
