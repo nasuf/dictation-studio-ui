@@ -42,7 +42,8 @@ export const Word: React.FC<WordProps> = ({
     "preview"
   );
 
-  // 从Redux获取结构化的missed_words数据
+  // 从Redux获取用户信息和结构化的missed_words数据
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const missedWords = useSelector(
     (state: RootState) => state.user.userInfo?.missed_words || {}
   );
@@ -58,11 +59,16 @@ export const Word: React.FC<WordProps> = ({
 
   // 当Redux数据变化时更新本地状态
   useEffect(() => {
-    console.log("Redux missed words:", missedWords);
-
-    // 提取所有单词，创建扁平化的列表
-    const flattenedWords = Object.values(missedWords).flat();
-    setAllWords(flattenedWords);
+    try {
+      // 提取所有单词，创建扁平化的列表
+      // 如果missedWords结构不正确，使用安全的方式处理
+      const values = Object.values(missedWords);
+      const flattenedWords = Array.isArray(values) ? values.flat() : [];
+      setAllWords(flattenedWords);
+    } catch (error) {
+      console.error("Error processing missed words:", error);
+      setAllWords([]);
+    }
   }, [missedWords]);
 
   const [userInput, setUserInput] = useState("");
@@ -376,7 +382,13 @@ export const Word: React.FC<WordProps> = ({
       ) : (
         <div className="flex justify-center items-center h-full w-full">
           <Empty
-            description={t("noCollectedWords")}
+            description={
+              !userInfo
+                ? t("loginToViewWords")
+                : selectedLanguage === "all"
+                ? t("noCollectedWords")
+                : t("noWordsInSelectedLanguage")
+            }
             className="dark:text-gray-400"
           />
         </div>

@@ -65,6 +65,9 @@ const AppContent: React.FC = () => {
     (state: RootState) => state.navigation.selectedLanguage
   );
 
+  // 从Redux中获取用户信息
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
   const isChannelListPage =
     location.pathname === "/" ||
     location.pathname === "/dictation" ||
@@ -172,13 +175,30 @@ const AppContent: React.FC = () => {
   const handleDeleteMissedWords = async () => {
     try {
       setIsSavingWords(true);
-      const response = await api.deleteMissedWords(Array.from(wordsToDelete));
+
+      // 获取当前Redux中的missed_words
+      const currentMissedWords = userInfo?.missed_words || {};
+
+      // 创建一个新的对象来存储更新后的missed_words
+      const updatedMissedWords = { ...currentMissedWords };
+
+      // 从所有语言类别中删除选中的单词
+      Array.from(wordsToDelete).forEach((word) => {
+        Object.keys(updatedMissedWords).forEach((lang) => {
+          if (updatedMissedWords[lang]) {
+            updatedMissedWords[lang] = updatedMissedWords[lang].filter(
+              (w: string) => w !== word
+            );
+          }
+        });
+      });
+
+      // 调用API删除单词
+      await api.deleteMissedWords(Array.from(wordsToDelete));
       message.success(t("wordsDeletedSuccess"));
 
-      if (response.data && response.data.missed_words) {
-        // 更新结构化的词汇数据
-        dispatch(setMissedWords(response.data.missed_words));
-      }
+      // 直接使用我们更新的missed_words数据更新Redux
+      dispatch(setMissedWords(updatedMissedWords));
 
       setWordsToDelete(new Set());
       setIsWordEditing(false);
