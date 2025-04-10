@@ -41,18 +41,29 @@ export const Word: React.FC<WordProps> = ({
   const [activeMode, setActiveMode] = useState<"dictation" | "preview">(
     "preview"
   );
+
+  // 从Redux获取结构化的missed_words数据
   const missedWords = useSelector(
-    (state: RootState) => state.user.userInfo?.missed_words || []
-  );
-  const structuredMissedWords = useSelector(
-    (state: RootState) => state.user.userInfo?.structured_missed_words || {}
+    (state: RootState) => state.user.userInfo?.missed_words || {}
   );
 
-  // Get the selected language from navigation state
+  // 获取当前选择的语言
   const selectedLanguage = useSelector(
     (state: RootState) =>
       LANGUAGE_MAPPING[state.navigation.selectedLanguage] || "all"
   );
+
+  // 创建扁平化的单词列表用于展示
+  const [allWords, setAllWords] = useState<string[]>([]);
+
+  // 当Redux数据变化时更新本地状态
+  useEffect(() => {
+    console.log("Redux missed words:", missedWords);
+
+    // 提取所有单词，创建扁平化的列表
+    const flattenedWords = Object.values(missedWords).flat();
+    setAllWords(flattenedWords);
+  }, [missedWords]);
 
   const [userInput, setUserInput] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
@@ -67,68 +78,26 @@ export const Word: React.FC<WordProps> = ({
     }
   }, [shouldReset]);
 
-  // Get filtered words based on selected language
+  // 获取基于选定语言的过滤后单词
   const getFilteredWords = useCallback(() => {
     if (selectedLanguage === "all") {
-      return missedWords;
+      return allWords;
     }
 
-    // If we have structured format, use it
-    if (structuredMissedWords && structuredMissedWords[selectedLanguage]) {
-      return structuredMissedWords[selectedLanguage];
+    // 如果选择了特定语言，返回该语言的单词
+    if (missedWords[selectedLanguage]) {
+      return missedWords[selectedLanguage];
     }
 
-    // Fallback to filtering by first character code
-    return missedWords.filter((word) => {
-      const charCode = word.charCodeAt(0);
-
-      if (
-        selectedLanguage === "zh" &&
-        charCode >= 0x4e00 &&
-        charCode <= 0x9fff
-      ) {
-        return true;
-      } else if (
-        selectedLanguage === "ja" &&
-        ((charCode >= 0x3040 && charCode <= 0x309f) ||
-          (charCode >= 0x30a0 && charCode <= 0x30ff))
-      ) {
-        return true;
-      } else if (
-        selectedLanguage === "ko" &&
-        charCode >= 0xac00 &&
-        charCode <= 0xd7a3
-      ) {
-        return true;
-      } else if (
-        selectedLanguage === "en" &&
-        ((charCode >= 0x0020 && charCode <= 0x007f) ||
-          (charCode >= 0x0080 && charCode <= 0x00ff))
-      ) {
-        return true;
-      } else if (selectedLanguage === "other") {
-        // If it doesn't fit into any of the above categories
-        return !(
-          (
-            (charCode >= 0x4e00 && charCode <= 0x9fff) || // Not Chinese
-            (charCode >= 0x3040 && charCode <= 0x309f) ||
-            (charCode >= 0x30a0 && charCode <= 0x30ff) || // Not Japanese
-            (charCode >= 0xac00 && charCode <= 0xd7a3) || // Not Korean
-            (charCode >= 0x0020 && charCode <= 0x007f) ||
-            (charCode >= 0x0080 && charCode <= 0x00ff)
-          ) // Not English
-        );
-      }
-
-      return false;
-    });
-  }, [missedWords, structuredMissedWords, selectedLanguage]);
+    // 如果没有该语言的单词，返回空数组
+    return [];
+  }, [allWords, missedWords, selectedLanguage]);
 
   useEffect(() => {
     if (activeMode === "dictation") {
       fetchRandomWord();
     }
-  }, [missedWords, activeMode, selectedLanguage]);
+  }, [allWords, activeMode, selectedLanguage]);
 
   useEffect(() => {
     if (userInputRef.current) {
@@ -383,7 +352,7 @@ export const Word: React.FC<WordProps> = ({
 
   return (
     <Layout className="h-full bg-transparent">
-      {missedWords.length > 0 ? (
+      {allWords.length > 0 ? (
         <>
           <Sider
             className="bg-white dark:bg-gray-800 dark:text-white"

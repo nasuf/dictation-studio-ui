@@ -4,11 +4,7 @@ import { useTranslation } from "react-i18next";
 import { FilterOption } from "@/utils/type";
 import { api } from "@/api/api";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setCurrentMissedWords,
-  setMissedWords,
-  setStructuredMissedWords,
-} from "@/redux/userSlice";
+import { setCurrentMissedWords, setMissedWords } from "@/redux/userSlice";
 import { ARTICLES_AND_DETERMINERS, FILTER_OPTIONS } from "@/utils/const";
 import nlp from "compromise";
 import { VideoMainRef } from "@/components/dictation/video/VideoMain";
@@ -120,22 +116,14 @@ const MissedWordsModal: React.FC<MissedWordsModalProps> = ({
   const handleSaveMissedWords = async () => {
     try {
       setIsSavingWords(true);
+
+      // 调用API保存分组后的missed_words
       const response = await api.saveMissedWords(newMissedWords);
       message.success(t("missedWordsSaved"));
 
-      // Update both the flat list and structured format
-      dispatch(setMissedWords(response.data.missed_words));
-      if (response.data.structured_missed_words) {
-        dispatch(
-          setStructuredMissedWords(response.data.structured_missed_words)
-        );
-      } else {
-        // If backend doesn't return structured format, create it locally
-        dispatch(
-          setStructuredMissedWords(
-            groupWordsByLanguage(response.data.missed_words)
-          )
-        );
+      // 直接更新Redux中的结构化missed_words
+      if (response.data && response.data.missed_words) {
+        dispatch(setMissedWords(response.data.missed_words));
       }
 
       onClose();

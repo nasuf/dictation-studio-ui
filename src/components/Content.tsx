@@ -175,9 +175,11 @@ const AppContent: React.FC = () => {
       const response = await api.deleteMissedWords(Array.from(wordsToDelete));
       message.success(t("wordsDeletedSuccess"));
 
-      if (response.data) {
+      if (response.data && response.data.missed_words) {
+        // 更新结构化的词汇数据
         dispatch(setMissedWords(response.data.missed_words));
       }
+
       setWordsToDelete(new Set());
       setIsWordEditing(false);
     } catch (error) {

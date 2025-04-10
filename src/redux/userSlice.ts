@@ -70,51 +70,51 @@ const userSlice = createSlice({
     setIsSavingProgress: (state, action: PayloadAction<boolean>) => {
       state.isSavingProgress = action.payload;
     },
-    setMissedWords: (state, action: PayloadAction<string[]>) => {
+    setMissedWords: (state, action: PayloadAction<StructuredMissedWords>) => {
       if (state.userInfo) {
-        state.userInfo.missed_words = [...action.payload];
+        state.userInfo.missed_words = action.payload;
       }
     },
-    setStructuredMissedWords: (
-      state,
-      action: PayloadAction<StructuredMissedWords>
-    ) => {
-      if (state.userInfo) {
-        state.userInfo.structured_missed_words = action.payload;
-      }
-    },
-    addToStructuredMissedWords: (
+    addWordToMissedWords: (
       state,
       action: PayloadAction<{ language: string; word: string }>
     ) => {
-      if (state.userInfo && state.userInfo.structured_missed_words) {
+      if (state.userInfo) {
         const { language, word } = action.payload;
-        if (!state.userInfo.structured_missed_words[language]) {
-          state.userInfo.structured_missed_words[language] = [];
+
+        // 确保missed_words存在且包含对应语言的数组
+        if (!state.userInfo.missed_words) {
+          state.userInfo.missed_words = {};
         }
 
-        if (!state.userInfo.structured_missed_words[language].includes(word)) {
-          state.userInfo.structured_missed_words[language].push(word);
+        if (!state.userInfo.missed_words[language]) {
+          state.userInfo.missed_words[language] = [];
+        }
+
+        // 避免重复添加
+        if (!state.userInfo.missed_words[language].includes(word)) {
+          state.userInfo.missed_words[language].push(word);
         }
       }
     },
-    removeFromStructuredMissedWords: (
+    removeWordFromMissedWords: (
       state,
       action: PayloadAction<{ word: string }>
     ) => {
-      if (state.userInfo && state.userInfo.structured_missed_words) {
+      if (state.userInfo && state.userInfo.missed_words) {
         const { word } = action.payload;
 
-        // Remove the word from all language categories
-        Object.keys(state.userInfo.structured_missed_words).forEach((lang) => {
-          state.userInfo!.structured_missed_words![lang] =
-            state.userInfo!.structured_missed_words![lang].filter(
-              (w) => w !== word
-            );
+        // 从所有语言类别中移除该词
+        Object.keys(state.userInfo.missed_words).forEach((lang) => {
+          if (state.userInfo?.missed_words[lang]) {
+            state.userInfo.missed_words[lang] = state.userInfo.missed_words[
+              lang
+            ].filter((w) => w !== word);
 
-          // Clean up empty language arrays
-          if (state.userInfo!.structured_missed_words![lang].length === 0) {
-            delete state.userInfo!.structured_missed_words![lang];
+            // 如果该语言类别没有单词了，移除该类别
+            if (state.userInfo.missed_words[lang].length === 0) {
+              delete state.userInfo.missed_words[lang];
+            }
           }
         });
       }
@@ -141,9 +141,8 @@ export const {
   setLanguage,
   setIsSavingProgress,
   setMissedWords,
-  setStructuredMissedWords,
-  addToStructuredMissedWords,
-  removeFromStructuredMissedWords,
+  addWordToMissedWords,
+  removeWordFromMissedWords,
   setIsLoginModalVisible,
   setCurrentMissedWords,
 } = userSlice.actions;
