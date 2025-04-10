@@ -243,74 +243,78 @@ const AppContent: React.FC = () => {
             <ArrowLeftOutlined className="mr-2" />
             <span>{t("goBack")}</span>
           </button>
-          {(isChannelListPage || isWordPage) && (
-            <div className="flex items-center">
-              <span className="mr-2 text-gray-600 dark:text-gray-300">
-                {t("dictationLanguage")}:
-              </span>
-              <Select
-                value={selectedLanguage}
-                onChange={handleLanguageChange}
-                style={{ width: 150 }}
-                options={languageOptions}
-                className="dark:bg-gray-700"
-              />
-            </div>
-          )}
-          {isVideoPage && (
-            <div className="space-x-4 button-container">
-              <button
-                onClick={showMissedWordsModal}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
-   dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
-              >
-                <FileTextOutlined className="mr-2" />
-                {t("missedWordsSummary")}
-              </button>
-              <button
-                onClick={handleResetProgress}
-                disabled={!isDictationStarted}
-                className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50
-   dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800"
-              >
-                <ReloadOutlined className="mr-2" />
-                {t("resetProgress")}
-              </button>
-              <button
-                onClick={handleSaveProgress}
-                disabled={!isDictationStarted}
-                className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
-   dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
-              >
-                {isSavingProgress ? (
-                  <LoadingOutlined className="mr-2" />
-                ) : (
-                  <CloudUploadOutlined className="mr-2" />
-                )}
-                {t("saveProgressBtnText")}
-              </button>
-            </div>
-          )}
-          {isWordEditing && (
-            <div className="space-x-4 button-container">
-              <button
-                onClick={handleMissedWordCancelDelete}
-                className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
-                dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                onClick={handleDeleteMissedWords}
-                disabled={wordsToDelete.size === 0 || isSavingWords}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
-                dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSavingWords ? <LoadingOutlined className="mr-2" /> : null}
-                {t("submit")}
-              </button>
-            </div>
-          )}
+
+          <div className="flex items-center">
+            {isWordEditing && (
+              <div className="flex mr-4">
+                <button
+                  onClick={handleMissedWordCancelDelete}
+                  className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
+                  dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 mr-2"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  onClick={handleDeleteMissedWords}
+                  disabled={wordsToDelete.size === 0 || isSavingWords}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+                  dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingWords ? <LoadingOutlined className="mr-2" /> : null}
+                  {t("submit")}
+                </button>
+              </div>
+            )}
+
+            {(isChannelListPage || isWordPage) && (
+              <div className="flex items-center">
+                <span className="mr-2 text-gray-600 dark:text-gray-300">
+                  {t("dictationLanguage")}:
+                </span>
+                <Select
+                  value={selectedLanguage}
+                  onChange={handleLanguageChange}
+                  style={{ width: 150 }}
+                  options={languageOptions}
+                  className="dark:bg-gray-700"
+                />
+              </div>
+            )}
+            {isVideoPage && (
+              <div className="space-x-4 button-container">
+                <button
+                  onClick={showMissedWordsModal}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+     dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
+                >
+                  <FileTextOutlined className="mr-2" />
+                  {t("missedWordsSummary")}
+                </button>
+                <button
+                  onClick={handleResetProgress}
+                  disabled={!isDictationStarted}
+                  className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50
+     dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800"
+                >
+                  <ReloadOutlined className="mr-2" />
+                  {t("resetProgress")}
+                </button>
+                <button
+                  onClick={handleSaveProgress}
+                  disabled={!isDictationStarted}
+                  className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
+     dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
+                >
+                  {isSavingProgress ? (
+                    <LoadingOutlined className="mr-2" />
+                  ) : (
+                    <CloudUploadOutlined className="mr-2" />
+                  )}
+                  {t("saveProgressBtnText")}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-6 mb-6">
