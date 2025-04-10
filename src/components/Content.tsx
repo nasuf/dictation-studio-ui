@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { resetNavigation } from "@/redux/navigationSlice";
+import { resetNavigation, setSelectedLanguage } from "@/redux/navigationSlice";
 import AppSider from "@/components/Sider";
 import { Word } from "@/components/dictation/word/WordMain";
 import VideoMain, {
@@ -60,8 +60,9 @@ const AppContent: React.FC = () => {
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [isLoadingChannels, setIsLoadingChannels] = useState(false);
 
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    LANGUAGES.All
+  // 从Redux中获取当前选择的语言
+  const selectedLanguage = useSelector(
+    (state: RootState) => state.navigation.selectedLanguage
   );
 
   const isChannelListPage =
@@ -72,6 +73,8 @@ const AppContent: React.FC = () => {
   const isVideoPage =
     location.pathname.includes("/dictation/video/") &&
     location.pathname.split("/").length > 4;
+
+  const isWordPage = location.pathname === "/dictation/word";
 
   // 获取所有频道数据
   const fetchAllChannels = async () => {
@@ -108,15 +111,15 @@ const AppContent: React.FC = () => {
     // Set initial language to user interface language or default to All
     const uiLanguage = i18n.language;
     if (uiLanguage === "zh-CN" || uiLanguage === "zh-TW") {
-      setSelectedLanguage(LANGUAGES.Chinese);
+      dispatch(setSelectedLanguage(LANGUAGES.Chinese));
     } else if (uiLanguage === "ja") {
-      setSelectedLanguage(LANGUAGES.Japanese);
+      dispatch(setSelectedLanguage(LANGUAGES.Japanese));
     } else if (uiLanguage === "ko") {
-      setSelectedLanguage(LANGUAGES.Korean);
+      dispatch(setSelectedLanguage(LANGUAGES.Korean));
     } else {
-      setSelectedLanguage(LANGUAGES.All);
+      dispatch(setSelectedLanguage(LANGUAGES.All));
     }
-  }, []);
+  }, [i18n.language, dispatch]);
 
   useEffect(() => {
     // If on channels page, load channel data
@@ -195,7 +198,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleLanguageChange = (value: string) => {
-    setSelectedLanguage(value);
+    dispatch(setSelectedLanguage(value));
   };
 
   const languageOptions = [
@@ -218,7 +221,7 @@ const AppContent: React.FC = () => {
             <ArrowLeftOutlined className="mr-2" />
             <span>{t("goBack")}</span>
           </button>
-          {isChannelListPage && (
+          {(isChannelListPage || isWordPage) && (
             <div className="flex items-center">
               <span className="mr-2 text-gray-600 dark:text-gray-300">
                 {t("dictationLanguage")}:

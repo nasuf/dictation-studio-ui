@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ShortcutKeys, UserInfo } from "@/utils/type";
+import { ShortcutKeys, UserInfo, StructuredMissedWords } from "@/utils/type";
 
 interface UserState {
   userInfo: UserInfo | null;
@@ -75,6 +75,50 @@ const userSlice = createSlice({
         state.userInfo.missed_words = [...action.payload];
       }
     },
+    setStructuredMissedWords: (
+      state,
+      action: PayloadAction<StructuredMissedWords>
+    ) => {
+      if (state.userInfo) {
+        state.userInfo.structured_missed_words = action.payload;
+      }
+    },
+    addToStructuredMissedWords: (
+      state,
+      action: PayloadAction<{ language: string; word: string }>
+    ) => {
+      if (state.userInfo && state.userInfo.structured_missed_words) {
+        const { language, word } = action.payload;
+        if (!state.userInfo.structured_missed_words[language]) {
+          state.userInfo.structured_missed_words[language] = [];
+        }
+
+        if (!state.userInfo.structured_missed_words[language].includes(word)) {
+          state.userInfo.structured_missed_words[language].push(word);
+        }
+      }
+    },
+    removeFromStructuredMissedWords: (
+      state,
+      action: PayloadAction<{ word: string }>
+    ) => {
+      if (state.userInfo && state.userInfo.structured_missed_words) {
+        const { word } = action.payload;
+
+        // Remove the word from all language categories
+        Object.keys(state.userInfo.structured_missed_words).forEach((lang) => {
+          state.userInfo!.structured_missed_words![lang] =
+            state.userInfo!.structured_missed_words![lang].filter(
+              (w) => w !== word
+            );
+
+          // Clean up empty language arrays
+          if (state.userInfo!.structured_missed_words![lang].length === 0) {
+            delete state.userInfo!.structured_missed_words![lang];
+          }
+        });
+      }
+    },
     setIsLoginModalVisible: (state, action: PayloadAction<boolean>) => {
       state.isLoginModalVisible = action.payload;
     },
@@ -97,6 +141,9 @@ export const {
   setLanguage,
   setIsSavingProgress,
   setMissedWords,
+  setStructuredMissedWords,
+  addToStructuredMissedWords,
+  removeFromStructuredMissedWords,
   setIsLoginModalVisible,
   setCurrentMissedWords,
 } = userSlice.actions;

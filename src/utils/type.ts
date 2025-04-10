@@ -7,6 +7,7 @@ export interface UserInfo {
   role: string;
   dictation_config: DictationConfig;
   missed_words: string[];
+  structured_missed_words?: StructuredMissedWords;
 }
 
 export interface Plan {
@@ -116,4 +117,8 @@ export interface PlanProps {
   onSelect: () => void;
   onCancel: () => void;
   onCancelSubscription: () => void;
+}
+
+export interface StructuredMissedWords {
+  [key: string]: string[]; // language code as key, array of words as value
 }
