@@ -130,6 +130,27 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [isCheckingQuota, setIsCheckingQuota] = useState(true);
   const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
 
+  // 更新播放器选项
+  const youtubeOpts = {
+    width: "100%",
+    height: "100%",
+    playerVars: {
+      autoplay: 0,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0,
+      controls: 1,
+      disablekb: 1,
+      iv_load_policy: 3,
+      fs: 0,
+      cc_load_policy: 3,
+      hl: "en",
+      cc_lang_pref: "en",
+      // 强制不显示字幕
+      cc: 0,
+    },
+  };
+
   // Check user's dictation quota
   const checkQuota = async () => {
     try {
@@ -352,6 +373,20 @@ const VideoMain: React.ForwardRefRenderFunction<
   const onVideoReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target;
     playerRef.current.setPlaybackRate(playbackSpeed);
+
+    // 强制关闭字幕
+    try {
+      // 方法1: 通过API禁用字幕轨道
+      const tracks = playerRef.current.getOption("captions", "tracklist") || [];
+      if (tracks.length > 0) {
+        playerRef.current.unloadModule("captions");
+      }
+
+      // 方法2: 设置字幕可见性为隐藏
+      playerRef.current.setOption("captions", "track", {});
+    } catch (e) {
+      console.log("Error disabling captions:", e);
+    }
   };
 
   const clearIntervalIfExists = () => {
@@ -1047,22 +1082,7 @@ const VideoMain: React.ForwardRefRenderFunction<
               <div className="absolute top-0 left-0 w-full h-full z-10" />
               <YouTube
                 videoId={videoId}
-                opts={{
-                  width: "100%",
-                  height: "100%",
-                  playerVars: {
-                    autoplay: 0,
-                    modestbranding: 1,
-                    rel: 0,
-                    showinfo: 0,
-                    controls: 1,
-                    disablekb: 1,
-                    iv_load_policy: 3,
-                    fs: 0,
-                    cc_load_policy: 0,
-                    cc_lang_pref: "en",
-                  },
-                }}
+                opts={youtubeOpts}
                 onReady={onVideoReady}
                 onStateChange={onVideoStateChange}
                 className="absolute top-0 left-0 w-full h-full"
