@@ -74,6 +74,7 @@ const UserManagement: React.FC = () => {
   const [isRoleModalVisible, setIsRoleModalVisible] = useState(false);
   const [roleForm] = Form.useForm();
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -409,6 +410,18 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchUsers();
+      message.success("User list refreshed");
+    } catch (error) {
+      // Error handling is already in fetchUsers
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
@@ -424,6 +437,14 @@ const UserManagement: React.FC = () => {
         }
         extra={
           <div className="flex items-center gap-2">
+            <Button
+              type="primary"
+              onClick={handleRefresh}
+              loading={isRefreshing}
+              className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+            >
+              Refresh User List
+            </Button>
             <Button
               type="primary"
               onClick={showMembershipModal}
