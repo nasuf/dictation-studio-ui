@@ -179,14 +179,21 @@ const enTranslations = {
   expires: "Expires",
   dictationQuotaExceeded: "Dictation Limit Reached",
   basicPlanLimitMessage:
-    "Free users can dictate up to 4 videos every 30 days. You've reached your limit for the current period. Subscribe to any plan to enjoy unlimited dictations.",
+    "Free users can dictate up to 4 videos every 30 days. Subscribe to enjoy unlimited dictations.",
   basicPlanQuotaInfo:
     "Free User: {{used}}/{{limit}} videos ({{startDate}} - {{endDate}})",
-  freeUserQuotaHeader: "Free User Quota: {{used}}/{{limit}} videos",
-  freeUserQuotaRenewal: "Your quota will reset on {{endDate}}",
+  freeUserQuotaHeader: "Current Usage: {{used}}/{{limit}} videos",
+  freeUserQuotaRenewal: "Resets on {{endDate}}",
   infiniteVideos: "unlimited videos",
   upgradeNow: "Subscribe Now",
   failedToLoadDictation: "Failed to load dictation data",
+  quotaConfirmation: "Free User Quota Confirmation",
+  currentQuotaStatus: "Current quota status: {{used}}/{{limit}} videos",
+  quotaRenewalInfo: "Your quota will reset on {{endDate}}",
+  proceedWithDictation: "Would you like to proceed with this dictation?",
+  proceed: "Proceed",
+  failedToRegisterVideo: "Failed to register video, please try again",
+  iKnow: "OK",
 };
 
 const zhTranslations = {
@@ -357,14 +364,21 @@ const zhTranslations = {
   expires: "到期时间",
   dictationQuotaExceeded: "听写次数已达上限",
   basicPlanLimitMessage:
-    "免费用户每30天可以听写4个视频。您已用完本期配额。订阅任意计划即可享受无限听写。",
+    "免费用户每30天可以听写4个视频。订阅会员即可享受无限听写。",
   basicPlanQuotaInfo:
-    "免费用户：已用 {{used}}/{{limit}} 个视频 ({{startDate}} - {{endDate}})",
-  freeUserQuotaHeader: "免费用户配额：{{used}}/{{limit}} 个视频",
-  freeUserQuotaRenewal: "您的配额将于 {{endDate}} 重置",
+    "免费用户：已用 {{used}}/{{limit}} 个视频（{{startDate}} - {{endDate}}）",
+  freeUserQuotaHeader: "当前使用：{{used}}/{{limit}} 个视频",
+  freeUserQuotaRenewal: "将于 {{endDate}} 重置",
   infiniteVideos: "无限制视频",
   upgradeNow: "立即订阅",
   failedToLoadDictation: "加载听写数据失败",
+  quotaConfirmation: "免费用户配额确认",
+  currentQuotaStatus: "当前配额状态：{{used}}/{{limit}} 个视频",
+  quotaRenewalInfo: "您的配额将于 {{endDate}} 重置",
+  proceedWithDictation: "是否继续进行此次听写？",
+  proceed: "继续",
+  failedToRegisterVideo: "视频注册失败，请重试",
+  iKnow: "好的",
 };
 
 const zhTraditionalTranslations = {
@@ -535,14 +549,21 @@ const zhTraditionalTranslations = {
   expires: "到期時間",
   dictationQuotaExceeded: "聽寫次數已達上限",
   basicPlanLimitMessage:
-    "免費用戶每月只能聽寫4個視頻。您已用完本月配額。訂閱任意會員計劃即可享受無限聽寫。",
+    "免費用戶每30天可以聽寫4個視頻。訂閱會員即可享受無限聽寫。",
   basicPlanQuotaInfo:
     "免費用戶：已用 {{used}}/{{limit}} 個視頻 ({{startDate}} - {{endDate}})",
-  freeUserQuotaHeader: "免費用戶配額：{{used}}/{{limit}} 個視頻",
-  freeUserQuotaRenewal: "您的配額將於 {{endDate}} 重置",
-  infiniteVideos: "無限制視頻",
+  freeUserQuotaHeader: "當前使用：{{used}}/{{limit}} 個視頻",
+  freeUserQuotaRenewal: "將於 {{endDate}} 重置",
+  infiniteVideos: "無制限的視頻",
   upgradeNow: "立即訂閱",
   failedToLoadDictation: "加載聽寫數據失敗",
+  quotaConfirmation: "免費用戶配分確認",
+  currentQuotaStatus: "當前配分狀況：{{used}}/{{limit}} 個視頻",
+  quotaRenewalInfo: "配分是 {{endDate}} 中重置",
+  proceedWithDictation: "是否繼續進行此次聽寫？",
+  proceed: "繼續",
+  failedToRegisterVideo: "視頻註冊失敗，請重試",
+  iKnow: "好的",
 };
 
 const jaTranslations = {
@@ -677,16 +698,23 @@ const jaTranslations = {
   activeRecurring: "アクティブ（自動更新）",
   active: "アクティブ",
   expires: "有効期限",
-  dictationQuotaExceeded: "利用制限に達しました",
+  dictationQuotaExceeded: "ディクテーション制限に達しました",
   basicPlanLimitMessage:
-    "無料ユーザーは月に4つのビデオのみ利用できます。今月の制限に達しました。無制限のディクテーションを楽しむには、任意のプランにご登録ください。",
+    "無料ユーザーは30日間に4つのビデオまでディクテーションできます。サブスクリプションで無制限にご利用いただけます。",
   basicPlanQuotaInfo:
-    "無料ユーザー: {{used}}/{{limit}} ビデオ ({{startDate}} - {{endDate}})",
-  freeUserQuotaHeader: "無料ユーザー配分：{{used}}/{{limit}} ビデオ",
-  freeUserQuotaRenewal: "配分は {{endDate}} にリセットされます",
+    "無料ユーザー：{{used}}/{{limit}} 本のビデオ（{{startDate}} - {{endDate}}）",
+  freeUserQuotaHeader: "現在の使用状況：{{used}}/{{limit}} 本のビデオ",
+  freeUserQuotaRenewal: "{{endDate}} にリセット",
   infiniteVideos: "無制限のビデオ",
   upgradeNow: "今すぐ登録",
   failedToLoadDictation: "ディクテーションデータの読み込みに失敗しました",
+  quotaConfirmation: "無料ユーザー配分確認",
+  currentQuotaStatus: "現在の配分状況：{{used}}/{{limit}} 本のビデオ",
+  quotaRenewalInfo: "配分は {{endDate}} にリセットされます",
+  proceedWithDictation: "このディクテーションを続行しますか？",
+  proceed: "続行",
+  failedToRegisterVideo: "動画の登録に失敗しました。もう一度お試しください",
+  iKnow: "はい",
 };
 
 const koTranslations = {
@@ -821,14 +849,21 @@ const koTranslations = {
   expires: "만료일",
   dictationQuotaExceeded: "받아쓰기 제한 도달",
   basicPlanLimitMessage:
-    "무료 사용자는 한 달에 4개의 동영상만 받아쓰기할 수 있습니다. 이번 달 할당량을 모두 사용했습니다. 무제한 받아쓰기를 즐기려면 플랜에 가입하세요.",
+    "무료 사용자는 30일 동안 4개의 동영상까지 받아쓰기할 수 있습니다. 구독하시면 무제한으로 이용하실 수 있습니다.",
   basicPlanQuotaInfo:
-    "무료 사용자: {{used}}/{{limit}} 동영상 ({{startDate}} - {{endDate}})",
-  freeUserQuotaHeader: "무료 사용자 할당량: {{used}}/{{limit}} 동영상",
-  freeUserQuotaRenewal: "할당량은 {{endDate}}에 재설정됩니다",
+    "무료 사용자: {{used}}/{{limit}} 개의 동영상 ({{startDate}} - {{endDate}})",
+  freeUserQuotaHeader: "현재 사용량: {{used}}/{{limit}} 개의 동영상",
+  freeUserQuotaRenewal: "{{endDate}}에 초기화",
   infiniteVideos: "무제한 동영상",
   upgradeNow: "지금 구독하기",
   failedToLoadDictation: "받아쓰기 데이터 로드 실패",
+  quotaConfirmation: "무료 사용자 할당량 확인",
+  currentQuotaStatus: "현재 할당량 상태: {{used}}/{{limit}} 개의 동영상",
+  quotaRenewalInfo: "할당량은 {{endDate}}에 재설정됩니다",
+  proceedWithDictation: "이 받아쓰기를 계속하시겠습니까?",
+  proceed: "계속",
+  failedToRegisterVideo: "동영상 등록 실패, 다시 시도해주세요",
+  iKnow: "확인",
 };
 
 i18n.use(initReactI18next).init({

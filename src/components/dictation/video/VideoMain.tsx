@@ -15,7 +15,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import {
@@ -129,6 +129,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [quotaInfo, setQuotaInfo] = useState<QuotaResponse | null>(null);
   const [isCheckingQuota, setIsCheckingQuota] = useState(true);
   const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
+  const [hasShownQuotaModal, setHasShownQuotaModal] = useState(false);
+  const navigate = useNavigate();
 
   // 更新播放器选项
   const youtubeOpts = {
@@ -168,34 +170,112 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   // If user cannot proceed (exceeded quota), show prompt and don't load content
   const handleQuotaExceeded = (quotaData: QuotaResponse) => {
-    Modal.info({
+    const modal = Modal.info({
       title: t("dictationQuotaExceeded"),
       content: (
-        <div>
-          <p>{t("basicPlanLimitMessage")}</p>
-          <p>
-            {t("usedQuota", {
-              used: quotaData.used,
-              limit: quotaData.limit,
-              startDate: quotaData.startDate
-                ? new Date(quotaData.startDate).toLocaleDateString()
-                : "",
-              endDate: quotaData.endDate
-                ? new Date(quotaData.endDate).toLocaleDateString()
-                : "",
-            })}
-          </p>
+        <div className="space-y-4">
+          <div className="text-lg">{t("basicPlanLimitMessage")}</div>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
+            <div className="font-medium">
+              {t("freeUserQuotaHeader", {
+                used: quotaData.used,
+                limit: quotaData.limit,
+              })}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {t("quotaRenewalInfo", {
+                endDate: quotaData.endDate
+                  ? new Date(quotaData.endDate).toLocaleDateString()
+                  : "",
+              })}
+            </div>
+          </div>
+        </div>
+      ),
+      footer: (
+        <div className="flex justify-end space-x-2 mt-4">
+          <Button
+            onClick={() => {
+              modal.destroy();
+              navigate(-1);
+            }}
+          >
+            {t("iKnow")}
+          </Button>
           <Button
             type="primary"
-            onClick={() => (window.location.href = "/profile/upgrade-plan")}
-            style={{ marginTop: 16 }}
+            onClick={() => {
+              modal.destroy();
+              navigate("/profile/upgrade-plan");
+            }}
           >
-            {t("upgradePlan")}
+            {t("upgradeNow")}
           </Button>
         </div>
       ),
-      okText: t("iKnow"),
     });
+  };
+
+  // Add this new function to show quota confirmation modal
+  const showQuotaConfirmationModal = (quotaData: QuotaResponse) => {
+    // Only show confirmation if:
+    // 1. Modal hasn't been shown before
+    // 2. User is on free plan
+    // 3. Video hasn't been registered (not in this month's quota)
+    // 4. User still has available quota
+    if (
+      !hasShownQuotaModal &&
+      (!userInfo?.plan || !userInfo?.plan?.name) &&
+      !hasRegisteredVideo &&
+      quotaData.used < quotaData.limit
+    ) {
+      Modal.confirm({
+        title: t("quotaConfirmation"),
+        content: (
+          <div>
+            <p>
+              {t("currentQuotaStatus", {
+                used: quotaData.used,
+                limit: quotaData.limit,
+              })}
+            </p>
+            <p>
+              {t("quotaRenewalInfo", {
+                endDate: new Date(quotaData.endDate!).toLocaleDateString(),
+              })}
+            </p>
+            <p>{t("proceedWithDictation")}</p>
+          </div>
+        ),
+        okText: t("proceed"),
+        cancelText: t("goBack"),
+        onOk: async () => {
+          try {
+            // Register video to quota
+            await api.registerDictationVideo(channelId!, videoId!);
+            setHasRegisteredVideo(true);
+
+            // Update quota information
+            const newQuotaData = await checkQuota();
+            if (newQuotaData) {
+              setQuotaInfo(newQuotaData);
+            }
+
+            setHasShownQuotaModal(true);
+          } catch (error) {
+            console.error("Error registering video:", error);
+            message.error(t("failedToRegisterVideo"));
+            navigate(-1);
+          }
+        },
+        onCancel() {
+          navigate(-1);
+        },
+      });
+    } else if (quotaData.used >= quotaData.limit) {
+      // If quota is exceeded, show the quota exceeded modal
+      handleQuotaExceeded(quotaData);
+    }
   };
 
   useEffect(() => {
@@ -204,11 +284,16 @@ const VideoMain: React.ForwardRefRenderFunction<
       setIsCheckingQuota(true);
 
       try {
-        // If user can proceed, load data normally
+        // Check quota first
         const quotaData = await checkQuota();
-        if (quotaData && !quotaData.canProceed) {
-          handleQuotaExceeded(quotaData);
-          // We still load progress to let user see what they've done before
+        if (quotaData) {
+          if (quotaData.used >= quotaData.limit) {
+            handleQuotaExceeded(quotaData);
+            return;
+          } else {
+            // Show confirmation modal for free users
+            showQuotaConfirmationModal(quotaData);
+          }
         }
 
         const [transcriptResponse, progressResponse] = await Promise.all([
@@ -236,7 +321,6 @@ const VideoMain: React.ForwardRefRenderFunction<
           dispatch(setIsDictationStarted(false));
         }
       } catch (error) {
-        // Even if quota check fails, we allow proceeding to avoid blocking main functionality
         console.error("Error fetching progress:", error);
       } finally {
         setIsLoadingTranscript(false);
