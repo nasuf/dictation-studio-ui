@@ -66,6 +66,7 @@ interface QuotaResponse {
   used: number;
   limit: number;
   canProceed: boolean;
+  notifyQuota: boolean;
   startDate?: string;
   endDate?: string;
 }
@@ -129,7 +130,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [quotaInfo, setQuotaInfo] = useState<QuotaResponse | null>(null);
   const [isCheckingQuota, setIsCheckingQuota] = useState(true);
   const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
-  const [hasShownQuotaModal, setHasShownQuotaModal] = useState(false);
   const navigate = useNavigate();
 
   // 更新播放器选项
@@ -218,17 +218,16 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   // Add this new function to show quota confirmation modal
   const showQuotaConfirmationModal = (quotaData: QuotaResponse) => {
+    if (!quotaData.notifyQuota) {
+      return;
+    }
+
     // Only show confirmation if:
     // 1. Modal hasn't been shown before
     // 2. User is on free plan
     // 3. Video hasn't been registered (not in this month's quota)
     // 4. User still has available quota
-    if (
-      !hasShownQuotaModal &&
-      (!userInfo?.plan || !userInfo?.plan?.name) &&
-      !hasRegisteredVideo &&
-      quotaData.used < quotaData.limit
-    ) {
+    if (!hasRegisteredVideo && quotaData.notifyQuota) {
       Modal.confirm({
         title: t("quotaConfirmation"),
         content: (
@@ -260,8 +259,6 @@ const VideoMain: React.ForwardRefRenderFunction<
             if (newQuotaData) {
               setQuotaInfo(newQuotaData);
             }
-
-            setHasShownQuotaModal(true);
           } catch (error) {
             console.error("Error registering video:", error);
             message.error(t("failedToRegisterVideo"));
@@ -272,8 +269,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           navigate(-1);
         },
       });
-    } else if (quotaData.used >= quotaData.limit) {
-      // If quota is exceeded, show the quota exceeded modal
+    } else if (!quotaData.canProceed) {
       handleQuotaExceeded(quotaData);
     }
   };
@@ -287,7 +283,8 @@ const VideoMain: React.ForwardRefRenderFunction<
         // Check quota first
         const quotaData = await checkQuota();
         if (quotaData) {
-          if (quotaData.used >= quotaData.limit) {
+          if (quotaData.used >= quotaData.limit && !quotaData.canProceed) {
+            // 只有当额度超限且视频不在历史记录中时，才显示额度超限弹窗
             handleQuotaExceeded(quotaData);
             return;
           } else {
@@ -296,6 +293,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           }
         }
 
+        // 获取视频字幕和用户进度
         const [transcriptResponse, progressResponse] = await Promise.all([
           api.getVideoTranscript(channelId!, videoId!),
           api.getUserProgress(channelId!, videoId!),
