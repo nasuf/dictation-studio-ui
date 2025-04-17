@@ -283,8 +283,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         // Check quota first
         const quotaData = await checkQuota();
         if (quotaData) {
-          if (quotaData.used >= quotaData.limit && !quotaData.canProceed) {
-            // 只有当额度超限且视频不在历史记录中时，才显示额度超限弹窗
+          if (!quotaData.canProceed) {
             handleQuotaExceeded(quotaData);
             return;
           } else {
