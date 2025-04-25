@@ -124,6 +124,8 @@ const enTranslations = {
   noData: "No Data",
   noCollectedWords:
     "No collected words yet. Please start dictation first to collect words",
+  noWordsInSelectedLanguage:
+    "No words in selected language. Please start dictation first to collect words",
   wordPreview: "Word Preview",
   nextPayment: "Next Payment",
   wordsDeletedSuccess: "Words deleted successfully",
@@ -194,6 +196,7 @@ const enTranslations = {
   proceed: "Proceed",
   failedToRegisterVideo: "Failed to register video, please try again",
   iKnow: "OK",
+  totalWords: "Total Words",
 };
 
 const zhTranslations = {
@@ -313,6 +316,7 @@ const zhTranslations = {
   noLimit: "无限制",
   noData: "无数据",
   noCollectedWords: "暂无单词收藏。请先开始听写来收集单词",
+  noWordsInSelectedLanguage: "暂无选定语言的单词。请先开始听写来收集单词",
   wordPreview: "单词预览",
   nextPayment: "下次付款",
   wordsDeletedSuccess: "单词删除成功",
@@ -379,6 +383,7 @@ const zhTranslations = {
   proceed: "继续",
   failedToRegisterVideo: "视频注册失败，请重试",
   iKnow: "好的",
+  totalWords: "总单词数",
 };
 
 const zhTraditionalTranslations = {
@@ -498,6 +503,7 @@ const zhTraditionalTranslations = {
   noLimit: "無限制",
   noData: "無數據",
   noCollectedWords: "暫無單詞收藏。請先開始聽寫來收集單詞",
+  noWordsInSelectedLanguage: "暫無選定語言的單詞。請先開始聽寫來收集單詞",
   wordPreview: "單詞預覽",
   nextPayment: "下次付款",
   wordsDeletedSuccess: "單詞刪除成功",
@@ -564,6 +570,7 @@ const zhTraditionalTranslations = {
   proceed: "繼續",
   failedToRegisterVideo: "視頻註冊失敗，請重試",
   iKnow: "好的",
+  totalWords: "總單詞數",
 };
 
 const jaTranslations = {
@@ -715,6 +722,7 @@ const jaTranslations = {
   proceed: "続行",
   failedToRegisterVideo: "動画の登録に失敗しました。もう一度お試しください",
   iKnow: "はい",
+  totalWords: "総単語数",
 };
 
 const koTranslations = {
@@ -864,6 +872,7 @@ const koTranslations = {
   proceed: "계속",
   failedToRegisterVideo: "동영상 등록 실패, 다시 시도해주세요",
   iKnow: "확인",
+  totalWords: "총 단어 수",
 };
 
 i18n.use(initReactI18next).init({
