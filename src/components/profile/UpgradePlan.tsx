@@ -629,29 +629,56 @@ export const UpgradePlan: React.FC = () => {
       <div className="w-full max-w-6xl mx-auto mb-8">
         {/* Custom tab component with better dark mode support */}
         <div className="flex justify-center mb-6">
-          <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
+          {/* Make the container relative for the absolute marker */}
+          <div className="relative flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
+            {/* Activate with Code Tab */}
             <button
               onClick={() => setActiveTab("code")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+              // Add relative positioning, remove conditional background/shadow
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
                 activeTab === "code"
-                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
               }`}
             >
-              <KeyOutlined />
-              <span>{t("activateWithCode")}</span>
+              {/* Sliding marker - only rendered under the active tab */}
+              {activeTab === "code" && (
+                <motion.div
+                  layoutId="active-tab-marker"
+                  className="absolute inset-0 rounded-md bg-white dark:bg-gray-700 shadow-sm z-0"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              {/* Content needs to be above the marker */}
+              <span className="relative z-10 flex items-center gap-2">
+                <KeyOutlined />
+                <span>{t("activateWithCode")}</span>
+              </span>
             </button>
 
+            {/* Purchase Plans Tab */}
             <button
               onClick={() => setActiveTab("plans")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+              // Add relative positioning, remove conditional background/shadow
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
                 activeTab === "plans"
-                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
               }`}
             >
-              <CreditCardOutlined />
-              <span>{t("purchasePlans")}</span>
+              {/* Sliding marker */}
+              {activeTab === "plans" && (
+                <motion.div
+                  layoutId="active-tab-marker"
+                  className="absolute inset-0 rounded-md bg-white dark:bg-gray-700 shadow-sm z-0"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              {/* Content needs to be above the marker */}
+              <span className="relative z-10 flex items-center gap-2">
+                <CreditCardOutlined />
+                <span>{t("purchasePlans")}</span>
+              </span>
             </button>
           </div>
         </div>
