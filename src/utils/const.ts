@@ -28,12 +28,9 @@ export const PLANS = [
     price: 0,
     duration: "unlimitedTime",
     features: [
-      { feature: "basicFeatures", included: true },
-      { feature: "limitedDictations", included: true },
+      { feature: "fourFreeDictationsPerMonth", included: true },
+      { feature: "unlimitedRedictations", included: true },
       { feature: "standardSupport", included: true },
-      { feature: "advancedFeatures", included: false },
-      { feature: "prioritySupport", included: false },
-      { feature: "customFeatures", included: false },
     ],
   },
   {
@@ -42,12 +39,9 @@ export const PLANS = [
     price: 29,
     duration: "oneMonth",
     features: [
-      { feature: "allFreeFeatures", included: true },
       { feature: "unlimitedDictations", included: true },
-      { feature: "standardSupport", included: true },
-      { feature: "advancedFeatures", included: false },
-      { feature: "prioritySupport", included: false },
-      { feature: "customFeatures", included: false },
+      { feature: "unlimitedRedictations", included: true },
+      { feature: "prioritySupport", included: true },
     ],
   },
   {
@@ -56,12 +50,9 @@ export const PLANS = [
     price: 49,
     duration: "threeMonths",
     features: [
-      { feature: "allBasicFeatures", included: true },
       { feature: "unlimitedDictations", included: true },
-      { feature: "advancedFeatures", included: true },
+      { feature: "unlimitedRedictations", included: true },
       { feature: "prioritySupport", included: true },
-      { feature: "customFeatures", included: false },
-      { feature: "dedicatedSupport", included: false },
     ],
   },
   {
@@ -70,12 +61,9 @@ export const PLANS = [
     price: 99,
     duration: "sixMonths",
     features: [
-      { feature: "allProFeatures", included: true },
-      { feature: "unlimitedEverything", included: true },
-      { feature: "customFeatures", included: true },
-      { feature: "dedicatedSupport", included: true },
-      { feature: "priorityDevelopment", included: true },
-      { feature: "exclusiveContent", included: true },
+      { feature: "unlimitedDictations", included: true },
+      { feature: "unlimitedRedictations", included: true },
+      { feature: "prioritySupport", included: true },
     ],
   },
 ];

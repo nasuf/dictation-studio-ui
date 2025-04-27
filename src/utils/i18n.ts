@@ -197,6 +197,11 @@ const enTranslations = {
   failedToRegisterVideo: "Failed to register video, please try again",
   iKnow: "OK",
   totalWords: "Total Words",
+  fourFreeDictationsPerMonth: "4 free new video dictations per month",
+  unlimitedRedictations: "Unlimited redictations for history dictations",
+  unlimitedDictations: "Unlimited dictations",
+  standardSupport: "Standard support",
+  prioritySupport: "Priority support",
 };
 
 const zhTranslations = {
@@ -384,6 +389,11 @@ const zhTranslations = {
   failedToRegisterVideo: "视频注册失败，请重试",
   iKnow: "好的",
   totalWords: "总单词数",
+  fourFreeDictationsPerMonth: "每月4次免费新视频听写额度",
+  unlimitedRedictations: "历史听写可无限此重听",
+  unlimitedDictations: "任意视频可无限次听写",
+  standardSupport: "标准支持",
+  prioritySupport: "优先支持",
 };
 
 const zhTraditionalTranslations = {
@@ -571,6 +581,11 @@ const zhTraditionalTranslations = {
   failedToRegisterVideo: "視頻註冊失敗，請重試",
   iKnow: "好的",
   totalWords: "總單詞數",
+  fourFreeDictationsPerMonth: "每月4次免费新视频听写额度",
+  unlimitedRedictations: "历史听写可无限此重听",
+  unlimitedDictations: "任意视频可无限次听写",
+  standardSupport: "标准支持",
+  prioritySupport: "优先支持",
 };
 
 const jaTranslations = {

@@ -20,7 +20,6 @@ import {
   LoadingOutlined,
   CreditCardOutlined,
   KeyOutlined,
-  SyncOutlined,
 } from "@ant-design/icons";
 import { ScrollableContainer } from "@/components/dictation/video/Widget";
 
@@ -149,13 +148,13 @@ const PlanCard: React.FC<PlanProps> = ({
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span>
+                <span className="text-xs">
                   {currentPlan?.nextPaymentTime
                     ? t("nextPayment")
                     : t("expireTime")}
                   :
                 </span>
-                <span className="font-medium">
+                <span className="font-medium text-xs">
                   {new Date(
                     currentPlan.nextPaymentTime || currentPlan.expireTime!
                   ).toLocaleDateString()}
@@ -654,20 +653,6 @@ export const UpgradePlan: React.FC = () => {
               <CreditCardOutlined />
               <span>{t("purchasePlans")}</span>
             </button>
-
-            {currentPlan && currentPlan.name !== USER_PLAN.FREE && (
-              <button
-                onClick={() => setActiveTab("manage")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
-                  activeTab === "manage"
-                    ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <SyncOutlined />
-                <span>{t("manageSubscription")}</span>
-              </button>
-            )}
           </div>
         </div>
 
