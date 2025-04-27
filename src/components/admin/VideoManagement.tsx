@@ -357,6 +357,9 @@ const VideoManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [selectedChannelLink, setSelectedChannelLink] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
+    LANGUAGES.All
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddVideoModalVisible, setIsAddVideoModalVisible] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
@@ -378,6 +381,12 @@ const VideoManagement: React.FC = () => {
     fetchChannels();
   }, []);
 
+  useEffect(() => {
+    if (selectedChannel) {
+      fetchVideos(selectedChannel, selectedLanguage);
+    }
+  }, [selectedChannel, selectedLanguage]);
+
   const fetchChannels = async () => {
     try {
       const response = await api.getChannels(
@@ -389,7 +398,6 @@ const VideoManagement: React.FC = () => {
         const firstChannelId = response.data[0].id;
         setSelectedChannel(firstChannelId);
         setSelectedChannelLink(response.data[0].link);
-        fetchVideos(firstChannelId);
       }
     } catch (error) {
       console.error("Error fetching channels:", error);
@@ -397,12 +405,16 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const fetchVideos = async (channelId: string) => {
+  const fetchVideos = async (
+    channelId: string,
+    language: string = LANGUAGES.All
+  ) => {
     setIsLoading(true);
     try {
       const response = await api.getVideoList(
         channelId,
-        VISIBILITY_OPTIONS.All
+        VISIBILITY_OPTIONS.All,
+        language
       );
       setVideos(response.data.videos);
     } catch (error) {
@@ -894,7 +906,23 @@ const VideoManagement: React.FC = () => {
     setSelectedChannelLink(
       channels.find((channel) => channel.id === value)?.link || ""
     );
-    fetchVideos(value);
+  };
+
+  const handleLanguageChange = (value: string) => {
+    setSelectedLanguage(value);
+    // Check if the current selected channel matches the new language filter
+    const currentChannel = channels.find((c) => c.id === selectedChannel);
+    if (
+      currentChannel &&
+      value !== LANGUAGES.All &&
+      currentChannel.language !== value
+    ) {
+      // If the current channel doesn't match the new language filter, reset the channel selection
+      setSelectedChannel("");
+      setSelectedChannelLink("");
+      setVideos([]); // Clear videos as no channel is selected
+    }
+    // Fetching videos will be handled by the useEffect watching selectedLanguage and selectedChannel
   };
 
   const showAddVideoModal = () => {
@@ -978,27 +1006,61 @@ const VideoManagement: React.FC = () => {
     <div style={{ padding: "20px" }}>
       <Card title="Video Management">
         <Space style={{ marginBottom: 16 }}>
+          <span style={{ marginRight: 8 }}>Language:</span>
+          <Select
+            style={{ width: 150 }}
+            placeholder="Select Language"
+            onChange={handleLanguageChange}
+            value={selectedLanguage}
+          >
+            {Object.entries(LANGUAGES).map(([key, value]) => (
+              <Option key={value} value={value}>
+                {key}
+              </Option>
+            ))}
+          </Select>
+
+          <span style={{ marginLeft: 16, marginRight: 8 }}>Channel:</span>
           <Select
             style={{ width: 250 }}
             placeholder="Select a channel"
             onChange={handleChannelChange}
             value={selectedChannel || undefined}
+            allowClear
+            onClear={() => {
+              setSelectedChannel("");
+              setSelectedChannelLink("");
+              setVideos([]);
+            }}
           >
-            {channels.map((channel) => (
-              <Option key={channel.id} value={channel.id}>
-                {channel.name}
-              </Option>
-            ))}
+            {channels
+              .filter(
+                (channel) =>
+                  selectedLanguage === LANGUAGES.All ||
+                  channel.language === selectedLanguage
+              )
+              .map((channel) => (
+                <Option key={channel.id} value={channel.id}>
+                  {channel.name} ({channel.language})
+                </Option>
+              ))}
           </Select>
+
           <Button
             type="link"
             onClick={() => {
-              window.open(selectedChannelLink, "_blank");
+              if (selectedChannelLink)
+                window.open(selectedChannelLink, "_blank");
             }}
+            disabled={!selectedChannelLink}
           >
             Open Channel
           </Button>
-          <Button type="primary" onClick={showAddVideoModal}>
+          <Button
+            type="primary"
+            onClick={showAddVideoModal}
+            disabled={!selectedChannel}
+          >
             Add Videos
           </Button>
         </Space>

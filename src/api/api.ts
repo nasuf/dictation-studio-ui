@@ -71,9 +71,9 @@ export const api = {
     axiosInstance.get("/service/channel", { params: { visibility, language } }),
   uploadChannels: (channels: { channels: Channel[] }) =>
     axiosInstance.post("/service/channel", channels),
-  getVideoList: (channelId: string, visibility: string) =>
+  getVideoList: (channelId: string, visibility: string, language?: string) =>
     axiosInstance.get(`/service/video-list/${channelId}`, {
-      params: { visibility },
+      params: { visibility, language },
     }),
   getVideoTranscript: (channelId: string, videoId: string) =>
     axiosInstance.get(`/service/video-transcript/${channelId}/${videoId}`),
