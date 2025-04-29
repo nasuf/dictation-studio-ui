@@ -37,6 +37,7 @@ import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
+import { autoMergeTranscriptItems } from "@/utils/util";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -933,18 +934,6 @@ const VideoManagement: React.FC = () => {
     setIsAddVideoModalVisible(true);
   };
 
-  // Check if the text ends with a sentence-ending punctuation mark in various languages
-  const isCompleteSentence = (text: string): boolean => {
-    const trimmedText = text.trim();
-
-    // Regular expression that matches sentence-ending punctuation in multiple languages
-    // English: . ! ?
-    // Chinese/Japanese: 。 ！ ？
-    // Korean: . ! ? (same as English but used in Korean context)
-    // Also includes other full-width variants used in Asian languages
-    return /[.!?。！？｡!?]$/.test(trimmedText);
-  };
-
   // Function to automatically merge transcript items
   const autoMergeTranscripts = () => {
     if (currentTranscript.length < 2) {
@@ -955,50 +944,13 @@ const VideoManagement: React.FC = () => {
     // Save current state to history before making changes
     setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
 
-    // Sort by start time
-    const sortedTranscript = [...currentTranscript].sort(
-      (a, b) => a.start - b.start
-    );
-    const result: TranscriptItem[] = [];
-
-    let current: TranscriptItem | null = null;
-
-    for (const item of sortedTranscript) {
-      // If there's no current item, set the current item as the first item
-      if (!current) {
-        current = { ...item };
-        continue;
-      }
-
-      // Check if the current item is a complete sentence
-      const isCurrentComplete = isCompleteSentence(current.transcript);
-
-      // Check if merging would exceed the 10-second time limit
-      const wouldExceedTimeLimit = item.end - current.start > 10;
-
-      // If current item is a complete sentence or merging would exceed time limit, save current item and start a new one
-      if (isCurrentComplete || wouldExceedTimeLimit) {
-        result.push(current);
-        current = { ...item };
-      } else {
-        // Otherwise merge the current item with the next item
-        current = {
-          start: current.start,
-          end: item.end,
-          transcript: `${current.transcript} ${item.transcript}`,
-        };
-      }
-    }
-
-    // Add the last item
-    if (current) {
-      result.push(current);
-    }
+    const originalLength = currentTranscript.length;
+    const mergedResult = autoMergeTranscriptItems(currentTranscript, 10);
 
     // Update transcript state
-    setCurrentTranscript(result);
+    setCurrentTranscript(mergedResult);
     message.success(
-      `Auto-merged transcript: ${currentTranscript.length} items → ${result.length} items`
+      `Auto-merged transcript: ${originalLength} items → ${mergedResult.length} items`
     );
   };
 
