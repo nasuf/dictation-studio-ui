@@ -25,7 +25,7 @@ export interface DictationConfig {
     | {
         repeat: "Tab";
         next: "Enter";
-        prev: "Shift";
+        prev: "ControlLeft";
       };
   language?: string; // 'en', 'zh', 'ja', 'ko'
 }

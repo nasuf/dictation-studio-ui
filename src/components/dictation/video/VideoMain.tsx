@@ -121,7 +121,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     (state: RootState) =>
       state.user.userInfo?.dictation_config.shortcuts || {
         repeat: "Tab",
-        prev: "Shift",
+        prev: "ControlLeft",
         next: "Enter",
       }
   );
