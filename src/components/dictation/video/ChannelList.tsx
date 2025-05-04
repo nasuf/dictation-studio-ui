@@ -41,32 +41,34 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading }) => {
           </div>
         ) : (
           <ChannelGrid>
-            {channels.map((channel) => (
-              <Link
-                key={channel.id}
-                to={`/dictation/video/${channel.id}`}
-                onClick={() => dispatch(setChannelName(channel.name))}
-                state={{ name: channel.name }}
-              >
-                <ChannelCard
-                  hoverable
-                  cover={
-                    <ChannelImage
-                      alt={channel.name}
-                      src={channel.image_url}
-                      onError={(e) => {
-                        e.currentTarget.src = "/404.jpg";
-                      }}
-                    />
-                  }
-                  styles={{ body: { padding: 0 } }}
+            {channels
+              .sort((a, b) => a.language.localeCompare(b.language))
+              .map((channel) => (
+                <Link
+                  key={channel.id}
+                  to={`/dictation/video/${channel.id}`}
+                  onClick={() => dispatch(setChannelName(channel.name))}
+                  state={{ name: channel.name }}
                 >
-                  <ChannelInfo>
-                    <ChannelName level={5}>{channel.name}</ChannelName>
-                  </ChannelInfo>
-                </ChannelCard>
-              </Link>
-            ))}
+                  <ChannelCard
+                    hoverable
+                    cover={
+                      <ChannelImage
+                        alt={channel.name}
+                        src={channel.image_url}
+                        onError={(e) => {
+                          e.currentTarget.src = "/404.jpg";
+                        }}
+                      />
+                    }
+                    styles={{ body: { padding: 0 } }}
+                  >
+                    <ChannelInfo>
+                      <ChannelName level={5}>{channel.name}</ChannelName>
+                    </ChannelInfo>
+                  </ChannelCard>
+                </Link>
+              ))}
           </ChannelGrid>
         )}
       </ScrollableContainer>
