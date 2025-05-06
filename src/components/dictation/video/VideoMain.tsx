@@ -175,7 +175,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       content: (
         <div className="space-y-4">
           <div className="text-lg">{t("basicPlanLimitMessage")}</div>
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg dark:bg-gray-800/30 dark:border-blue-400">
             <div className="font-medium">
               {t("freeUserQuotaHeader", {
                 used: quotaData.used,
@@ -1213,7 +1213,7 @@ const VideoMain: React.ForwardRefRenderFunction<
               onCompositionStart={handleCompositionStart}
               onCompositionEnd={handleCompositionEnd}
               placeholder={t("inputPlaceHolder")}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500 transition duration-300 ease-in-out"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-0 dark:focus:outline-none dark:focus:border-gray-800 transition duration-300 ease-in-out"
             />
             <div
               className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
