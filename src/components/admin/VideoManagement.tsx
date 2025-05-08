@@ -991,9 +991,10 @@ const VideoManagement: React.FC = () => {
                   selectedLanguage === LANGUAGES.All ||
                   channel.language === selectedLanguage
               )
+              .sort((a, b) => a.language.localeCompare(b.language))
               .map((channel) => (
                 <Option key={channel.id} value={channel.id}>
-                  {channel.name} ({channel.language})
+                  ({channel.language.toUpperCase()}) {channel.name}
                 </Option>
               ))}
           </Select>
