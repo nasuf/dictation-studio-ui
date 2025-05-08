@@ -202,6 +202,7 @@ const enTranslations = {
   unlimitedDictations: "Unlimited dictations",
   standardSupport: "Standard support",
   prioritySupport: "Priority support",
+  allowYoutubeChannelRecommendation: "Allow YouTube channel recommendations",
 };
 
 const zhTranslations = {
@@ -377,7 +378,7 @@ const zhTranslations = {
   basicPlanQuotaInfo:
     "免费用户：已用 {{used}}/{{limit}} 个视频（{{startDate}} - {{endDate}}）",
   freeUserQuotaHeader: "当前使用：{{used}}/{{limit}} 个视频",
-  freeUserQuotaRenewal: "将于 {{endDate}} 重置",
+  freeUserQuotaRenewal: "Resets on {{endDate}}",
   infiniteVideos: "无限制视频",
   upgradeNow: "立即订阅",
   failedToLoadDictation: "加载听写数据失败",
@@ -390,10 +391,11 @@ const zhTranslations = {
   iKnow: "好的",
   totalWords: "总单词数",
   fourFreeDictationsPerMonth: "每月4次免费新视频听写额度",
-  unlimitedRedictations: "历史听写可无限此重听",
+  unlimitedRedictations: "历史听写可无限次重听",
   unlimitedDictations: "任意视频可无限次听写",
   standardSupport: "标准支持",
   prioritySupport: "优先支持",
+  allowYoutubeChannelRecommendation: "支持推荐YouTube频道",
 };
 
 const zhTraditionalTranslations = {
@@ -581,11 +583,12 @@ const zhTraditionalTranslations = {
   failedToRegisterVideo: "視頻註冊失敗，請重試",
   iKnow: "好的",
   totalWords: "總單詞數",
-  fourFreeDictationsPerMonth: "每月4次免费新视频听写额度",
-  unlimitedRedictations: "历史听写可无限此重听",
-  unlimitedDictations: "任意视频可无限次听写",
-  standardSupport: "标准支持",
-  prioritySupport: "优先支持",
+  fourFreeDictationsPerMonth: "每月4次免費新視頻聽寫額度",
+  unlimitedRedictations: "歷史聽寫可無限次重聽",
+  unlimitedDictations: "任意視頻可無限次聽寫",
+  standardSupport: "標準支持",
+  prioritySupport: "優先支持",
+  allowYoutubeChannelRecommendation: "支持推薦YouTube頻道",
 };
 
 const jaTranslations = {
@@ -738,6 +741,12 @@ const jaTranslations = {
   failedToRegisterVideo: "動画の登録に失敗しました。もう一度お試しください",
   iKnow: "はい",
   totalWords: "総単語数",
+  fourFreeDictationsPerMonth: "月4回の無料新規ビデオディクテーション",
+  unlimitedRedictations: "過去のディクテーションは無制限に再試行可能",
+  unlimitedDictations: "無制限のディクテーション",
+  standardSupport: "標準サポート",
+  prioritySupport: "優先サポート",
+  allowYoutubeChannelRecommendation: "YouTubeチャンネル推薦機能",
 };
 
 const koTranslations = {
@@ -888,6 +897,12 @@ const koTranslations = {
   failedToRegisterVideo: "동영상 등록 실패, 다시 시도해주세요",
   iKnow: "확인",
   totalWords: "총 단어 수",
+  fourFreeDictationsPerMonth: "월 4회 무료 새 비디오 받아쓰기",
+  unlimitedRedictations: "이전 받아쓰기 무제한 재시도",
+  unlimitedDictations: "무제한 받아쓰기",
+  standardSupport: "기본 지원",
+  prioritySupport: "우선 지원",
+  allowYoutubeChannelRecommendation: "YouTube 채널 추천 기능",
 };
 
 i18n.use(initReactI18next).init({
