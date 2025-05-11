@@ -50,6 +50,8 @@ export interface Video {
   title: string;
   link: string;
   visibility: string;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface ProgressData {

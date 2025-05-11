@@ -450,7 +450,7 @@ const VideoManagement: React.FC = () => {
         channel_id: selectedChannel,
         video_link: video.link,
         title: video.title,
-        visibility: "hidden",
+        visibility: VISIBILITY_OPTIONS.Private,
       }));
 
       formData.append("data", JSON.stringify(videoData));
@@ -498,6 +498,10 @@ const VideoManagement: React.FC = () => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = (seconds % 60).toFixed(2);
     return `${minutes}:${remainingSeconds.padStart(5, "0")}`;
+  };
+
+  const formatUnixTimestamp = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   const isEditing = (record: Video | TranscriptItem): boolean => {
@@ -785,7 +789,7 @@ const VideoManagement: React.FC = () => {
       dataIndex: "video_id",
       key: "video_id",
       editable: true,
-      width: "10%",
+      width: "15%",
     },
     {
       title: "Title",
@@ -816,6 +820,22 @@ const VideoManagement: React.FC = () => {
         );
       },
       width: "30%",
+    },
+    {
+      title: "Created At",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: "15%",
+      editable: false,
+      render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updated_at",
+      key: "updated_at",
+      width: "15%",
+      editable: false,
+      render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
     },
     {
       title: "Visibility",
