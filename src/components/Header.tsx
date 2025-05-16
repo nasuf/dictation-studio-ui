@@ -124,6 +124,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {t("adminPanel")}
         </Menu.Item>
       )}
+      {userInfo?.plan.name !== "free" && (
+        <Menu.Item
+          key="channel-recommendation"
+          onClick={() => navigate("/profile/channel-recommendation")}
+          className="header-menu-item"
+        >
+          {t("channelRecommendation")}
+        </Menu.Item>
+      )}
       <Menu.Item key="logout" onClick={logout} className="header-menu-item">
         {t("logout")}
       </Menu.Item>

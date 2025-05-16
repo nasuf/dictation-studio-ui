@@ -33,6 +33,7 @@ import { setCurrentMissedWords, setMissedWords } from "@/redux/userSlice";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import { Select } from "antd";
 import { Channel } from "@/utils/type";
+import ChannelRecommendation from "@/components/profile/ChannelRecommendation";
 
 const { Content } = Layout;
 
@@ -381,6 +382,10 @@ const AppContent: React.FC = () => {
               <Route path="/profile/information" element={<Information />} />
               <Route path="/profile/progress" element={<UserProgress />} />
               <Route path="/profile/upgrade-plan" element={<UpgradePlan />} />
+              <Route
+                path="/profile/channel-recommendation"
+                element={<ChannelRecommendation />}
+              />
             </Routes>
           </Content>
         </Layout>

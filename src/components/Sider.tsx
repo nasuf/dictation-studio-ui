@@ -54,6 +54,12 @@ const AppSider: React.FC = () => {
       label: t("upgradePlan"),
       path: "/profile/upgrade-plan",
     },
+    {
+      key: "ChannelRecommendation",
+      icon: <CustomerServiceTwoTone />,
+      label: t("channelRecommendation"),
+      path: "/profile/channel-recommendation",
+    },
   ];
 
   const adminSiderItems: MenuItem[] = [

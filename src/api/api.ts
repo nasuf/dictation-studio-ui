@@ -215,4 +215,28 @@ export const api = {
       videoId,
     });
   },
+  getChannelRecommendations: () =>
+    axiosInstance.get("/user/channel-recommendations"),
+
+  submitChannelRecommendation: (recommendationData: {
+    link: string;
+    language: string;
+    name: string;
+  }) => axiosInstance.post("/user/channel-recommendations", recommendationData),
+
+  getAllChannelRecommendations: () =>
+    axiosInstance.get("/user/channel-recommendations/admin"),
+
+  updateChannelRecommendation: (
+    recommendationId: string,
+    updateData: {
+      status?: "pending" | "approved" | "rejected";
+      name?: string;
+      imageUrl?: string;
+    }
+  ) =>
+    axiosInstance.put(
+      `/user/channel-recommendations/${recommendationId}`,
+      updateData
+    ),
 };

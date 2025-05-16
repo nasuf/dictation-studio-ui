@@ -11,6 +11,30 @@ export const resetScrollPosition = (e: React.MouseEvent<HTMLDivElement>) => {
   }
 };
 
+// UUID generation function that works in both browser and test environments
+export const uuid = () => {
+  // Check if window and crypto are available (browser environment)
+  if (typeof window !== "undefined" && window.crypto) {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const array = new Uint8Array(1);
+      window.crypto.getRandomValues(array);
+      const r = array[0] % 16;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  } else {
+    // Fallback for test environments
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  }
+};
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
