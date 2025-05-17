@@ -34,6 +34,11 @@ const ChannelRecommendation = () => {
     setLoading(true);
     try {
       const response = await api.getChannelRecommendations();
+      // sort by submittedAt in descending order
+      response.data.sort(
+        (a: ChannelRecommendationItem, b: ChannelRecommendationItem) =>
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+      );
       setRecommendations(response.data);
       setLoading(false);
     } catch (error) {

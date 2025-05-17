@@ -132,9 +132,11 @@ const ManageChannelRecommendations: React.FC = () => {
     ChannelRecommendationItem[]
   >([]);
   const [approveModalVisible, setApproveModalVisible] = useState(false);
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<ChannelRecommendationItem | null>(null);
   const [approveForm] = Form.useForm();
+  const [rejectForm] = Form.useForm();
 
   // Fetch all channel recommendations
   const fetchRecommendations = async () => {
@@ -183,12 +185,16 @@ const ManageChannelRecommendations: React.FC = () => {
   };
 
   // Handle reject action
-  const handleReject = async (recommendationId: string) => {
+  const handleReject = async (values: { reason: string }) => {
+    if (!selectedRecommendation) return;
+
     try {
-      await api.updateChannelRecommendation(recommendationId, {
+      await api.updateChannelRecommendation(selectedRecommendation.id, {
         status: "rejected",
+        reason: values.reason,
       });
       message.success("Channel recommendation rejected");
+      setRejectModalVisible(false);
       fetchRecommendations();
     } catch (error) {
       console.error("Error rejecting recommendation:", error);
@@ -236,7 +242,10 @@ const ManageChannelRecommendations: React.FC = () => {
                     <Button
                       key="reject"
                       danger
-                      onClick={() => handleReject(item.id)}
+                      onClick={() => {
+                        setSelectedRecommendation(item);
+                        setRejectModalVisible(true);
+                      }}
                     >
                       Reject
                     </Button>,
@@ -357,6 +366,36 @@ const ManageChannelRecommendations: React.FC = () => {
                 Confirm Approval
               </Button>
               <Button onClick={() => setApproveModalVisible(false)}>
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Reject Channel Recommendation"
+        open={rejectModalVisible}
+        onCancel={() => setRejectModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <Form form={rejectForm} onFinish={handleReject} layout="vertical">
+          <Form.Item
+            name="reason"
+            label="Rejected Reason"
+            rules={[
+              { required: true, message: "Please input rejected reason!" },
+            ]}
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Confirm Rejection
+              </Button>
+              <Button onClick={() => setRejectModalVisible(false)}>
                 Cancel
               </Button>
             </Space>

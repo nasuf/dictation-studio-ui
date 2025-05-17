@@ -237,6 +237,7 @@ export const api = {
       visibility?: string;
       link?: string;
       language?: string;
+      reason?: string;
     }
   ) =>
     axiosInstance.put(
