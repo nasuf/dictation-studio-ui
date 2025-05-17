@@ -10,16 +10,7 @@ import {
 } from "@ant-design/icons";
 import { api } from "../../api/api";
 import { LANGUAGES } from "../../utils/const";
-
-interface ChannelRecommendation {
-  id: string;
-  name: string;
-  link: string;
-  imageUrl: string;
-  submittedAt: string;
-  status: "pending" | "approved" | "rejected";
-  language?: string;
-}
+import { ChannelRecommendationItem } from "@/utils/type";
 
 const ChannelRecommendation = () => {
   const { t } = useTranslation();
@@ -29,7 +20,7 @@ const ChannelRecommendation = () => {
   const [channelName, setChannelName] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [recommendations, setRecommendations] = useState<
-    ChannelRecommendation[]
+    ChannelRecommendationItem[]
   >([]);
 
   // Validate YouTube URL
@@ -49,32 +40,6 @@ const ChannelRecommendation = () => {
       console.error("Error fetching channel recommendations:", error);
       message.error(t("errorFetchingChannelRecommendations"));
       setLoading(false);
-
-      // Use mock data if API fails in development
-      if (process.env.NODE_ENV === "development") {
-        setRecommendations([
-          {
-            id: "1",
-            name: "English with Lucy",
-            link: "https://www.youtube.com/c/EnglishwithLucy",
-            imageUrl:
-              "https://yt3.googleusercontent.com/ytc/APkrFKb5msRrGk_CcJLQ_8-Ci3mi9E8a1Y0P85EjzHdI=s176-c-k-c0x00ffffff-no-rj",
-            submittedAt: new Date().toISOString(),
-            status: "approved",
-            language: "en",
-          },
-          {
-            id: "2",
-            name: "Learn Chinese with ChineseFor.Us",
-            link: "https://www.youtube.com/c/ChineseForUs",
-            imageUrl:
-              "https://yt3.googleusercontent.com/ytc/APkrFKa50z1KPYa-N_WwR_oCdHDtX7dA2Ot7yw_QGNeo=s176-c-k-c0x00ffffff-no-rj",
-            submittedAt: new Date().toISOString(),
-            status: "pending",
-            language: "zh",
-          },
-        ]);
-      }
     }
   };
 
@@ -264,6 +229,9 @@ const ChannelRecommendation = () => {
                             {t("submitted")}:{" "}
                             {new Date(item.submittedAt).toLocaleDateString()}
                           </div>
+                          {item.status === "rejected" && (
+                            <div>Rejected reason: {item.reason}</div>
+                          )}
                         </div>
                       }
                     />

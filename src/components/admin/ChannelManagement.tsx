@@ -10,6 +10,9 @@ import {
   Image,
   Modal,
   Select,
+  List,
+  Avatar,
+  Tag,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -17,12 +20,13 @@ import {
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
+  YoutubeOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Navigate } from "react-router-dom";
-import { Channel } from "@/utils/type";
+import { Channel, ChannelRecommendationItem } from "@/utils/type";
 import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
 
 const { Option } = Select;
@@ -122,6 +126,247 @@ const AddChannelForm: React.FC<{
   );
 };
 
+const ManageChannelRecommendations: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<
+    ChannelRecommendationItem[]
+  >([]);
+  const [approveModalVisible, setApproveModalVisible] = useState(false);
+  const [selectedRecommendation, setSelectedRecommendation] =
+    useState<ChannelRecommendationItem | null>(null);
+  const [approveForm] = Form.useForm();
+
+  // Fetch all channel recommendations
+  const fetchRecommendations = async () => {
+    setLoading(true);
+    try {
+      const response = await api.getAllChannelRecommendations();
+      setRecommendations(response.data);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      message.error("Failed to fetch channel recommendations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecommendations();
+  }, []);
+
+  // Handle approve action
+  const handleApprove = async (values: {
+    channelId: string;
+    name: string;
+    imageUrl: string;
+    visibility: string;
+  }) => {
+    if (!selectedRecommendation) return;
+
+    try {
+      await api.updateChannelRecommendation(selectedRecommendation.id, {
+        status: "approved",
+        name: values.name,
+        link: selectedRecommendation.link,
+        language: selectedRecommendation.language,
+        imageUrl: values.imageUrl,
+        channelId: values.channelId,
+        visibility: values.visibility,
+      });
+      message.success("Channel recommendation approved");
+      setApproveModalVisible(false);
+      fetchRecommendations();
+    } catch (error) {
+      console.error("Error approving recommendation:", error);
+      message.error("Failed to approve recommendation");
+    }
+  };
+
+  // Handle reject action
+  const handleReject = async (recommendationId: string) => {
+    try {
+      await api.updateChannelRecommendation(recommendationId, {
+        status: "rejected",
+      });
+      message.success("Channel recommendation rejected");
+      fetchRecommendations();
+    } catch (error) {
+      console.error("Error rejecting recommendation:", error);
+      message.error("Failed to reject recommendation");
+    }
+  };
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "success";
+      case "rejected":
+        return "error";
+      default:
+        return "warning";
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <List
+        loading={loading}
+        itemLayout="horizontal"
+        dataSource={recommendations}
+        renderItem={(item) => (
+          <List.Item
+            actions={
+              item.status === "pending"
+                ? [
+                    <Button
+                      key="approve"
+                      type="primary"
+                      onClick={() => {
+                        setSelectedRecommendation(item);
+                        approveForm.setFieldsValue({
+                          name: item.name,
+                          imageUrl: item.imageUrl,
+                        });
+                        setApproveModalVisible(true);
+                      }}
+                    >
+                      Approve
+                    </Button>,
+                    <Button
+                      key="reject"
+                      danger
+                      onClick={() => handleReject(item.id)}
+                    >
+                      Reject
+                    </Button>,
+                  ]
+                : []
+            }
+          >
+            <List.Item.Meta
+              avatar={<Avatar src={item.imageUrl} icon={<YoutubeOutlined />} />}
+              title={
+                <div className="flex items-center gap-2">
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    {item.name}
+                  </a>
+                  <Tag color={getStatusColor(item.status)}>
+                    {item.status.toUpperCase()}
+                  </Tag>
+                  <Tag color="blue">{item.language.toUpperCase()}</Tag>
+                </div>
+              }
+              description={
+                <div className="text-gray-500">
+                  <div>Submitted by: {item.userEmail}</div>
+                  <div>
+                    Submitted at: {new Date(item.submittedAt).toLocaleString()}
+                  </div>
+                  {item.status === "rejected" && (
+                    <div>Rejected reason: {item.reason}</div>
+                  )}
+                </div>
+              }
+            />
+          </List.Item>
+        )}
+      />
+
+      <Modal
+        title="Approve Channel Recommendation"
+        open={approveModalVisible}
+        onCancel={() => setApproveModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedRecommendation && (
+          <div className="mb-4">
+            <div className="text-gray-500 mb-2">Original Information:</div>
+            <div className="bg-gray-50 p-4 rounded">
+              <p>
+                <strong>Channel Name:</strong> {selectedRecommendation.name}
+              </p>
+              <p>
+                <strong>Channel Link:</strong>{" "}
+                <a
+                  href={selectedRecommendation.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  {selectedRecommendation.link}
+                </a>
+              </p>
+              <p>
+                <strong>Language:</strong>{" "}
+                {selectedRecommendation.language.toUpperCase()}
+              </p>
+              <p>
+                <strong>Submitted by:</strong>{" "}
+                {selectedRecommendation.userEmail}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <Form form={approveForm} onFinish={handleApprove} layout="vertical">
+          <Form.Item
+            name="channelId"
+            label="Channel ID"
+            rules={[{ required: true, message: "Please input channel ID!" }]}
+          >
+            <Input placeholder="Enter YouTube channel ID" />
+          </Form.Item>
+
+          <Form.Item
+            name="name"
+            label="Channel Name"
+            rules={[{ required: true, message: "Please input channel name!" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="imageUrl"
+            label="Channel Image URL"
+            rules={[{ required: true, message: "Please input image URL!" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="visibility"
+            label="Channel Visibility"
+            rules={[{ required: true, message: "Please select visibility!" }]}
+          >
+            <Select>
+              <Option value="public">Public</Option>
+              <Option value="hidden">Hidden</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Confirm Approval
+              </Button>
+              <Button onClick={() => setApproveModalVisible(false)}>
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
 const ChannelManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
@@ -136,6 +381,10 @@ const ChannelManagement: React.FC = () => {
   const [selectedVisibility, setSelectedVisibility] = useState<string>(
     VISIBILITY_OPTIONS.All
   );
+  const [
+    isChannelRecommendationModalVisible,
+    setIsChannelRecommendationModalVisible,
+  ] = useState(false);
 
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
@@ -464,6 +713,14 @@ const ChannelManagement: React.FC = () => {
           >
             Add Channel
           </Button>
+          <Button
+            type="primary"
+            onClick={() => setIsChannelRecommendationModalVisible(true)}
+            className="add-channel-button"
+            style={{ marginLeft: 10 }}
+          >
+            Channel Recommendation
+          </Button>
         </Space>
         <Form form={form} component={false}>
           <Table
@@ -488,6 +745,14 @@ const ChannelManagement: React.FC = () => {
         width={1000}
       >
         <AddChannelForm onFinish={onFinish} isLoading={isLoading} form={form} />
+      </Modal>
+      <Modal
+        title="Channel Recommendation"
+        open={isChannelRecommendationModalVisible}
+        onCancel={() => setIsChannelRecommendationModalVisible(false)}
+        footer={null}
+      >
+        <ManageChannelRecommendations />
       </Modal>
     </div>
   );

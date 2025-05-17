@@ -233,6 +233,10 @@ export const api = {
       status?: "pending" | "approved" | "rejected";
       name?: string;
       imageUrl?: string;
+      channelId?: string;
+      visibility?: string;
+      link?: string;
+      language?: string;
     }
   ) =>
     axiosInstance.put(

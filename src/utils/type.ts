@@ -123,3 +123,15 @@ export interface PlanProps {
 export interface StructuredMissedWords {
   [key: string]: string[]; // language code as key, array of words as value
 }
+
+export interface ChannelRecommendationItem {
+  id: string;
+  name: string;
+  link: string;
+  imageUrl: string;
+  submittedAt: string;
+  status: "pending" | "approved" | "rejected";
+  language: string;
+  userEmail: string;
+  reason?: string;
+}
