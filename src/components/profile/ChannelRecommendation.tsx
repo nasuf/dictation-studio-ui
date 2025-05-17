@@ -2,7 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, Input, Button, List, Empty, Spin, message, Select } from "antd";
+import {
+  Card,
+  Input,
+  Button,
+  List,
+  Empty,
+  Spin,
+  message,
+  Select,
+  Modal,
+} from "antd";
 import {
   LinkOutlined,
   YoutubeOutlined,
@@ -22,6 +32,7 @@ const ChannelRecommendation = () => {
   const [recommendations, setRecommendations] = useState<
     ChannelRecommendationItem[]
   >([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Validate YouTube URL
   const isValidYoutubeUrl = (url: string) => {
@@ -113,68 +124,23 @@ const ChannelRecommendation = () => {
       {/* Centered container with maximum width */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-full">
         {/* Top form card for submitting recommendation */}
-        <Card
-          className="mb-4 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-          title={
-            <div className="flex items-center">
-              <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500" />
-              <span>{t("recommendYoutubeChannel")}</span>
-            </div>
-          }
-        >
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {t("helpUsGrowByRecommending")}
-          </p>
-
-          <div className="flex flex-col gap-4">
-            <Input
-              placeholder={t("enterYoutubeChannelLink")}
-              value={channelLink}
-              onChange={(e) => setChannelLink(e.target.value)}
-              prefix={<LinkOutlined className="text-gray-400" />}
-              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-              onPressEnter={submitChannelRecommendation}
-            />
-
-            <Input
-              placeholder={t("enterChannelName")}
-              value={channelName}
-              onChange={(e) => setChannelName(e.target.value)}
-              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-              onPressEnter={submitChannelRecommendation}
-            />
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex flex-1 items-center">
-                <TranslationOutlined className="mr-2 text-gray-400" />
-                <Select
-                  value={selectedLanguage}
-                  onChange={setSelectedLanguage}
-                  options={languageOptions}
-                  className="w-full min-w-[120px] dark:bg-gray-700 dark:text-gray-200"
-                  placeholder={t("selectLanguage")}
-                />
-              </div>
-
-              <Button
-                type="primary"
-                onClick={submitChannelRecommendation}
-                loading={submitting}
-                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-              >
-                {t("submit")}
-              </Button>
-            </div>
-          </div>
-        </Card>
 
         {/* Bottom card for viewing recommendations - with flex-grow to extend to bottom */}
         <Card
           className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
           title={
-            <div className="flex items-center">
-              <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500" />
-              <span>{t("yourRecommendedChannels")}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500" />
+                <span>{t("yourRecommendedChannels")}</span>
+              </div>
+              <Button
+                type="primary"
+                onClick={() => setModalVisible(true)}
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+              >
+                + {t("recommendYoutubeChannel")}
+              </Button>
             </div>
           }
           bodyStyle={{
@@ -254,6 +220,58 @@ const ChannelRecommendation = () => {
             )}
           </div>
         </Card>
+        <Modal
+          open={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+          title={t("recommendYoutubeChannel")}
+          destroyOnClose
+        >
+          {/* 这里放原来 Card 里的推荐表单内容 */}
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            {t("helpUsGrowByRecommending")}
+          </p>
+          <div className="flex flex-col gap-4">
+            <Input
+              placeholder={t("enterYoutubeChannelLink")}
+              value={channelLink}
+              onChange={(e) => setChannelLink(e.target.value)}
+              prefix={<LinkOutlined className="text-gray-400" />}
+              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+              onPressEnter={submitChannelRecommendation}
+            />
+            <Input
+              placeholder={t("enterChannelName")}
+              value={channelName}
+              onChange={(e) => setChannelName(e.target.value)}
+              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+              onPressEnter={submitChannelRecommendation}
+            />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-1 items-center">
+                <TranslationOutlined className="mr-2 text-gray-400" />
+                <Select
+                  value={selectedLanguage}
+                  onChange={setSelectedLanguage}
+                  options={languageOptions}
+                  className="w-full min-w-[120px] dark:bg-gray-700 dark:text-gray-200"
+                  placeholder={t("selectLanguage")}
+                />
+              </div>
+              <Button
+                type="primary"
+                onClick={async () => {
+                  await submitChannelRecommendation();
+                  setModalVisible(false);
+                }}
+                loading={submitting}
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+              >
+                {t("submit")}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );
