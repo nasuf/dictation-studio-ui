@@ -51,8 +51,8 @@ const Feedback: React.FC = () => {
 
   // Handle file upload
   const handleUpload = async (file: RcFile) => {
-    if (file.size > 1024 * 1024 * 2) {
-      // 2MB limit
+    if (file.size > 1024 * 1024) {
+      // 1MB limit
       message.error(t("imageSizeLimit"));
       return false;
     }
