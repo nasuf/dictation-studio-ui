@@ -31,6 +31,7 @@ export const PLANS = [
       { feature: "fourFreeDictationsPerMonth", included: true },
       { feature: "unlimitedRedictations", included: true },
       { feature: "standardSupport", included: true },
+      { feature: "allowYoutubeChannelRecommendation", included: true },
     ],
   },
   {

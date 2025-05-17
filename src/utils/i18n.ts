@@ -211,7 +211,7 @@ const enTranslations = {
   notSet: "Not set",
   processing: "Processing",
   settingsReset: "Settings have been reset to default values",
-  channelRecommendation: "Channel Recommendation",
+  channelRecommendation: "Recommendation",
 
   // Channel recommendation translations
   recommendYoutubeChannel: "Recommend YouTube Channel",

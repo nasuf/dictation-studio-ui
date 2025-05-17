@@ -2,6 +2,7 @@ import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import {
   BookTwoTone,
+  ContainerTwoTone,
   CustomerServiceTwoTone,
   IdcardTwoTone,
   RocketTwoTone,
@@ -56,7 +57,7 @@ const AppSider: React.FC = () => {
     },
     {
       key: "ChannelRecommendation",
-      icon: <CustomerServiceTwoTone />,
+      icon: <ContainerTwoTone />,
       label: t("channelRecommendation"),
       path: "/profile/channel-recommendation",
     },
