@@ -417,7 +417,26 @@ const VideoManagement: React.FC = () => {
         VISIBILITY_OPTIONS.All,
         language
       );
-      setVideos(response.data.videos);
+      setVideos(
+        response.data.videos.sort((a: Video, b: Video) => {
+          if (b.updated_at && !a.updated_at) {
+            return 1;
+          } else if (!b.updated_at && a.updated_at) {
+            return -1;
+          }
+          if (b.updated_at && a.updated_at) {
+            return (
+              new Date(b.updated_at).getTime() -
+              new Date(a.updated_at).getTime()
+            );
+          } else {
+            return (
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+            );
+          }
+        })
+      );
     } catch (error) {
       console.error("Error fetching videos:", error);
       message.error("Failed to fetch videos");
