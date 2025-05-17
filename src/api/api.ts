@@ -244,4 +244,14 @@ export const api = {
       `/user/channel-recommendations/${recommendationId}`,
       updateData
     ),
+
+  // Feedback related APIs
+  getFeedbackMessages: () => axiosInstance.get("/user/feedback"),
+
+  submitFeedback: (formData: FormData) =>
+    axiosInstance.post("/user/feedback", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
 };

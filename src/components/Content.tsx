@@ -34,6 +34,7 @@ import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import { Select } from "antd";
 import { Channel } from "@/utils/type";
 import ChannelRecommendation from "@/components/profile/ChannelRecommendation";
+import Feedback from "@/components/profile/Feedback";
 
 const { Content } = Layout;
 
@@ -386,6 +387,7 @@ const AppContent: React.FC = () => {
                 path="/profile/channel-recommendation"
                 element={<ChannelRecommendation />}
               />
+              <Route path="/profile/feedback" element={<Feedback />} />
             </Routes>
           </Content>
         </Layout>

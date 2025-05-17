@@ -61,6 +61,12 @@ const AppSider: React.FC = () => {
       label: t("channelRecommendation"),
       path: "/profile/channel-recommendation",
     },
+    {
+      key: "Feedback",
+      icon: <CustomerServiceTwoTone />,
+      label: t("feedback"),
+      path: "/profile/feedback",
+    },
   ];
 
   const adminSiderItems: MenuItem[] = [
