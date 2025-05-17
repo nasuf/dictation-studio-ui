@@ -178,7 +178,6 @@ const ChannelRecommendation = () => {
             </div>
           }
           bodyStyle={{
-            height: "calc(100% - 57px)",
             padding: 0,
             display: "flex",
           }}
@@ -251,7 +250,6 @@ const ChannelRecommendation = () => {
                   </span>
                 }
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                className="py-16"
               />
             )}
           </div>
