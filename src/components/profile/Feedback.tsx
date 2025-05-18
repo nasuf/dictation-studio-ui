@@ -4,16 +4,9 @@ import { UploadOutlined, SendOutlined } from "@ant-design/icons";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
+import { FeedbackMessage } from "@/utils/type";
 
 const { TextArea } = Input;
-
-interface FeedbackMessage {
-  id: string;
-  message: string;
-  sender: "user" | "admin";
-  timestamp: number;
-  images?: string[];
-}
 
 const Feedback: React.FC = () => {
   const { t } = useTranslation();

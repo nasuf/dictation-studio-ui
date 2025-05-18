@@ -254,4 +254,10 @@ export const api = {
         "Content-Type": "multipart/form-data",
       },
     }),
+
+  getAllFeedbackMessages: () => axiosInstance.get("/user/feedback/admin"),
+  replyFeedback: (
+    feedbackId: string,
+    data: { status: string; response: string }
+  ) => axiosInstance.put(`/user/feedback/${feedbackId}`, data),
 };

@@ -88,6 +88,12 @@ const AppSider: React.FC = () => {
       path: "/admin/user",
       icon: <></>,
     },
+    {
+      key: "FeedbackManagement",
+      label: "Feedback",
+      path: "/admin/feedback",
+      icon: <></>,
+    },
   ];
 
   useEffect(() => {

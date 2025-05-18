@@ -35,6 +35,7 @@ import { Select } from "antd";
 import { Channel } from "@/utils/type";
 import ChannelRecommendation from "@/components/profile/ChannelRecommendation";
 import Feedback from "@/components/profile/Feedback";
+import FeedbackManagement from "@/components/admin/FeedbackManagement";
 
 const { Content } = Layout;
 
@@ -379,6 +380,7 @@ const AppContent: React.FC = () => {
               <Route path="/admin/channel" element={<ChannelManagement />} />
               <Route path="/admin/video" element={<VideoManagement />} />
               <Route path="/admin/user" element={<UserManagement />} />
+              <Route path="/admin/feedback" element={<FeedbackManagement />} />
               <Route path="/profile" element={<Information />} />
               <Route path="/profile/information" element={<Information />} />
               <Route path="/profile/progress" element={<UserProgress />} />
