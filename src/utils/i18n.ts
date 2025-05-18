@@ -250,6 +250,7 @@ const enTranslations = {
   chinese: "Chinese",
   japanese: "Japanese",
   korean: "Korean",
+  noMissedWordsYet: "No missed words yet",
 };
 
 const zhTranslations = {
@@ -487,6 +488,7 @@ const zhTranslations = {
   chinese: "中文",
   japanese: "日语",
   korean: "韩语",
+  noMissedWordsYet: "暂无未写出的单词",
 };
 
 const zhTraditionalTranslations = {
@@ -725,6 +727,7 @@ const zhTraditionalTranslations = {
   chinese: "中国語",
   japanese: "日本語",
   korean: "韓国語",
+  noMissedWordsYet: "暫無未寫出的單詞",
 };
 
 const jaTranslations = {
@@ -911,6 +914,7 @@ const jaTranslations = {
   chinese: "中国語",
   japanese: "日本語",
   korean: "韓国語",
+  noMissedWordsYet: "まだ未出の単語はありません",
 };
 
 const koTranslations = {
@@ -1099,6 +1103,7 @@ const koTranslations = {
   feedbackSubmitted: "피드백이 성공적으로 제출되었습니다",
   errorSubmittingFeedback: "피드백 제출 중 오류가 발생했습니다",
   errorFetchingFeedback: "피드백 메시지를 가져오는 중 오류가 발생했습니다",
+  noMissedWordsYet: "아직 미완료 단어가 없습니다",
 };
 
 i18n.use(initReactI18next).init({

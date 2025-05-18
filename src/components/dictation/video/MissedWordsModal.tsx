@@ -189,9 +189,6 @@ const MissedWordsModal: React.FC<MissedWordsModalProps> = ({
             </Tag>
           ))}
         </div>
-        {filteredWords.length === 0 && (
-          <Empty description={t("noWordsInSelectedLanguage")} />
-        )}
       </div>
     </Modal>
   );
