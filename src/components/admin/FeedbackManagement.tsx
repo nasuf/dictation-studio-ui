@@ -227,6 +227,7 @@ export default function FeedbackManagement() {
               footer={null}
               onCancel={() => setPreviewImage(null)}
               centered
+              width={800}
               bodyStyle={{ padding: 0, background: "transparent" }}
               style={{ background: "transparent" }}
             >
@@ -239,6 +240,13 @@ export default function FeedbackManagement() {
                   justifyContent: "center",
                   overflow: "auto",
                   background: "#222",
+                  cursor: dragging
+                    ? "grabbing"
+                    : scale > 1
+                    ? "grab"
+                    : "default",
+                  userSelect: "none",
+                  position: "relative",
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -250,8 +258,6 @@ export default function FeedbackManagement() {
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",
-                    display: "block",
-                    margin: "auto",
                     transform: `scale(${scale}) translate(${
                       imgOffset.x / scale
                     }px, ${imgOffset.y / scale}px)`,
