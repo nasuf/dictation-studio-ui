@@ -4,15 +4,17 @@ import {
   List,
   Input,
   Button,
-  Spin,
   Modal,
   message as antdMessage,
+  Menu,
+  Layout,
 } from "antd";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { FeedbackMessage } from "@/utils/type";
 
 const { TextArea } = Input;
+const { Content, Sider } = Layout;
 
 export default function FeedbackManagement() {
   const { t } = useTranslation();
@@ -115,47 +117,58 @@ export default function FeedbackManagement() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full">
-      {loading ? (
-        <Spin />
-      ) : (
-        <>
-          <div className="w-64 border-r p-4 bg-white dark:bg-gray-900">
-            <ul>
-              {userList.map((email) => (
-                <li
-                  key={email}
-                  className={`cursor-pointer p-2 rounded ${
-                    selectedUser === email ? "bg-blue-100 dark:bg-gray-900" : ""
-                  }`}
-                  onClick={() => setSelectedUser(email)}
-                >
-                  {email}
-                </li>
-              ))}
-            </ul>
-          </div>
+      <>
+        <Sider
+          className="bg-white dark:bg-gray-800 dark:text-white"
+          width={200}
+        >
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedUser || ""]}
+            style={{ height: "100%", borderRight: 0 }}
+            onSelect={({ key }) => setSelectedUser(key)}
+            className="bg-white dark:bg-gray-800 dark:text-white"
+          >
+            {userList.map((email) => (
+              <Menu.Item key={email} className="dark:text-white">
+                {email}
+              </Menu.Item>
+            ))}
+          </Menu>
+        </Sider>
 
-          <div className="flex-1 p-6">
-            {selectedUser && grouped[selectedUser] && (
-              <Card key={selectedUser} title={selectedUser} className="mb-6">
+        <Content className="overflow-hidden bg-transparent">
+          <div className="h-full flex flex-col p-4 md:p-6 w-full max-w-3xl mx-auto">
+            {/* Feedback message list */}
+            <Card
+              className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 mb-4"
+              title={selectedUser || t("feedbackHistory")}
+              bodyStyle={{ height: "calc(100% - 57px)", padding: 0 }}
+            >
+              <div className="h-full overflow-auto p-4">
                 <List
-                  dataSource={grouped[selectedUser].sort(
-                    (a, b) => a.timestamp - b.timestamp
-                  )}
+                  dataSource={
+                    selectedUser && grouped[selectedUser]
+                      ? grouped[selectedUser].sort(
+                          (a, b) => a.timestamp - b.timestamp
+                        )
+                      : []
+                  }
                   renderItem={(item) => (
                     <List.Item
-                      className={
-                        item.sender === "admin"
-                          ? "justify-end"
-                          : "justify-start"
-                      }
-                      style={{
-                        display: "flex",
-                        flexDirection:
-                          item.sender === "admin" ? "row-reverse" : "row",
-                      }}
+                      className={`$ {
+                          item.sender === "admin" ? "justify-end" : "justify-start"
+                        }`}
                     >
                       <div
                         className={`max-w-[70%] p-3 rounded-lg ${
@@ -168,6 +181,7 @@ export default function FeedbackManagement() {
                           {new Date(item.timestamp).toLocaleString()}
                         </div>
                         <div className="dark:text-gray-400">{item.message}</div>
+                        {/* Render images if present */}
                         {Array.isArray(item.images) &&
                           item.images.map((img: string, idx: number) => (
                             <img
@@ -179,6 +193,7 @@ export default function FeedbackManagement() {
                               onClick={() => setPreviewImage(img)}
                             />
                           ))}
+                        {/* Render admin response if present */}
                         {item.response && (
                           <div className="mt-2 p-2 bg-blue-100 text-blue-800 rounded">
                             <b>Admin:</b> {item.response}
@@ -188,8 +203,13 @@ export default function FeedbackManagement() {
                     </List.Item>
                   )}
                 />
-                {/* 回复输入框 */}
-                <div className="flex gap-2 mt-2">
+              </div>
+            </Card>
+
+            {/* Reply input area, only show if selectedUser and messages exist */}
+            {selectedUser && grouped[selectedUser] && (
+              <Card className="shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
+                <div className="flex gap-2 items-end">
                   <TextArea
                     rows={2}
                     value={
@@ -206,6 +226,7 @@ export default function FeedbackManagement() {
                       }))
                     }
                     placeholder={t("enterFeedback")}
+                    className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                   />
                   <Button
                     type="primary"
@@ -221,7 +242,8 @@ export default function FeedbackManagement() {
                 </div>
               </Card>
             )}
-            {/* 图片预览 */}
+
+            {/* Image preview modal (unchanged) */}
             <Modal
               open={!!previewImage}
               footer={null}
@@ -283,8 +305,8 @@ export default function FeedbackManagement() {
               </div>
             </Modal>
           </div>
-        </>
-      )}
+        </Content>
+      </>
     </div>
   );
 }
