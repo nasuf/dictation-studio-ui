@@ -145,3 +145,8 @@ export interface FeedbackMessage {
   timestamp: number;
   images?: string[];
 }
+
+export interface FeedbackUserList {
+  email: string;
+  timestamp: number;
+}

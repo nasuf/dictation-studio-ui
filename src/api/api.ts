@@ -256,7 +256,7 @@ export const api = {
       },
     }),
 
-  getAllFeedbackMessages: () => axiosInstance.get("/user/feedback/admin"),
+  getAllFeedbackUserList: () => axiosInstance.get("/user/feedback/admin/list"),
   replyFeedback: (
     userEmail: string,
     data: { response: string; images?: File }

@@ -13,7 +13,7 @@ import {
 } from "antd";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
-import { FeedbackMessage } from "@/utils/type";
+import { FeedbackMessage, FeedbackUserList } from "@/utils/type";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 
 const { TextArea } = Input;
@@ -21,8 +21,10 @@ const { Content, Sider } = Layout;
 
 export default function FeedbackManagement() {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [feedbacks, setFeedbacks] = useState<FeedbackMessage[]>([]);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [feedbackUserList, setFeedbackUserList] = useState<FeedbackUserList[]>(
+    []
+  );
   const [reply, setReply] = useState<string>("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
@@ -31,15 +33,35 @@ export default function FeedbackManagement() {
     null
   );
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string>("");
   const [adminFileList, setAdminFileList] = useState<UploadFile[]>([]);
+  const [feedbackMessages, setFeedbackMessages] = useState<FeedbackMessage[]>(
+    []
+  );
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   // 获取所有反馈
-  const fetchFeedbacks = async () => {
-    setLoading(true);
+  const fetchFeedbackUserList = async () => {
+    setPageLoading(true);
     try {
-      const res = await api.getAllFeedbackMessages();
-      setFeedbacks(
+      const res = await api.getAllFeedbackUserList();
+      const list = res.data.sort(
+        (a: FeedbackUserList, b: FeedbackUserList) => b.timestamp - a.timestamp
+      );
+      setFeedbackUserList(list);
+      setSelectedUser(list[0].email);
+    } catch (e) {
+      antdMessage.error(t("errorFetchingFeedback"));
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  const fetchFeedbacks = async () => {
+    try {
+      setFeedbackLoading(true);
+      const res = await api.getFeedbackMessages(selectedUser);
+      setFeedbackMessages(
         res.data.map((item: any) => ({
           ...item,
           timestamp: new Date(item.timestamp).getTime(),
@@ -48,12 +70,16 @@ export default function FeedbackManagement() {
     } catch (e) {
       antdMessage.error(t("errorFetchingFeedback"));
     } finally {
-      setLoading(false);
+      setFeedbackLoading(false);
     }
   };
 
   useEffect(() => {
     fetchFeedbacks();
+  }, [selectedUser]);
+
+  useEffect(() => {
+    fetchFeedbackUserList();
   }, []);
 
   // Reset scale when opening/closing preview
@@ -85,25 +111,6 @@ export default function FeedbackManagement() {
     setDragging(false);
     setDragStart(null);
   };
-
-  // 按用户分组
-  const grouped = feedbacks.reduce((acc, fb) => {
-    const email = fb.email || "unknown";
-    if (!acc[email]) acc[email] = [];
-    acc[email].push(fb);
-    return acc;
-  }, {} as Record<string, any[]>);
-
-  // Extract user list
-  const userList = Array.from(
-    new Set(feedbacks.map((fb) => fb.email || "unknown"))
-  );
-  // Default to first user if none selected
-  useEffect(() => {
-    if (!selectedUser && userList.length > 0) {
-      setSelectedUser(userList[0]);
-    }
-  }, [userList, selectedUser]);
 
   // Handle admin image upload
   const handleAdminUpload = async (file: RcFile) => {
@@ -144,12 +151,12 @@ export default function FeedbackManagement() {
       setReply("");
       setAdminFileList([]);
       fetchFeedbacks();
-    } catch {
+    } catch (e) {
       antdMessage.error(t("errorSubmittingFeedback"));
     }
   };
 
-  if (loading) {
+  if (pageLoading) {
     return (
       <div className="flex justify-center items-center h-full">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
@@ -157,7 +164,7 @@ export default function FeedbackManagement() {
     );
   }
 
-  if (feedbacks.length === 0) {
+  if (feedbackUserList.length === 0) {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <Empty
@@ -182,12 +189,14 @@ export default function FeedbackManagement() {
             mode="inline"
             selectedKeys={[selectedUser || ""]}
             style={{ height: "100%", borderRight: 0 }}
-            onSelect={({ key }) => setSelectedUser(key)}
+            onSelect={({ key }) => {
+              setSelectedUser(key);
+            }}
             className="bg-white dark:bg-gray-800 dark:text-white"
           >
-            {userList.map((email) => (
-              <Menu.Item key={email} className="dark:text-white">
-                {email}
+            {feedbackUserList.map((user: FeedbackUserList) => (
+              <Menu.Item key={user.email} className="dark:text-white">
+                {user.email}
               </Menu.Item>
             ))}
           </Menu>
@@ -203,13 +212,8 @@ export default function FeedbackManagement() {
             >
               <div className="h-full overflow-auto p-4">
                 <List
-                  dataSource={
-                    selectedUser && grouped[selectedUser]
-                      ? grouped[selectedUser].sort(
-                          (a, b) => a.timestamp - b.timestamp
-                        )
-                      : []
-                  }
+                  loading={feedbackLoading}
+                  dataSource={feedbackMessages}
                   renderItem={(item) => (
                     <List.Item
                       className={
@@ -257,7 +261,7 @@ export default function FeedbackManagement() {
             </Card>
 
             {/* Reply input area, only show if selectedUser and messages exist */}
-            {selectedUser && grouped[selectedUser] && (
+            {selectedUser && (
               <Card className="shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
                 {/* Reply text area */}
                 <TextArea
