@@ -790,6 +790,7 @@ const ChannelManagement: React.FC = () => {
         open={isChannelRecommendationModalVisible}
         onCancel={() => setIsChannelRecommendationModalVisible(false)}
         footer={null}
+        width={600}
       >
         <ManageChannelRecommendations />
       </Modal>
