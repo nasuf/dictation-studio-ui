@@ -39,6 +39,7 @@ export default function FeedbackManagement() {
     []
   );
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [replyLoading, setReplyLoading] = useState(false);
 
   // 获取所有反馈
   const fetchFeedbackUserList = async () => {
@@ -137,8 +138,13 @@ export default function FeedbackManagement() {
   // Update handleReply to send image if present
   const handleReply = async (selectedUser: string) => {
     try {
+      setReplyLoading(true);
       const formData = new FormData();
-      formData.append("response", reply || "");
+      if (!reply) {
+        antdMessage.error(t("contentCannotBeEmpty"));
+        return;
+      }
+      formData.append("response", reply);
       if (adminFileList.length > 0 && adminFileList[0].originFileObj) {
         formData.append("images", adminFileList[0].originFileObj);
       }
@@ -153,6 +159,8 @@ export default function FeedbackManagement() {
       fetchFeedbacks();
     } catch (e) {
       antdMessage.error(t("errorSubmittingFeedback"));
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -286,6 +294,7 @@ export default function FeedbackManagement() {
                   <Button
                     type="primary"
                     onClick={() => handleReply(selectedUser)}
+                    loading={replyLoading}
                   >
                     {t("send")}
                   </Button>

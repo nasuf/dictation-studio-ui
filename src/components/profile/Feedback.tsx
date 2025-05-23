@@ -68,7 +68,7 @@ const Feedback: React.FC = () => {
   // Handle message submission
   const handleSubmit = async (values: { content: string }) => {
     if (!values.content.trim() && fileList.length === 0) {
-      message.error(t("pleaseEnterMessage"));
+      message.error(t("contentCannotBeEmpty"));
       return;
     }
 

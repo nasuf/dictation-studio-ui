@@ -251,6 +251,7 @@ const enTranslations = {
   japanese: "Japanese",
   korean: "Korean",
   noMissedWordsYet: "No missed words yet",
+  contentCannotBeEmpty: "Content cannot be empty",
 };
 
 const zhTranslations = {
@@ -489,6 +490,7 @@ const zhTranslations = {
   japanese: "日语",
   korean: "韩语",
   noMissedWordsYet: "暂无未写出的单词",
+  contentCannotBeEmpty: "内容不能为空",
 };
 
 const zhTraditionalTranslations = {
@@ -728,6 +730,7 @@ const zhTraditionalTranslations = {
   japanese: "日本語",
   korean: "韓国語",
   noMissedWordsYet: "暫無未寫出的單詞",
+  contentCannotBeEmpty: "內容不能為空",
 };
 
 const jaTranslations = {
@@ -915,6 +918,7 @@ const jaTranslations = {
   japanese: "日本語",
   korean: "韓国語",
   noMissedWordsYet: "まだ未出の単語はありません",
+  contentCannotBeEmpty: "内容を入力してください",
 };
 
 const koTranslations = {
@@ -1104,6 +1108,7 @@ const koTranslations = {
   errorSubmittingFeedback: "피드백 제출 중 오류가 발생했습니다",
   errorFetchingFeedback: "피드백 메시지를 가져오는 중 오류가 발생했습니다",
   noMissedWordsYet: "아직 미완료 단어가 없습니다",
+  contentCannotBeEmpty: "내용을 입력해주세요",
 };
 
 i18n.use(initReactI18next).init({

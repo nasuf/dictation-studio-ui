@@ -170,7 +170,6 @@ const ChannelRecommendation = () => {
                     ]}
                   >
                     <List.Item.Meta
-                      // avatar={<Avatar src={item.imageUrl} />}
                       title={
                         <div>
                           <a
@@ -227,7 +226,6 @@ const ChannelRecommendation = () => {
           title={t("recommendYoutubeChannel")}
           destroyOnClose
         >
-          {/* 这里放原来 Card 里的推荐表单内容 */}
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             {t("helpUsGrowByRecommending")}
           </p>
