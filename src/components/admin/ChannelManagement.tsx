@@ -297,7 +297,7 @@ const ManageChannelRecommendations: React.FC = () => {
         {selectedRecommendation && (
           <div className="mb-4">
             <div className="text-gray-500 mb-2">Original Information:</div>
-            <div className="bg-gray-50 p-4 rounded">
+            <div className="bg-gray-50 p-4 rounded dark:bg-gray-700">
               <p>
                 <strong>Channel Name:</strong> {selectedRecommendation.name}
               </p>
