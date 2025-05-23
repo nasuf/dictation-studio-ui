@@ -246,7 +246,8 @@ export const api = {
     ),
 
   // Feedback related APIs
-  getFeedbackMessages: () => axiosInstance.get("/user/feedback"),
+  getFeedbackMessages: (userEmail?: string) =>
+    axiosInstance.get("/user/feedback", { params: { userEmail } }),
 
   submitFeedback: (formData: FormData) =>
     axiosInstance.post("/user/feedback", formData, {

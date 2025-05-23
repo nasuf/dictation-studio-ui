@@ -15,7 +15,6 @@ const Feedback: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [form] = Form.useForm();
-  const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [dragging, setDragging] = useState(false);
@@ -151,7 +150,7 @@ const Feedback: React.FC = () => {
                     }}
                   >
                     <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
-                      {new Date(item.timestamp).toLocaleString()} ·
+                      {new Date(item.timestamp).toLocaleString()}
                       {item.senderType === "admin" ? " · Admin" : ""}
                     </div>
                     <div className="dark:text-gray-400">{item.message}</div>
