@@ -5,6 +5,7 @@ import {
   ContainerTwoTone,
   CustomerServiceTwoTone,
   IdcardTwoTone,
+  PlusCircleTwoTone,
   RocketTwoTone,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
@@ -63,7 +64,7 @@ const AppSider: React.FC = () => {
     },
     {
       key: "Feedback",
-      icon: <CustomerServiceTwoTone />,
+      icon: <PlusCircleTwoTone />,
       label: t("feedback"),
       path: "/profile/feedback",
     },
