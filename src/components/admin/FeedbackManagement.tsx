@@ -8,10 +8,13 @@ import {
   message as antdMessage,
   Menu,
   Layout,
+  Upload,
+  Empty,
 } from "antd";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { FeedbackMessage } from "@/utils/type";
+import type { UploadFile, RcFile } from "antd/es/upload/interface";
 
 const { TextArea } = Input;
 const { Content, Sider } = Layout;
@@ -20,7 +23,7 @@ export default function FeedbackManagement() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState<FeedbackMessage[]>([]);
-  const [reply, setReply] = useState<{ [id: string]: string }>({});
+  const [reply, setReply] = useState<string>("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [dragging, setDragging] = useState(false);
@@ -29,6 +32,7 @@ export default function FeedbackManagement() {
   );
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [adminFileList, setAdminFileList] = useState<UploadFile[]>([]);
 
   // 获取所有反馈
   const fetchFeedbacks = async () => {
@@ -84,7 +88,7 @@ export default function FeedbackManagement() {
 
   // 按用户分组
   const grouped = feedbacks.reduce((acc, fb) => {
-    const email = fb.userEmail || "unknown";
+    const email = fb.email || "unknown";
     if (!acc[email]) acc[email] = [];
     acc[email].push(fb);
     return acc;
@@ -92,7 +96,7 @@ export default function FeedbackManagement() {
 
   // Extract user list
   const userList = Array.from(
-    new Set(feedbacks.map((fb) => fb.userEmail || "unknown"))
+    new Set(feedbacks.map((fb) => fb.email || "unknown"))
   );
   // Default to first user if none selected
   useEffect(() => {
@@ -101,16 +105,44 @@ export default function FeedbackManagement() {
     }
   }, [userList, selectedUser]);
 
-  // 发送回复
-  const handleReply = async (feedbackId: string) => {
-    if (!reply[feedbackId]?.trim()) return;
+  // Handle admin image upload
+  const handleAdminUpload = async (file: RcFile) => {
+    if (file.size > 1024 * 1024) {
+      // 1MB limit
+      antdMessage.error(t("imageSizeLimit"));
+      return false;
+    }
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      antdMessage.error(t("onlyImagesAllowed"));
+      return false;
+    }
+    const uploadFile: UploadFile = {
+      uid: file.uid,
+      name: file.name,
+      status: "done",
+      originFileObj: file,
+    };
+    setAdminFileList([uploadFile]);
+    return false; // Prevent auto upload
+  };
+
+  // Update handleReply to send image if present
+  const handleReply = async (selectedUser: string) => {
     try {
-      await api.replyFeedback(feedbackId, {
-        status: "resolved",
-        response: reply[feedbackId],
+      const formData = new FormData();
+      formData.append("response", reply || "");
+      if (adminFileList.length > 0 && adminFileList[0].originFileObj) {
+        formData.append("images", adminFileList[0].originFileObj);
+      }
+      await api.replyFeedback(selectedUser, {
+        response: reply || "",
+        images:
+          adminFileList.length > 0 ? adminFileList[0].originFileObj : undefined,
       });
       antdMessage.success(t("feedbackSubmitted"));
-      setReply((r) => ({ ...r, [feedbackId]: "" }));
+      setReply("");
+      setAdminFileList([]);
       fetchFeedbacks();
     } catch {
       antdMessage.error(t("errorSubmittingFeedback"));
@@ -121,6 +153,20 @@ export default function FeedbackManagement() {
     return (
       <div className="flex justify-center items-center h-full">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (feedbacks.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Empty
+          description={
+            <span className="text-gray-500 dark:text-gray-400">
+              No feedback data available
+            </span>
+          }
+        />
       </div>
     );
   }
@@ -166,19 +212,29 @@ export default function FeedbackManagement() {
                   }
                   renderItem={(item) => (
                     <List.Item
-                      className={`$ {
-                          item.sender === "admin" ? "justify-end" : "justify-start"
-                        }`}
+                      className={
+                        item.senderType === "admin"
+                          ? "justify-end"
+                          : "justify-start"
+                      }
+                      style={{
+                        display: "flex",
+                        flexDirection:
+                          item.senderType === "admin" ? "row-reverse" : "row",
+                      }}
                     >
                       <div
-                        className={`max-w-[70%] p-3 rounded-lg ${
-                          item.sender === "admin"
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 dark:bg-gray-800"
-                        }`}
+                        className={`max-w-[70%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800`}
+                        style={{
+                          alignSelf:
+                            item.senderType === "admin"
+                              ? "flex-end"
+                              : "flex-start",
+                        }}
                       >
                         <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
                           {new Date(item.timestamp).toLocaleString()}
+                          {item.senderType === "admin" ? " · Admin" : ""}
                         </div>
                         <div className="dark:text-gray-400">{item.message}</div>
                         {/* Render images if present */}
@@ -193,12 +249,6 @@ export default function FeedbackManagement() {
                               onClick={() => setPreviewImage(img)}
                             />
                           ))}
-                        {/* Render admin response if present */}
-                        {item.response && (
-                          <div className="mt-2 p-2 bg-blue-100 text-blue-800 rounded">
-                            <b>Admin:</b> {item.response}
-                          </div>
-                        )}
                       </div>
                     </List.Item>
                   )}
@@ -209,33 +259,29 @@ export default function FeedbackManagement() {
             {/* Reply input area, only show if selectedUser and messages exist */}
             {selectedUser && grouped[selectedUser] && (
               <Card className="shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
-                <div className="flex gap-2 items-end">
-                  <TextArea
-                    rows={2}
-                    value={
-                      reply[
-                        grouped[selectedUser][grouped[selectedUser].length - 1]
-                          .id
-                      ] || ""
-                    }
-                    onChange={(e) =>
-                      setReply((r) => ({
-                        ...r,
-                        [grouped[selectedUser][grouped[selectedUser].length - 1]
-                          .id]: e.target.value,
-                      }))
-                    }
-                    placeholder={t("enterFeedback")}
-                    className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                  />
+                {/* Reply text area */}
+                <TextArea
+                  rows={2}
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder={t("enterFeedback")}
+                  className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                />
+                {/* Button row: upload left, send right */}
+                <div className="flex justify-between items-center mt-2">
+                  <Upload
+                    beforeUpload={handleAdminUpload}
+                    fileList={adminFileList}
+                    onRemove={() => setAdminFileList([])}
+                    maxCount={1}
+                    accept="image/*"
+                    showUploadList={{ showPreviewIcon: false }}
+                  >
+                    <Button>{t("uploadImage")}</Button>
+                  </Upload>
                   <Button
                     type="primary"
-                    onClick={() =>
-                      handleReply(
-                        grouped[selectedUser][grouped[selectedUser].length - 1]
-                          .id
-                      )
-                    }
+                    onClick={() => handleReply(selectedUser)}
                   >
                     {t("send")}
                   </Button>

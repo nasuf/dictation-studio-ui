@@ -257,7 +257,15 @@ export const api = {
 
   getAllFeedbackMessages: () => axiosInstance.get("/user/feedback/admin"),
   replyFeedback: (
-    feedbackId: string,
-    data: { status: string; response: string }
-  ) => axiosInstance.put(`/user/feedback/${feedbackId}`, data),
+    userEmail: string,
+    data: { response: string; images?: File }
+  ) => {
+    const formData = new FormData();
+    formData.append("email", userEmail);
+    formData.append("response", data.response);
+    if (data.images) {
+      formData.append("images", data.images);
+    }
+    return axiosInstance.post(`/user/feedback/admin`, formData);
+  },
 };

@@ -77,7 +77,6 @@ const Feedback: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("message", values.content);
-      formData.append("sender", "user");
       if (fileList.length > 0 && fileList[0].originFileObj) {
         formData.append("images", fileList[0].originFileObj);
       }
@@ -133,28 +132,39 @@ const Feedback: React.FC = () => {
               dataSource={messages}
               renderItem={(item) => (
                 <List.Item
-                  className={`${
-                    item.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={
+                    item.senderType === "admin"
+                      ? "justify-end"
+                      : "justify-start"
+                  }
+                  style={{
+                    display: "flex",
+                    flexDirection:
+                      item.senderType === "admin" ? "row-reverse" : "row",
+                  }}
                 >
-                  <div className="max-w-[70%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                  <div
+                    className={`max-w-[70%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800`}
+                    style={{
+                      alignSelf:
+                        item.senderType === "admin" ? "flex-end" : "flex-start",
+                    }}
+                  >
                     <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
-                      {new Date(item.timestamp).toLocaleString()}
+                      {new Date(item.timestamp).toLocaleString()} ·
+                      {item.senderType === "admin" ? " · Admin" : ""}
                     </div>
                     <div className="dark:text-gray-400">{item.message}</div>
+                    {/* Render images if present */}
                     {Array.isArray(item.images) &&
-                      item.images.map((img, idx) => (
+                      item.images.map((img: string, idx: number) => (
                         <img
                           key={idx}
                           src={img}
                           alt="Feedback"
                           className="max-w-full h-auto mb-2 rounded cursor-pointer"
                           style={{ maxHeight: 200 }}
-                          onClick={() => {
-                            setPreviewImage(img);
-                            setScale(1); // reset scale when opening
-                            setPreviewVisible(true);
-                          }}
+                          onClick={() => setPreviewImage(img)}
                         />
                       ))}
                   </div>

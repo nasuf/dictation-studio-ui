@@ -138,9 +138,10 @@ export interface ChannelRecommendationItem {
 
 export interface FeedbackMessage {
   id: string;
-  userEmail: string;
+  email: string;
   message: string;
-  sender: "user" | "admin";
+  sender: string;
+  senderType: string;
   timestamp: number;
   images?: string[];
 }
