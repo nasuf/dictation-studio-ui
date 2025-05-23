@@ -208,14 +208,13 @@ const Feedback: React.FC = () => {
       </div>
 
       <Modal
-        open={previewVisible}
+        open={!!previewImage}
         footer={null}
-        onCancel={() => {
-          setPreviewVisible(false);
-          setImgOffset({ x: 0, y: 0 });
-        }}
+        onCancel={() => setPreviewImage(null)}
         centered
         width={800}
+        bodyStyle={{ padding: 0, background: "transparent" }}
+        style={{ background: "transparent" }}
       >
         <div
           style={{
@@ -235,8 +234,8 @@ const Feedback: React.FC = () => {
           onMouseLeave={handleMouseUp}
         >
           <img
-            alt="Preview"
             src={previewImage || ""}
+            alt="Preview"
             style={{
               maxWidth: "100%",
               maxHeight: "100%",
