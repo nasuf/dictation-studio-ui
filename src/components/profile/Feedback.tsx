@@ -212,13 +212,19 @@ const Feedback: React.FC = () => {
         onCancel={() => setPreviewImage(null)}
         centered
         width={800}
-        bodyStyle={{ padding: 0, background: "transparent" }}
-        style={{ background: "transparent" }}
+        styles={{
+          body: {
+            padding: 0,
+            background: "transparent",
+          },
+          content: {
+            padding: 0,
+          },
+        }}
       >
         <div
           style={{
             width: "100%",
-            height: "80vh",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
