@@ -15,6 +15,7 @@ import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { FeedbackMessage, FeedbackUserList } from "@/utils/type";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
+import { UploadOutlined, SendOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
 const { Content, Sider } = Layout;
@@ -289,12 +290,15 @@ export default function FeedbackManagement() {
                     accept="image/*"
                     showUploadList={{ showPreviewIcon: false }}
                   >
-                    <Button>{t("uploadImage")}</Button>
+                    <Button icon={<UploadOutlined />}>
+                      {t("uploadImage")}
+                    </Button>
                   </Upload>
                   <Button
                     type="primary"
                     onClick={() => handleReply(selectedUser)}
                     loading={replyLoading}
+                    icon={<SendOutlined />}
                   >
                     {t("send")}
                   </Button>
