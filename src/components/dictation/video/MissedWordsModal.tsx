@@ -121,6 +121,7 @@ const MissedWordsModal: React.FC<MissedWordsModalProps> = ({
       title={t("missedWordsSummary")}
       open={visible}
       onCancel={onClose}
+      maskClosable={false}
       footer={
         filteredWords.length > 0
           ? [

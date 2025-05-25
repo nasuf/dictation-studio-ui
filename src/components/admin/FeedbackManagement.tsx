@@ -322,6 +322,7 @@ export default function FeedbackManagement() {
                   padding: 0,
                 },
               }}
+              maskClosable={false}
             >
               <div
                 style={{

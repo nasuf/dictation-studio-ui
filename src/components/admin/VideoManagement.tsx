@@ -1073,6 +1073,7 @@ const VideoManagement: React.FC = () => {
       </Card>
       <Modal
         title="Add Videos"
+        maskClosable={false}
         open={isAddVideoModalVisible}
         onCancel={() => setIsAddVideoModalVisible(false)}
         footer={null}

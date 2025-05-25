@@ -225,6 +225,7 @@ const ChannelRecommendation = () => {
           footer={null}
           title={t("recommendYoutubeChannel")}
           destroyOnClose
+          maskClosable={false}
         >
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             {t("helpUsGrowByRecommending")}

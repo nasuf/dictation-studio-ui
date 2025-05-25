@@ -293,6 +293,7 @@ const ManageChannelRecommendations: React.FC = () => {
         onCancel={() => setApproveModalVisible(false)}
         footer={null}
         width={600}
+        maskClosable={false}
       >
         {selectedRecommendation && (
           <div className="mb-4">
@@ -379,6 +380,7 @@ const ManageChannelRecommendations: React.FC = () => {
         onCancel={() => setRejectModalVisible(false)}
         footer={null}
         width={600}
+        maskClosable={false}
       >
         <Form form={rejectForm} onFinish={handleReject} layout="vertical">
           <Form.Item
@@ -782,6 +784,7 @@ const ChannelManagement: React.FC = () => {
         onCancel={() => setIsAddChannelModalVisible(false)}
         footer={null}
         width={1000}
+        maskClosable={false}
       >
         <AddChannelForm onFinish={onFinish} isLoading={isLoading} form={form} />
       </Modal>
@@ -791,6 +794,7 @@ const ChannelManagement: React.FC = () => {
         onCancel={() => setIsChannelRecommendationModalVisible(false)}
         footer={null}
         width={600}
+        maskClosable={false}
       >
         <ManageChannelRecommendations />
       </Modal>

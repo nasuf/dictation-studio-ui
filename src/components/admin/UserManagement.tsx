@@ -493,6 +493,7 @@ const UserManagement: React.FC = () => {
       {/* Edit Membership Modal */}
       <Modal
         title="Edit Membership"
+        maskClosable={false}
         open={isEditModalVisible}
         onCancel={() => {
           setIsEditModalVisible(false);
@@ -616,6 +617,7 @@ const UserManagement: React.FC = () => {
       <Modal
         title="Edit Role"
         open={isRoleModalVisible}
+        maskClosable={false}
         onCancel={() => {
           setIsRoleModalVisible(false);
           roleForm.resetFields();
@@ -695,6 +697,7 @@ const UserManagement: React.FC = () => {
       <Modal
         title="Generate Membership Verification Code"
         open={isCodeModalVisible}
+        maskClosable={false}
         onCancel={() => {
           setIsCodeModalVisible(false);
           setGeneratedCode("");
@@ -838,6 +841,7 @@ const UserManagement: React.FC = () => {
       <Modal
         title="Active Verification Codes"
         open={isCodesModalVisible}
+        maskClosable={false}
         onCancel={() => setIsCodesModalVisible(false)}
         footer={[
           <Button
@@ -1008,6 +1012,7 @@ const UserManagement: React.FC = () => {
       <Modal
         title="Assign Verification Code"
         open={isAssignModalVisible}
+        maskClosable={false}
         onCancel={() => setIsAssignModalVisible(false)}
         footer={[
           <Button key="cancel" onClick={() => setIsAssignModalVisible(false)}>

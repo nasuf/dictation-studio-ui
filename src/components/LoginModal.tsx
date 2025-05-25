@@ -711,6 +711,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
         title={t("chooseAvatar")}
         open={isAvatarModalVisible}
         onCancel={() => setIsAvatarModalVisible(false)}
+        maskClosable={false}
         footer={[
           avatarOptions.length === initialAvatarCount && (
             <Button
