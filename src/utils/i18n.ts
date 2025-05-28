@@ -791,6 +791,7 @@ const jaTranslations = {
   clearCache: "キャッシュをクリア",
   dictationCompleted: "聞き取りが完了しました",
   startOverOrNot: "聞き取りをやり直しますか？",
+  noWordsInSelectedLanguage: "選択された言語には単語がありません",
   dictationCompletedCongratulations: "おめでとう！",
   dictationCompletedCongratulationsContent:
     "おめでとう！ この聞き取りの練習を完了しました！",
@@ -968,6 +969,7 @@ const koTranslations = {
   userProfile: "사용자 자료",
   logout: "로그아웃",
   login: "로그인",
+  noWordsInSelectedLanguage: "선택된 언어에는 단어가 없습니다",
   emailAlreadyExists: "이메일이 이미 존재합니다",
   emailCheckFailed: "이메일 확인에 실패했습니다",
   progressSaved: "진행 상황이 저장되었습니다",
