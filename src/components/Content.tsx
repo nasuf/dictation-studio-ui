@@ -171,7 +171,16 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleGoBack = () => {
+  const handleGoBack = async () => {
+    // if is video page, save progress
+    if (isVideoPage && videoMainRef.current) {
+      try {
+        await videoMainRef.current.saveProgress();
+        console.log("Progress saved before navigation");
+      } catch (error) {
+        console.error("Failed to save progress before navigation:", error);
+      }
+    }
     navigate(-1);
   };
 
