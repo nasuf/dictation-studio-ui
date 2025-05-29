@@ -211,7 +211,6 @@ const Feedback: React.FC = () => {
         footer={null}
         onCancel={() => setPreviewImage(null)}
         centered
-        maskClosable={false}
         width={800}
         styles={{
           body: {
