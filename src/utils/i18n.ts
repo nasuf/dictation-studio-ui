@@ -252,6 +252,7 @@ const enTranslations = {
   korean: "Korean",
   noMissedWordsYet: "No missed words yet",
   contentCannotBeEmpty: "Content cannot be empty",
+  refresh: "Refresh",
 };
 
 const zhTranslations = {
@@ -465,7 +466,7 @@ const zhTranslations = {
   feedbackSubmitted: "反馈提交成功",
   errorSubmittingFeedback: "反馈提交失败",
   errorFetchingFeedback: "获取反馈消息失败",
-
+  refresh: "刷新",
   // Channel recommendation translations
   recommendYoutubeChannel: "推荐YouTube频道",
   yourRecommendedChannels: "你的推荐频道",
@@ -704,7 +705,7 @@ const zhTraditionalTranslations = {
   feedbackSubmitted: "反饋提交成功",
   errorSubmittingFeedback: "提交反饋時出錯",
   errorFetchingFeedback: "獲取反饋消息時出錯",
-
+  refresh: "刷新",
   // Channel recommendation translations
   recommendYoutubeChannel: "推薦YouTube頻道",
   yourRecommendedChannels: "您推薦的頻道",
@@ -920,6 +921,7 @@ const jaTranslations = {
   korean: "韓国語",
   noMissedWordsYet: "まだ未出の単語はありません",
   contentCannotBeEmpty: "内容を入力してください",
+  refresh: "更新",
 };
 
 const koTranslations = {
@@ -1111,6 +1113,7 @@ const koTranslations = {
   errorFetchingFeedback: "피드백 메시지를 가져오는 중 오류가 발생했습니다",
   noMissedWordsYet: "아직 미완료 단어가 없습니다",
   contentCannotBeEmpty: "내용을 입력해주세요",
+  refresh: "새로고침",
 };
 
 i18n.use(initReactI18next).init({

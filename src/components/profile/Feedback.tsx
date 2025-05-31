@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, Input, Button, message, List, Upload, Form, Modal } from "antd";
-import { UploadOutlined, SendOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  SendOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
@@ -122,6 +126,16 @@ const Feedback: React.FC = () => {
         <Card
           className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 mb-4"
           title={t("feedbackHistory")}
+          // place a refresh button in title
+          extra={
+            <Button
+              type="primary"
+              onClick={fetchMessages}
+              icon={<ReloadOutlined />}
+            >
+              {t("refresh")}
+            </Button>
+          }
           bodyStyle={{ height: "calc(100% - 57px)", padding: 0 }}
         >
           <div className="h-full overflow-auto p-4">
