@@ -17,6 +17,7 @@ import {
   LinkOutlined,
   YoutubeOutlined,
   TranslationOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { api } from "../../api/api";
 import { LANGUAGES } from "../../utils/const";
@@ -134,13 +135,22 @@ const ChannelRecommendation = () => {
                 <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500" />
                 <span>{t("yourRecommendedChannels")}</span>
               </div>
-              <Button
-                type="primary"
-                onClick={() => setModalVisible(true)}
-                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-              >
-                + {t("recommendYoutubeChannel")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="primary"
+                  onClick={() => setModalVisible(true)}
+                  className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  + {t("recommendYoutubeChannel")}
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={fetchChannelRecommendations}
+                  icon={<ReloadOutlined />}
+                >
+                  {t("refresh")}
+                </Button>
+              </div>
             </div>
           }
           bodyStyle={{
