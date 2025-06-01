@@ -55,8 +55,6 @@ const AuthModal = styled(Modal)`
 
 const ModalContainer = styled.div`
   display: flex;
-  height: 600px;
-  max-height: 80vh;
 `;
 
 const BrandSection = styled.div`

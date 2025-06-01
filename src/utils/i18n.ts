@@ -38,8 +38,8 @@ const enTranslations = {
   registerFormErrorMessage: "Register failed, please try again",
   loginFailedWithGoogle: "Google login failed, please try again",
   signInWithGoogle: "Sign in with Google",
-  haveAnAccount: "Have an account? Sign in now",
-  noAccount: "No account? Sign up now",
+  haveAnAccount: "Have an account? Sign in now → ",
+  noAccount: "No account? Sign up now →",
   chooseAvatar: "Choose an avatar",
   loadMore: "Load more",
   cancel: "Cancel",
@@ -253,6 +253,7 @@ const enTranslations = {
   noMissedWordsYet: "No missed words yet",
   contentCannotBeEmpty: "Content cannot be empty",
   refresh: "Refresh",
+  signupSuccess: "Signup successful!",
 };
 
 const zhTranslations = {
@@ -291,8 +292,8 @@ const zhTranslations = {
   registerFormErrorMessage: "注册失败，请重试",
   loginFailedWithGoogle: "Google 登录失败，请重试",
   signInWithGoogle: "使用 Google 账号登录",
-  haveAnAccount: "已有账号？立即登录",
-  noAccount: "还没有账号？立即注册",
+  haveAnAccount: "已有账号？立即登录 → ",
+  noAccount: "还没有账号？立即注册 → ",
   chooseAvatar: "选择头像",
   loadMore: "加载更多",
   cancel: "取消",
@@ -492,6 +493,7 @@ const zhTranslations = {
   korean: "韩语",
   noMissedWordsYet: "暂无未写出的单词",
   contentCannotBeEmpty: "内容不能为空",
+  signupSuccess: "注册成功！",
 };
 
 const zhTraditionalTranslations = {
@@ -530,8 +532,8 @@ const zhTraditionalTranslations = {
   registerFormErrorMessage: "註冊失敗，請重試",
   loginFailedWithGoogle: "Google 登入失敗，請重試",
   signInWithGoogle: "使用 Google 帳號登入",
-  haveAnAccount: "已有帳號？立即登入",
-  noAccount: "還沒有帳號？立即註冊",
+  haveAnAccount: "已有帳號？立即登入 → ",
+  noAccount: "還沒有帳號？立即註冊 → ",
   chooseAvatar: "選擇頭像",
   loadMore: "加載更多",
   cancel: "取消",
@@ -922,6 +924,7 @@ const jaTranslations = {
   noMissedWordsYet: "まだ未出の単語はありません",
   contentCannotBeEmpty: "内容を入力してください",
   refresh: "更新",
+  signupSuccess: "註冊成功！",
 };
 
 const koTranslations = {
@@ -961,8 +964,8 @@ const koTranslations = {
   registerFormErrorMessage: "등록 실패, 다시 시도해주세요",
   loginFailedWithGoogle: "Google 로그인 실패, 다시 시도해주세요",
   signInWithGoogle: "Google 계정으로 로그인",
-  haveAnAccount: "계정이 있는 경우 여기를 클릭하세요",
-  noAccount: "계정이 없는 경우 여기를 클릭하세요",
+  haveAnAccount: "계정이 있는 경우 여기를 클릭하세요 → ",
+  noAccount: "계정이 없는 경우 여기를 클릭하세요 → ",
   chooseAvatar: "아바타를 선택",
   loadMore: "더 보기",
   cancel: "취소",
@@ -1114,6 +1117,7 @@ const koTranslations = {
   noMissedWordsYet: "아직 미완료 단어가 없습니다",
   contentCannotBeEmpty: "내용을 입력해주세요",
   refresh: "새로고침",
+  signupSuccess: "회원가입 성공!",
 };
 
 i18n.use(initReactI18next).init({
