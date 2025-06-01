@@ -254,6 +254,7 @@ const enTranslations = {
   contentCannotBeEmpty: "Content cannot be empty",
   refresh: "Refresh",
   signupSuccess: "Signup successful!",
+  loginToViewWords: "Login to view words",
 };
 
 const zhTranslations = {
@@ -494,6 +495,7 @@ const zhTranslations = {
   noMissedWordsYet: "暂无未写出的单词",
   contentCannotBeEmpty: "内容不能为空",
   signupSuccess: "注册成功！",
+  loginToViewWords: "请先登录以查看单词",
 };
 
 const zhTraditionalTranslations = {
@@ -925,6 +927,7 @@ const jaTranslations = {
   contentCannotBeEmpty: "内容を入力してください",
   refresh: "更新",
   signupSuccess: "註冊成功！",
+  loginToViewWords: "請先登入以查看單詞",
 };
 
 const koTranslations = {
@@ -1118,6 +1121,7 @@ const koTranslations = {
   contentCannotBeEmpty: "내용을 입력해주세요",
   refresh: "새로고침",
   signupSuccess: "회원가입 성공!",
+  loginToViewWords: "단어를 보려면 로그인하세요",
 };
 
 i18n.use(initReactI18next).init({
