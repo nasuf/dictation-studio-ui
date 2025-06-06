@@ -150,3 +150,32 @@ export interface FeedbackUserList {
   email: string;
   timestamp: number;
 }
+
+// ZPAY related types
+export interface ZPayOrderResponse {
+  orderId: string;
+  paymentUrl: string;
+  amount: string;
+  currency: string;
+}
+
+export interface ZPayOrderStatus {
+  orderId: string;
+  status: "pending" | "paid" | "failed" | "expired";
+  tradeNo?: string;
+  amount: string;
+  planName: string;
+  duration: number;
+  createdAt: string;
+  paidAt?: string;
+  userInfo?: UserInfo;
+}
+
+export interface PaymentOption {
+  provider: "stripe" | "zpay";
+  method: string;
+  label: string;
+  icon?: React.ReactNode;
+  currency?: string;
+  disabled?: boolean;
+}

@@ -201,6 +201,17 @@ export const api = {
   generateCustomVerificationCode: (days: number) => {
     return axiosInstance.post("/payment/generate-custom-code", { days });
   },
+
+  // ZPAY payment APIs
+  createZPayOrder: (plan: string, duration: number, payType: string) =>
+    axiosInstance.post("/payment/zpay/create-order", {
+      plan,
+      duration,
+      payType,
+    }),
+  getZPayOrderStatus: (orderId: string) =>
+    axiosInstance.get(`/payment/zpay/order-status/${orderId}`),
+  getZPayUserOrders: () => axiosInstance.get("/payment/zpay/orders"),
   updateUserDuration: (emails: string[], duration: number) => {
     return axiosInstance.post("/user/update-duration", { emails, duration });
   },

@@ -84,7 +84,6 @@ const enTranslations = {
   totalDictationTime: "Total Dictation Time",
   loading: "Loading...",
   unauthorized: "Unauthorized. Please login first.",
-  comingSoon: "Coming Soon...",
   markAsCorrect: "Mark as correct",
   dictationConfigUpdated: "Dictation config updated",
   dictationConfigUpdateFailed: "Dictation config update failed",
@@ -255,6 +254,32 @@ const enTranslations = {
   refresh: "Refresh",
   signupSuccess: "Signup successful!",
   loginToViewWords: "Login to view words",
+
+  // ZPAY payment related translations
+  selectPaymentMethod: "Select Payment Method",
+  paymentProvider: "Payment Provider",
+  subscriptionType: "Subscription Type",
+  creditCard: "Credit Card",
+  alipay: "Alipay",
+  wechatPay: "WeChat Pay",
+  processingPayment: "Processing Payment",
+  pleaseCompletePayment: "Please complete your payment in the popup window",
+  orderId: "Order ID",
+  paymentDetectionMessage:
+    "We will automatically detect when your payment is completed",
+  paymentSuccessful: "Payment successful!",
+  paymentFailed: "Payment failed. Please try again.",
+  paymentTimeout: "Payment timeout. Please try again.",
+  paymentInitFailed: "Failed to initialize payment. Please try again.",
+  paymentWindowClosed:
+    "Payment window was closed. We'll continue monitoring for a short while in case you completed the payment.",
+  paymentCancelled: "Payment was cancelled or not completed.",
+  waitingForPayment: "Waiting for payment confirmation",
+  paymentWindowClosedWaiting:
+    "Payment window was closed. Checking for completion...",
+  secondsRemaining: "seconds remaining",
+  comingSoon: "Coming Soon",
+  temporarilyUnavailable: "Temporarily Unavailable",
 };
 
 const zhTranslations = {
@@ -336,7 +361,6 @@ const zhTranslations = {
   minutes: "分钟",
   seconds: "秒",
   unauthorized: "未授权。请先登录。",
-  comingSoon: "即将推出...",
   markAsCorrect: "标记为正确",
   dictationConfigUpdated: "听写配置已更新",
   dictationConfigUpdateFailed: "听写配置更新失败",
@@ -496,6 +520,30 @@ const zhTranslations = {
   contentCannotBeEmpty: "内容不能为空",
   signupSuccess: "注册成功！",
   loginToViewWords: "请先登录以查看单词",
+
+  // ZPAY payment related translations
+  selectPaymentMethod: "选择支付方式",
+  paymentProvider: "支付提供商",
+  subscriptionType: "订阅类型",
+  creditCard: "信用卡",
+  alipay: "支付宝",
+  wechatPay: "微信支付",
+  processingPayment: "正在处理支付",
+  pleaseCompletePayment: "请在弹出窗口中完成支付",
+  orderId: "订单号",
+  paymentDetectionMessage: "我们将自动检测您的支付完成状态",
+  paymentSuccessful: "支付成功！",
+  paymentFailed: "支付失败，请重试。",
+  paymentTimeout: "支付超时，请重试。",
+  paymentInitFailed: "支付初始化失败，请重试。",
+  paymentWindowClosed:
+    "支付窗口已关闭。我们将继续监控一段时间，以防您已完成支付。",
+  paymentCancelled: "支付已取消或未完成。",
+  waitingForPayment: "等待支付确认",
+  paymentWindowClosedWaiting: "支付窗口已关闭，正在检查支付完成状态...",
+  secondsRemaining: "秒后自动取消",
+  comingSoon: "即将推出",
+  temporarilyUnavailable: "暂不可用",
 };
 
 const zhTraditionalTranslations = {
@@ -577,7 +625,6 @@ const zhTraditionalTranslations = {
   minutes: "分鐘",
   seconds: "秒",
   unauthorized: "未授權。請先登入。",
-  comingSoon: "即將推出...",
   markAsCorrect: "標記為正確",
   dictationConfigUpdated: "聽寫配置已更新",
   dictationConfigUpdateFailed: "聽寫配置更新失敗",
@@ -736,6 +783,32 @@ const zhTraditionalTranslations = {
   korean: "韓国語",
   noMissedWordsYet: "暫無未寫出的單詞",
   contentCannotBeEmpty: "內容不能為空",
+  signupSuccess: "註冊成功！",
+  loginToViewWords: "請先登入以查看單詞",
+
+  // ZPAY payment related translations
+  selectPaymentMethod: "選擇支付方式",
+  paymentProvider: "支付提供商",
+  subscriptionType: "訂閱類型",
+  creditCard: "信用卡",
+  alipay: "支付寶",
+  wechatPay: "微信支付",
+  processingPayment: "正在處理支付",
+  pleaseCompletePayment: "請在彈出窗口中完成支付",
+  orderId: "訂單號",
+  paymentDetectionMessage: "我們將自動檢測您的支付完成狀態",
+  paymentSuccessful: "支付成功！",
+  paymentFailed: "支付失敗，請重試。",
+  paymentTimeout: "支付超時，請重試。",
+  paymentInitFailed: "支付初始化失敗，請重試。",
+  paymentWindowClosed:
+    "支付窗口已關閉。我們將繼續監控一段時間，以防您已完成支付。",
+  paymentCancelled: "支付已取消或未完成。",
+  waitingForPayment: "等待支付確認",
+  paymentWindowClosedWaiting: "支付窗口已關閉，正在檢查支付完成狀態...",
+  secondsRemaining: "秒後自動取消",
+  comingSoon: "即將推出",
+  temporarilyUnavailable: "暫不可用",
 };
 
 const jaTranslations = {
@@ -821,7 +894,6 @@ const jaTranslations = {
   minutes: "分",
   seconds: "秒",
   unauthorized: "未承認",
-  comingSoon: "近日公開...",
   markAsCorrect: "正しいとしてマーク",
   dictationConfigUpdated: "聴写設定が更新されました",
   dictationConfigUpdateFailed: "聴写設定の更新に失敗しました",
@@ -926,8 +998,33 @@ const jaTranslations = {
   noMissedWordsYet: "まだ未出の単語はありません",
   contentCannotBeEmpty: "内容を入力してください",
   refresh: "更新",
-  signupSuccess: "註冊成功！",
-  loginToViewWords: "請先登入以查看單詞",
+  signupSuccess: "登録成功！",
+  loginToViewWords: "単語を見るにはログインしてください",
+
+  // ZPAY payment related translations
+  selectPaymentMethod: "支払い方法を選択",
+  paymentProvider: "支払いプロバイダー",
+  subscriptionType: "サブスクリプションタイプ",
+  creditCard: "クレジットカード",
+  alipay: "Alipay",
+  wechatPay: "WeChat Pay",
+  processingPayment: "支払い処理中",
+  pleaseCompletePayment: "ポップアップウィンドウで支払いを完了してください",
+  orderId: "注文ID",
+  paymentDetectionMessage: "支払いが完了すると自動的に検出されます",
+  paymentSuccessful: "支払い成功！",
+  paymentFailed: "支払いに失敗しました。もう一度お試しください。",
+  paymentTimeout: "支払いがタイムアウトしました。もう一度お試しください。",
+  paymentInitFailed: "支払いの初期化に失敗しました。もう一度お試しください。",
+  paymentWindowClosed:
+    "支払いウィンドウが閉じられました。支払いが完了した場合に備えて、しばらく監視を続けます。",
+  paymentCancelled: "支払いがキャンセルされたか、完了していません。",
+  waitingForPayment: "支払い確認を待っています",
+  paymentWindowClosedWaiting:
+    "支払いウィンドウが閉じられました。完了を確認しています...",
+  secondsRemaining: "秒後に自動キャンセル",
+  comingSoon: "近日公開",
+  temporarilyUnavailable: "暫時無法使用",
 };
 
 const koTranslations = {
@@ -1012,7 +1109,6 @@ const koTranslations = {
   minutes: "분",
   seconds: "초",
   unauthorized: "미승인",
-  comingSoon: "준비중...",
   markAsCorrect: "정확하다고 표시",
   dictationConfigUpdated: "듣기 설정이 업데이트되었습니다",
   dictationConfigUpdateFailed: "듣기 설정 업데이트에 실패했습니다",
@@ -1122,6 +1218,31 @@ const koTranslations = {
   refresh: "새로고침",
   signupSuccess: "회원가입 성공!",
   loginToViewWords: "단어를 보려면 로그인하세요",
+
+  // ZPAY payment related translations
+  selectPaymentMethod: "결제 방법 선택",
+  paymentProvider: "결제 제공업체",
+  subscriptionType: "구독 유형",
+  creditCard: "신용카드",
+  alipay: "Alipay",
+  wechatPay: "WeChat Pay",
+  processingPayment: "결제 처리 중",
+  pleaseCompletePayment: "팝업 창에서 결제를 완료해주세요",
+  orderId: "주문 ID",
+  paymentDetectionMessage: "결제가 완료되면 자동으로 감지됩니다",
+  paymentSuccessful: "결제 성공!",
+  paymentFailed: "결제에 실패했습니다. 다시 시도해주세요.",
+  paymentTimeout: "결제 시간이 초과되었습니다. 다시 시도해주세요.",
+  paymentInitFailed: "결제 초기화에 실패했습니다. 다시 시도해주세요.",
+  paymentWindowClosed:
+    "결제 창이 닫혔습니다. 결제를 완료한 경우를 대비해 잠시 모니터링을 계속합니다.",
+  paymentCancelled: "결제가 취소되었거나 완료되지 않았습니다.",
+  waitingForPayment: "결제 확인 대기 중",
+  paymentWindowClosedWaiting:
+    "결제 창이 닫혔습니다. 완료 여부를 확인하고 있습니다...",
+  secondsRemaining: "초 후 자동 취소",
+  comingSoon: "준비중",
+  temporarilyUnavailable: "일시적으로 사용할 수 없음",
 };
 
 i18n.use(initReactI18next).init({

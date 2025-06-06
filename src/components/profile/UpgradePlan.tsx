@@ -7,19 +7,26 @@ import {
 } from "@heroicons/react/24/outline";
 import { RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
-import { PLANS, USER_KEY, USER_PLAN, USER_PLAN_DURATION } from "@/utils/const";
+import {
+  ZPAY_PLANS,
+  USER_KEY,
+  USER_PLAN,
+  USER_PLAN_DURATION,
+} from "@/utils/const";
 import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/api/api";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
-import { PlanProps } from "@/utils/type";
+import { PlanProps, PaymentOption, ZPayOrderStatus } from "@/utils/type";
 import { Modal, Button, Form, Input } from "antd";
 import {
   ExclamationCircleOutlined,
   LoadingOutlined,
   CreditCardOutlined,
   KeyOutlined,
+  AlipayOutlined,
+  WechatOutlined,
 } from "@ant-design/icons";
 import { ScrollableContainer } from "@/components/dictation/video/Widget";
 
@@ -331,34 +338,116 @@ interface SubscriptionOption {
 }
 
 const PaymentOptions: React.FC<{
-  onSelect: (method: string, subscriptionType: "recurring" | "onetime") => void;
+  onSelect: (
+    method: string,
+    subscriptionType: "recurring" | "onetime",
+    paymentProvider?: string
+  ) => void;
   planPrice: number;
+  zpayPrice: number;
   isLoading?: boolean;
   selectedPayment?: string | null;
-}> = ({ onSelect, planPrice, isLoading = false, selectedPayment = null }) => {
+}> = ({
+  onSelect,
+  planPrice,
+  zpayPrice,
+  isLoading = false,
+  selectedPayment = null,
+}) => {
   const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<"recurring" | "onetime">(
     "recurring"
   );
+  const [selectedProvider, setSelectedProvider] = useState<"stripe" | "zpay">(
+    "zpay" // Default to ZPAY since Stripe is temporarily disabled
+  );
+  const [selectedZPayMethod, setSelectedZPayMethod] =
+    useState<string>("alipay");
 
   const subscriptionOptions: SubscriptionOption[] = [
     {
       type: "recurring",
-      price: planPrice,
-      description: t("autoRenewDescription"), // "Auto-renew subscription, cancel anytime"
+      price: selectedProvider === "stripe" ? planPrice : zpayPrice,
+      description:
+        selectedProvider === "stripe"
+          ? t("autoRenewDescription")
+          : t("onetimeDescription"), // ZPAY doesn't support recurring
     },
     {
       type: "onetime",
-      price: planPrice * 1.2,
-      description: t("onetimeDescription"), // "One-time purchase, no auto-renewal"
+      price: selectedProvider === "stripe" ? planPrice * 1.2 : zpayPrice,
+      description: t("onetimeDescription"),
     },
   ];
+
+  // Payment provider options
+  const paymentProviders: PaymentOption[] = [
+    {
+      provider: "zpay",
+      method: "alipay",
+      label: t("alipay"),
+      currency: "CNY",
+      icon: <AlipayOutlined className="text-blue-500" />,
+    },
+    {
+      provider: "zpay",
+      method: "wxpay",
+      label: t("wechatPay"),
+      currency: "CNY",
+      icon: <WechatOutlined className="text-green-500" />,
+    },
+  ];
+
+  // Filter subscription options based on provider
+  const availableSubscriptionOptions =
+    selectedProvider === "zpay"
+      ? subscriptionOptions.filter((option) => option.type === "onetime")
+      : subscriptionOptions;
 
   useEffect(() => {
     if (selectedPayment) {
       console.log(`Selected payment method: ${selectedPayment}`);
     }
   }, [selectedPayment]);
+
+  // Auto-select onetime for ZPAY
+  useEffect(() => {
+    if (selectedProvider === "zpay" && selectedType === "recurring") {
+      setSelectedType("onetime");
+    }
+  }, [selectedProvider]);
+
+  const handlePaymentProviderChange = (
+    provider: "stripe" | "zpay",
+    method?: string
+  ) => {
+    // Check if the provider is disabled
+    const providerOption = paymentProviders.find(
+      (p) =>
+        p.provider === provider &&
+        (provider === "stripe" || p.method === method)
+    );
+
+    if (providerOption?.disabled) {
+      return; // Don't allow selection of disabled providers
+    }
+
+    setSelectedProvider(provider);
+    if (provider === "zpay" && method) {
+      setSelectedZPayMethod(method);
+      setSelectedType("onetime"); // ZPAY only supports one-time payments
+    }
+  };
+
+  const getCurrentPrice = () => {
+    const basePrice = selectedProvider === "stripe" ? planPrice : zpayPrice;
+    const finalPrice =
+      selectedType === "onetime" && selectedProvider === "stripe"
+        ? basePrice * 1.2
+        : basePrice;
+    const currency = selectedProvider === "stripe" ? "$" : "¥";
+    return `${currency}${finalPrice}`;
+  };
 
   return (
     <motion.div
@@ -368,11 +457,99 @@ const PaymentOptions: React.FC<{
       className="space-y-6"
     >
       <h3 className="text-xl font-semibold mb-6 pl-10 pr-10 dark:text-white">
-        {t("selectSubscriptionMethod")}
+        {t("selectPaymentMethod")}
       </h3>
 
+      {/* Payment Provider Selection */}
       <div className="space-y-3">
-        {subscriptionOptions.map((option) => (
+        <h4 className="text-lg font-medium dark:text-white mb-3">
+          {t("paymentProvider")}
+        </h4>
+        <div className="grid grid-cols-1 gap-3">
+          {paymentProviders.map((provider) => (
+            <div
+              key={`${provider.provider}-${provider.method}`}
+              onClick={() =>
+                !provider.disabled &&
+                handlePaymentProviderChange(provider.provider, provider.method)
+              }
+              className={`
+                p-4 rounded-xl border-2 transition-all duration-200
+                ${
+                  provider.disabled
+                    ? "cursor-not-allowed opacity-60 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800"
+                    : selectedProvider === provider.provider &&
+                      (provider.provider === "stripe" ||
+                        selectedZPayMethod === provider.method)
+                    ? "cursor-pointer border-green-500 dark:border-orange-500 bg-green-50 dark:bg-gray-700"
+                    : "cursor-pointer border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-orange-400"
+                }
+              `}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`
+                      w-5 h-5 rounded-full border-2 flex items-center justify-center
+                      ${
+                        provider.disabled
+                          ? "border-gray-300 dark:border-gray-500"
+                          : selectedProvider === provider.provider &&
+                            (provider.provider === "stripe" ||
+                              selectedZPayMethod === provider.method)
+                          ? "border-green-500 dark:border-orange-500"
+                          : "border-gray-300 dark:border-gray-500"
+                      }
+                    `}
+                  >
+                    {!provider.disabled &&
+                      selectedProvider === provider.provider &&
+                      (provider.provider === "stripe" ||
+                        selectedZPayMethod === provider.method) && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 dark:bg-orange-500" />
+                      )}
+                  </div>
+                  <div className={provider.disabled ? "opacity-60" : ""}>
+                    {provider.icon}
+                  </div>
+                  <div className="flex flex-col">
+                    <span
+                      className={`font-medium ${
+                        provider.disabled
+                          ? "text-gray-400 dark:text-gray-500"
+                          : "dark:text-white"
+                      }`}
+                    >
+                      {provider.label}
+                    </span>
+                    {provider.disabled && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {t("temporarilyUnavailable")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span
+                  className={`text-sm ${
+                    provider.disabled
+                      ? "text-gray-400 dark:text-gray-500"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}
+                >
+                  {provider.currency}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Subscription Type Selection */}
+      <div className="space-y-3">
+        <h4 className="text-lg font-medium dark:text-white mb-3">
+          {t("subscriptionType")}
+        </h4>
+        {availableSubscriptionOptions.map((option) => (
           <div
             key={option.type}
             onClick={() => setSelectedType(option.type)}
@@ -408,7 +585,10 @@ const PaymentOptions: React.FC<{
                     : t("onetimePurchase")}
                 </span>
               </div>
-              <span className="font-bold dark:text-white">¥{option.price}</span>
+              <span className="font-bold dark:text-white">
+                {selectedProvider === "stripe" ? "$" : "¥"}
+                {option.price}
+              </span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 ml-8">
               {option.description}
@@ -417,21 +597,37 @@ const PaymentOptions: React.FC<{
         ))}
       </div>
 
+      {/* Payment Button */}
       <button
         onClick={async () => {
           try {
-            await onSelect("stripe", selectedType);
+            const paymentMethod =
+              selectedProvider === "zpay" ? selectedZPayMethod : "stripe";
+            await onSelect(paymentMethod, selectedType, selectedProvider);
           } catch (error) {
             console.error("Error selecting payment method:", error);
           }
         }}
-        disabled={isLoading}
+        disabled={
+          isLoading ||
+          paymentProviders.find(
+            (p) =>
+              p.provider === selectedProvider &&
+              (selectedProvider === "stripe" || p.method === selectedZPayMethod)
+          )?.disabled
+        }
         className={`
           w-full py-4 px-6 rounded-xl font-semibold
           flex items-center justify-center space-x-3
           transition-all duration-300
           ${
-            isLoading
+            isLoading ||
+            paymentProviders.find(
+              (p) =>
+                p.provider === selectedProvider &&
+                (selectedProvider === "stripe" ||
+                  p.method === selectedZPayMethod)
+            )?.disabled
               ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
               : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700"
           }
@@ -443,7 +639,16 @@ const PaymentOptions: React.FC<{
         ) : (
           <>
             <CreditCardIcon className="h-5 w-5" />
-            <span>{t("clickToPay")}</span>
+            <span>
+              {paymentProviders.find(
+                (p) =>
+                  p.provider === selectedProvider &&
+                  (selectedProvider === "stripe" ||
+                    p.method === selectedZPayMethod)
+              )?.disabled
+                ? t("temporarilyUnavailable")
+                : `${t("clickToPay")} ${getCurrentPrice()}`}
+            </span>
           </>
         )}
       </button>
@@ -461,6 +666,12 @@ export const UpgradePlan: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState("code");
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [statusPollingInterval, setStatusPollingInterval] =
+    useState<NodeJS.Timeout | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [countdownInterval, setCountdownInterval] =
+    useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -508,22 +719,208 @@ export const UpgradePlan: React.FC = () => {
     }
   };
 
+  // Poll ZPAY order status with exponential backoff
+  const pollZPayOrderStatus = async (
+    orderId: string,
+    attempt: number = 1,
+    maxAttempts: number = 20
+  ): Promise<ZPayOrderStatus> => {
+    try {
+      const response = await api.getZPayOrderStatus(orderId);
+      const status = response.data;
+
+      // If payment is completed or failed, return immediately
+      if (
+        status.status === "paid" ||
+        status.status === "failed" ||
+        status.status === "expired"
+      ) {
+        return status;
+      }
+
+      // If still pending and we haven't reached max attempts, retry with exponential backoff
+      if (attempt < maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(1.5, attempt), 10000); // Cap at 10 seconds
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return pollZPayOrderStatus(orderId, attempt + 1, maxAttempts);
+      }
+
+      return status;
+    } catch (error) {
+      console.error("Error polling order status:", error);
+      throw error;
+    }
+  };
+
+  // Start status polling for ZPAY orders with improved error handling
+  const startStatusPolling = (
+    orderId: string,
+    windowCloseChecker?: NodeJS.Timeout
+  ) => {
+    const interval = setInterval(async () => {
+      try {
+        const status = await pollZPayOrderStatus(orderId);
+
+        // Handle any definitive status (not pending)
+        if (status.status !== "pending") {
+          // Stop polling
+          clearInterval(interval);
+          setStatusPollingInterval(null);
+
+          // Clean up window close checker
+          if (windowCloseChecker) {
+            clearInterval(windowCloseChecker);
+          }
+
+          // Close modal
+          setIsLoading(false);
+          setCurrentOrderId(null);
+
+          if (status.status === "paid") {
+            // Payment successful
+            message.success(t("paymentSuccessful"));
+
+            // Update user info in global state
+            if (status.userInfo) {
+              dispatch(setUser(status.userInfo));
+              // Store updated user info in localStorage
+              localStorage.setItem(USER_KEY, JSON.stringify(status.userInfo));
+            }
+
+            // Refresh the page to show updated plan
+            window.location.reload();
+          } else if (
+            status.status === "failed" ||
+            status.status === "expired"
+          ) {
+            // Payment failed
+            message.error(t("paymentFailed"));
+          } else {
+            // Unknown status
+            message.warning(`${t("paymentStatus")}: ${status.status}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error polling order status:", error);
+        // On error, continue polling but don't close modal yet
+        message.error(t("errorCheckingPaymentStatus"));
+      }
+    }, 3000); // Poll every 3 seconds
+
+    setStatusPollingInterval(interval);
+
+    // Stop polling after 10 minutes
+    setTimeout(() => {
+      if (interval) {
+        clearInterval(interval);
+        setStatusPollingInterval(null);
+        setIsLoading(false);
+        setCurrentOrderId(null);
+        message.warning(t("paymentTimeout"));
+      }
+      if (windowCloseChecker) {
+        clearInterval(windowCloseChecker);
+      }
+    }, 600000); // 10 minutes
+  };
+
+  // Cancel payment processing
+  const cancelPayment = () => {
+    if (statusPollingInterval) {
+      clearInterval(statusPollingInterval);
+      setStatusPollingInterval(null);
+    }
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      setCountdownInterval(null);
+    }
+    setIsLoading(false);
+    setCurrentOrderId(null);
+    setCountdown(null);
+  };
+
   const handleSelectPayment = async (
     method: string,
-    subscriptionType: "recurring" | "onetime"
+    subscriptionType: "recurring" | "onetime",
+    paymentProvider?: string
   ) => {
     // Set selected payment method
     setSelectedPayment(method);
 
-    if (method === "stripe") {
-      try {
-        setIsLoading(true); // Use isLoading state
+    try {
+      setIsLoading(true);
 
-        const duration =
-          USER_PLAN_DURATION[
-            selectedPlan!.toUpperCase() as keyof typeof USER_PLAN_DURATION
-          ];
+      const duration =
+        USER_PLAN_DURATION[
+          selectedPlan!.toUpperCase() as keyof typeof USER_PLAN_DURATION
+        ];
 
+      if (paymentProvider === "zpay") {
+        // ZPAY payment flow
+        const response = await api.createZPayOrder(
+          selectedPlan!,
+          duration,
+          method
+        );
+        setCurrentOrderId(response.data.orderId);
+
+        // Open payment URL in new window
+        const paymentWindow = window.open(
+          response.data.paymentUrl,
+          "zpay_payment",
+          "width=800,height=600,scrollbars=yes,resizable=yes"
+        );
+
+        // Listen for window close (user returns)
+        const orderId = response.data.orderId; // Store orderId in closure
+        const checkClosed = setInterval(() => {
+          if (paymentWindow?.closed) {
+            clearInterval(checkClosed);
+
+            // Start polling immediately after window closes
+            pollZPayOrderStatus(orderId)
+              .then((status) => {
+                if (status.status === "paid") {
+                  // Payment was completed
+                  setIsLoading(false);
+                  setCurrentOrderId(null);
+                  message.success(t("paymentSuccessful"));
+
+                  // Update user info in global state and localStorage
+                  if (status.userInfo) {
+                    dispatch(setUser(status.userInfo));
+                    localStorage.setItem(
+                      USER_KEY,
+                      JSON.stringify(status.userInfo)
+                    );
+                  }
+
+                  // Refresh the page to show updated plan
+                  window.location.reload();
+                } else if (status.status === "pending") {
+                  // Start regular polling if still pending
+                  startStatusPolling(orderId);
+                  message.info(t("processingPayment"));
+                } else {
+                  // Payment failed or expired
+                  setIsLoading(false);
+                  setCurrentOrderId(null);
+                  message.error(t("paymentFailed"));
+                }
+              })
+              .catch((error) => {
+                console.error("Error checking payment status:", error);
+                setIsLoading(false);
+                setCurrentOrderId(null);
+                message.error(t("errorCheckingPaymentStatus"));
+              });
+          }
+        }, 1000);
+
+        // Start initial polling
+        startStatusPolling(orderId, checkClosed);
+      } else {
+        // Stripe payment flow
         const response = await api.createStripeSession(
           selectedPlan!,
           duration,
@@ -531,12 +928,11 @@ export const UpgradePlan: React.FC = () => {
         );
 
         window.location.href = response.data.url;
-      } catch (error) {
-        console.error("Error creating Stripe session:", error);
-        message.error(t("paymentInitFailed"));
-      } finally {
-        setIsLoading(false); // Use isLoading state
       }
+    } catch (error) {
+      console.error("Error creating payment session:", error);
+      message.error(t("paymentInitFailed"));
+      setIsLoading(false);
     }
   };
 
@@ -582,6 +978,18 @@ export const UpgradePlan: React.FC = () => {
       console.error("Error fetching user info:", error);
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (statusPollingInterval) {
+        clearInterval(statusPollingInterval);
+      }
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    };
+  }, [statusPollingInterval, countdownInterval]);
 
   useEffect(() => {
     // Verify payment session if session_id is in URL params
@@ -696,7 +1104,7 @@ export const UpgradePlan: React.FC = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-6"
                 >
-                  {PLANS.map((plan) => (
+                  {ZPAY_PLANS.map((plan) => (
                     <PlanCard
                       key={plan.id}
                       {...plan}
@@ -719,7 +1127,7 @@ export const UpgradePlan: React.FC = () => {
                   <div className="w-full lg:w-2/5">
                     <div className="sticky top-8">
                       <PlanCard
-                        {...PLANS.find((p) => p.id === selectedPlan)!}
+                        {...ZPAY_PLANS.find((p) => p.id === selectedPlan)!}
                         toBeCanceled={true}
                         onSelect={() => {}}
                         onCancel={() => setSelectedPlan(null)}
@@ -733,7 +1141,12 @@ export const UpgradePlan: React.FC = () => {
                       <PaymentOptions
                         onSelect={handleSelectPayment}
                         planPrice={
-                          PLANS.find((p) => p.id === selectedPlan)?.price || 0
+                          ZPAY_PLANS.find((p) => p.id === selectedPlan)
+                            ?.price || 0
+                        }
+                        zpayPrice={
+                          ZPAY_PLANS.find((p) => p.id === selectedPlan)
+                            ?.price || 0
                         }
                         isLoading={isLoading}
                         selectedPayment={selectedPayment}
@@ -887,6 +1300,56 @@ export const UpgradePlan: React.FC = () => {
             )}
         </div>
       </div>
+
+      {/* ZPAY Payment Processing Modal */}
+      <Modal
+        title={t("processingPayment")}
+        open={isLoading && currentOrderId !== null}
+        onCancel={cancelPayment}
+        footer={[
+          <Button key="cancel" onClick={cancelPayment}>
+            {t("cancel")}
+          </Button>,
+        ]}
+        closable={false}
+        width={480}
+        centered
+      >
+        <div className="text-center py-4">
+          <LoadingOutlined className="text-4xl text-blue-500 mb-4" />
+          <div className="mt-4">
+            <p className="text-lg font-medium dark:text-white mb-2">
+              {countdown !== null
+                ? t("waitingForPayment")
+                : t("pleaseCompletePayment")}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              {t("orderId")}: {currentOrderId}
+            </p>
+            {countdown !== null ? (
+              <div className="mt-3">
+                <p className="text-sm text-orange-600 dark:text-orange-400 mb-2">
+                  {t("paymentWindowClosedWaiting")}
+                </p>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                    <span className="text-orange-600 dark:text-orange-400 font-bold text-sm">
+                      {countdown}
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {t("secondsRemaining")}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {t("paymentDetectionMessage")}
+              </p>
+            )}
+          </div>
+        </div>
+      </Modal>
     </ScrollableContainer>
   );
 };

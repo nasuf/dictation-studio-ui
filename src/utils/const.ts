@@ -21,7 +21,8 @@ export const JWT_REFRESH_TOKEN_KEY = "ds_r_token";
 export const USER_KEY = "user";
 export const EMAIL_VERIFIED_KEY = "emailVerified";
 
-export const PLANS = [
+// ZPAY pricing in CNY (Chinese Yuan)
+export const ZPAY_PLANS = [
   {
     id: USER_PLAN.FREE,
     title: "freePlan",
@@ -37,7 +38,7 @@ export const PLANS = [
   {
     id: USER_PLAN.BASIC,
     title: "basicPlan",
-    price: 29,
+    price: 0.01,
     duration: "oneMonth",
     features: [
       { feature: "unlimitedDictations", included: true },
@@ -59,7 +60,7 @@ export const PLANS = [
   {
     id: USER_PLAN.PREMIUM,
     title: "premiumPlan",
-    price: 99,
+    price: 89,
     duration: "sixMonths",
     features: [
       { feature: "unlimitedDictations", included: true },
@@ -68,6 +69,18 @@ export const PLANS = [
     ],
   },
 ];
+
+// Payment provider types
+export const PAYMENT_PROVIDERS = {
+  STRIPE: "stripe",
+  ZPAY: "zpay",
+} as const;
+
+// ZPAY payment methods
+export const ZPAY_PAYMENT_METHODS = {
+  ALIPAY: "alipay",
+  WXPAY: "wxpay",
+} as const;
 
 export const FILTER_OPTIONS = [
   {
