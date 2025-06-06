@@ -38,7 +38,7 @@ export const ZPAY_PLANS = [
   {
     id: USER_PLAN.BASIC,
     title: "basicPlan",
-    price: 0.01,
+    price: 19,
     duration: "oneMonth",
     features: [
       { feature: "unlimitedDictations", included: true },
