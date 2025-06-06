@@ -270,6 +270,8 @@ const enTranslations = {
   paymentSuccessful: "Payment successful!",
   paymentFailed: "Payment failed. Please try again.",
   paymentTimeout: "Payment timeout. Please try again.",
+  paymentProcessTimeout:
+    "Payment process timeout. If you have completed the payment, please wait for the system to process it.",
   paymentInitFailed: "Failed to initialize payment. Please try again.",
   paymentWindowClosed:
     "Payment window was closed. We'll continue monitoring for a short while in case you completed the payment.",
@@ -535,6 +537,7 @@ const zhTranslations = {
   paymentSuccessful: "支付成功！",
   paymentFailed: "支付失败，请重试。",
   paymentTimeout: "支付超时，请重试。",
+  paymentProcessTimeout: "支付处理超时。如果您已完成支付，请等待系统处理。",
   paymentInitFailed: "支付初始化失败，请重试。",
   paymentWindowClosed:
     "支付窗口已关闭。我们将继续监控一段时间，以防您已完成支付。",
@@ -800,6 +803,7 @@ const zhTraditionalTranslations = {
   paymentSuccessful: "支付成功！",
   paymentFailed: "支付失敗，請重試。",
   paymentTimeout: "支付超時，請重試。",
+  paymentProcessTimeout: "支付處理超時。如果您已完成支付，請等待系統處理。",
   paymentInitFailed: "支付初始化失敗，請重試。",
   paymentWindowClosed:
     "支付窗口已關閉。我們將繼續監控一段時間，以防您已完成支付。",
@@ -1015,6 +1019,8 @@ const jaTranslations = {
   paymentSuccessful: "支払い成功！",
   paymentFailed: "支払いに失敗しました。もう一度お試しください。",
   paymentTimeout: "支払いがタイムアウトしました。もう一度お試しください。",
+  paymentProcessTimeout:
+    "支払い処理がタイムアウトしました。支払いを完了している場合は、システムの処理をお待ちください。",
   paymentInitFailed: "支払いの初期化に失敗しました。もう一度お試しください。",
   paymentWindowClosed:
     "支払いウィンドウが閉じられました。支払いが完了した場合に備えて、しばらく監視を続けます。",
@@ -1233,6 +1239,8 @@ const koTranslations = {
   paymentSuccessful: "결제 성공!",
   paymentFailed: "결제에 실패했습니다. 다시 시도해주세요.",
   paymentTimeout: "결제 시간이 초과되었습니다. 다시 시도해주세요.",
+  paymentProcessTimeout:
+    "결제 처리 시간이 초과되었습니다. 결제를 완료한 경우 시스템 처리를 기다려주세요.",
   paymentInitFailed: "결제 초기화에 실패했습니다. 다시 시도해주세요.",
   paymentWindowClosed:
     "결제 창이 닫혔습니다. 결제를 완료한 경우를 대비해 잠시 모니터링을 계속합니다.",

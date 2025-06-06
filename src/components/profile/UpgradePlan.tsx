@@ -877,6 +877,24 @@ export const UpgradePlan: React.FC = () => {
           if (paymentWindow?.closed) {
             clearInterval(checkClosed);
 
+            // Start countdown when window closes
+            setCountdown(30); // Set initial countdown value to 30 seconds
+            const countdownTimer = setInterval(() => {
+              setCountdown((prevCount) => {
+                if (prevCount === null || prevCount <= 1) {
+                  clearInterval(countdownTimer);
+                  setCountdownInterval(null);
+                  // Close popup and clean up when countdown ends
+                  setIsLoading(false);
+                  setCurrentOrderId(null);
+                  message.info(t("paymentProcessTimeout"));
+                  return null;
+                }
+                return prevCount - 1;
+              });
+            }, 1000);
+            setCountdownInterval(countdownTimer);
+
             // Start polling immediately after window closes
             pollZPayOrderStatus(orderId)
               .then((status) => {
