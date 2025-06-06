@@ -15,6 +15,7 @@ import HomePage from "@/components/HomePage";
 import { RootState } from "@/redux/store";
 import { DEFAULT_LANGUAGE } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
+import PaymentSuccess from "@/components/PaymentSuccess";
 
 const { Header, Content, Footer } = Layout;
 
@@ -90,6 +91,7 @@ const App: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/signup-confirmation" element={<HomePage />} />
         <Route path="/signup-success" element={<HomePage />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route
           path="*"
           element={

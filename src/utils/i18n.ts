@@ -282,6 +282,8 @@ const enTranslations = {
   secondsRemaining: "seconds remaining",
   comingSoon: "Coming Soon",
   temporarilyUnavailable: "Temporarily Unavailable",
+  paymentSuccessfulDescription:
+    "Thank you for your purchase. Your membership has been upgraded.",
 };
 
 const zhTranslations = {
@@ -547,6 +549,7 @@ const zhTranslations = {
   secondsRemaining: "秒后自动取消",
   comingSoon: "即将推出",
   temporarilyUnavailable: "暂不可用",
+  paymentSuccessfulDescription: "感谢您的购买。您的会员资格已升级。",
 };
 
 const zhTraditionalTranslations = {
@@ -813,6 +816,7 @@ const zhTraditionalTranslations = {
   secondsRemaining: "秒後自動取消",
   comingSoon: "即將推出",
   temporarilyUnavailable: "暫不可用",
+  paymentSuccessfulDescription: "感谢您的购买。您的会员资格已升级。",
 };
 
 const jaTranslations = {
@@ -1031,6 +1035,7 @@ const jaTranslations = {
   secondsRemaining: "秒後に自動キャンセル",
   comingSoon: "近日公開",
   temporarilyUnavailable: "暫時無法使用",
+  paymentSuccessfulDescription: "感谢您的购买。您的会员资格已升级。",
 };
 
 const koTranslations = {
@@ -1251,6 +1256,7 @@ const koTranslations = {
   secondsRemaining: "초 후 자동 취소",
   comingSoon: "준비중",
   temporarilyUnavailable: "일시적으로 사용할 수 없음",
+  paymentSuccessfulDescription: "感谢您的购买。您的会员资格已升级。",
 };
 
 i18n.use(initReactI18next).init({
