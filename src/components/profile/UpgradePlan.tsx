@@ -395,6 +395,7 @@ const PaymentOptions: React.FC<{
       label: t("wechatPay"),
       currency: "CNY",
       icon: <WechatOutlined className="text-green-500" />,
+      disabled: true,
     },
   ];
 

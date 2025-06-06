@@ -70,18 +70,6 @@ export const ZPAY_PLANS = [
   },
 ];
 
-// Payment provider types
-export const PAYMENT_PROVIDERS = {
-  STRIPE: "stripe",
-  ZPAY: "zpay",
-} as const;
-
-// ZPAY payment methods
-export const ZPAY_PAYMENT_METHODS = {
-  ALIPAY: "alipay",
-  WXPAY: "wxpay",
-} as const;
-
 export const FILTER_OPTIONS = [
   {
     key: "removePrepositions",
