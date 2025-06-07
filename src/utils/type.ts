@@ -43,6 +43,7 @@ export interface Channel {
   visibility: string;
   language: string;
   link: string;
+  videos: string[];
 }
 
 export interface Video {

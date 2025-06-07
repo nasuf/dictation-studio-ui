@@ -615,6 +615,13 @@ const ChannelManagement: React.FC = () => {
       ),
     },
     {
+      title: "Videos Count",
+      dataIndex: "videos",
+      key: "videos",
+      render: (videos: string[]) =>
+        videos ? <span>{videos.length}</span> : <span>0</span>,
+    },
+    {
       title: "Visibility",
       dataIndex: "visibility",
       key: "visibility",
