@@ -816,7 +816,7 @@ const VideoManagement: React.FC = () => {
       title: "Video ID",
       dataIndex: "video_id",
       key: "video_id",
-      editable: true,
+      editable: false,
       width: "15%",
     },
     {
@@ -830,23 +830,7 @@ const VideoManagement: React.FC = () => {
       title: "Link",
       dataIndex: "link",
       key: "link",
-      editable: true,
-      render: (text: string, record: Video) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Form.Item
-            name="link"
-            style={{ margin: 0 }}
-            rules={[{ required: true, message: "Please input the link!" }]}
-          >
-            <Input />
-          </Form.Item>
-        ) : (
-          <a href={text} target="_blank" rel="noopener noreferrer">
-            {text}
-          </a>
-        );
-      },
+      editable: false,
       width: "30%",
     },
     {
