@@ -482,9 +482,18 @@ const VideoManagement: React.FC = () => {
         }
       });
 
-      await api.uploadVideos(formData);
+      const res = await api.uploadVideos(formData);
 
-      message.success("Videos uploaded successfully");
+      if (res.message === "partially success") {
+        message.success("Some videos uploaded successfully.");
+        if (res.duplicate_video_ids && res.duplicate_video_ids.length > 0) {
+          message.warning(
+            `Duplicate videos skipped: ${res.duplicate_video_ids.join(", ")}`
+          );
+        }
+      } else {
+        message.success("Videos uploaded successfully");
+      }
 
       fetchVideos(selectedChannel!);
       setSrtFiles({});
