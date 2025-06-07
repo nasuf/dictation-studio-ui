@@ -442,7 +442,18 @@ const ChannelManagement: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await api.getChannels(visibility, language);
-      setChannels(response.data);
+      // order by videos Count
+      const sortedChannels = response.data.sort((a: Channel, b: Channel) => {
+        if (a.videos && b.videos) {
+          return b.videos.length - a.videos.length;
+        } else if (a.videos) {
+          return -1;
+        } else if (b.videos) {
+          return 1;
+        }
+        return 0;
+      });
+      setChannels(sortedChannels);
     } catch (error) {
       console.error("Error fetching channels:", error);
       message.error("Failed to fetch channels");
