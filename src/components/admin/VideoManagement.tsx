@@ -1048,12 +1048,13 @@ const VideoManagement: React.FC = () => {
           </Select>
 
           <Button
-            type="link"
+            type="primary"
             onClick={() => {
               if (selectedChannelLink)
                 window.open(selectedChannelLink, "_blank");
             }}
             disabled={!selectedChannelLink}
+            style={{ marginLeft: 10 }}
           >
             Open Channel
           </Button>
@@ -1061,8 +1062,17 @@ const VideoManagement: React.FC = () => {
             type="primary"
             onClick={showAddVideoModal}
             disabled={!selectedChannel}
+            style={{ marginLeft: 10 }}
           >
             Add Videos
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => fetchVideos(selectedChannel!)}
+            className="refresh-button"
+            style={{ marginLeft: 10 }}
+          >
+            Refresh
           </Button>
         </Space>
         <Form form={form} component={false}>

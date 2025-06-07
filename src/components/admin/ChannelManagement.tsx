@@ -774,6 +774,14 @@ const ChannelManagement: React.FC = () => {
           </Button>
           <Button
             type="primary"
+            onClick={() => fetchChannels(selectedLanguage, selectedVisibility)}
+            className="refresh-button"
+            style={{ marginLeft: 10 }}
+          >
+            Refresh
+          </Button>
+          <Button
+            type="primary"
             onClick={() => setIsChannelRecommendationModalVisible(true)}
             className="add-channel-button"
             style={{ marginLeft: 10 }}
