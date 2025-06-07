@@ -280,4 +280,5 @@ export const api = {
     }
     return axiosInstance.post(`/user/feedback/admin`, formData);
   },
+  getZPayPaymentHistory: () => axiosInstance.get("/payment/zpay/history"),
 };

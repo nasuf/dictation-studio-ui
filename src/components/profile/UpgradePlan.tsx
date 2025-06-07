@@ -19,7 +19,7 @@ import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { setUser } from "@/redux/userSlice";
 import { PlanProps, PaymentOption, ZPayOrderStatus } from "@/utils/type";
-import { Modal, Button, Form, Input } from "antd";
+import { Modal, Button, Form, Input, Table } from "antd";
 import {
   ExclamationCircleOutlined,
   LoadingOutlined,
@@ -673,6 +673,8 @@ export const UpgradePlan: React.FC = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [countdownInterval, setCountdownInterval] =
     useState<NodeJS.Timeout | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -998,6 +1000,18 @@ export const UpgradePlan: React.FC = () => {
     }
   };
 
+  // Fetch payment history when tab is selected
+  useEffect(() => {
+    if (activeTab === "history") {
+      setPaymentHistoryLoading(true);
+      api
+        .getZPayPaymentHistory()
+        .then((res) => setPaymentHistory(res.data.orders || []))
+        .catch(() => setPaymentHistory([]))
+        .finally(() => setPaymentHistoryLoading(false));
+    }
+  }, [activeTab]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -1043,7 +1057,7 @@ export const UpgradePlan: React.FC = () => {
   }, [userInfo, dispatch]);
 
   return (
-    <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
+    <ScrollableContainer>
       <div className="text-center mb-8 mt-8">
         <h2 className="text-3xl font-bold mb-2 dark:text-white">
           {t("choosePlanTitle")}
@@ -1053,22 +1067,19 @@ export const UpgradePlan: React.FC = () => {
         </p>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto mb-8">
+      <div className="w-full px-2 md:px-8 mb-8">
         {/* Custom tab component with better dark mode support */}
         <div className="flex justify-center mb-6">
-          {/* Make the container relative for the absolute marker */}
           <div className="relative flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
             {/* Activate with Code Tab */}
             <button
               onClick={() => setActiveTab("code")}
-              // Add relative positioning, remove conditional background/shadow
               className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
                 activeTab === "code"
                   ? "text-blue-600 dark:text-blue-400"
                   : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
               }`}
             >
-              {/* Sliding marker - only rendered under the active tab */}
               {activeTab === "code" && (
                 <motion.div
                   layoutId="active-tab-marker"
@@ -1076,24 +1087,20 @@ export const UpgradePlan: React.FC = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              {/* Content needs to be above the marker */}
               <span className="relative z-10 flex items-center gap-2">
                 <KeyOutlined />
                 <span>{t("activateWithCode")}</span>
               </span>
             </button>
-
             {/* Purchase Plans Tab */}
             <button
               onClick={() => setActiveTab("plans")}
-              // Add relative positioning, remove conditional background/shadow
               className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
                 activeTab === "plans"
                   ? "text-blue-600 dark:text-blue-400"
                   : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
               }`}
             >
-              {/* Sliding marker */}
               {activeTab === "plans" && (
                 <motion.div
                   layoutId="active-tab-marker"
@@ -1101,10 +1108,30 @@ export const UpgradePlan: React.FC = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              {/* Content needs to be above the marker */}
               <span className="relative z-10 flex items-center gap-2">
                 <CreditCardOutlined />
                 <span>{t("purchasePlans")}</span>
+              </span>
+            </button>
+            {/* Payment History Tab */}
+            <button
+              onClick={() => setActiveTab("history")}
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
+                activeTab === "history"
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
+              }`}
+            >
+              {activeTab === "history" && (
+                <motion.div
+                  layoutId="active-tab-marker"
+                  className="absolute inset-0 rounded-md bg-white dark:bg-gray-700 shadow-sm z-0"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <CreditCardOutlined />
+                <span>{t("paymentHistory")}</span>
               </span>
             </button>
           </div>
@@ -1112,6 +1139,62 @@ export const UpgradePlan: React.FC = () => {
 
         {/* Tab content */}
         <div className="mt-6">
+          {/* Payment History Tab Content */}
+          {activeTab === "history" && (
+            <div
+              className="bg-white dark:bg-gray-800 p-4 md:p-8 rounded-xl shadow-lg"
+              style={{ overflow: "visible" }}
+            >
+              <div style={{ width: "100%" }}>
+                <Table
+                  loading={paymentHistoryLoading}
+                  dataSource={paymentHistory}
+                  rowKey="orderId"
+                  pagination={{ pageSize: 8 }}
+                  scroll={{ x: "max-content", y: 320 }}
+                  columns={[
+                    {
+                      title: t("orderId"),
+                      dataIndex: "orderId",
+                      key: "orderId",
+                    },
+                    {
+                      title: t("plan"),
+                      dataIndex: "planName",
+                      key: "planName",
+                    },
+                    { title: t("amount"), dataIndex: "amount", key: "amount" },
+                    {
+                      title: t("paymentType"),
+                      dataIndex: "payType",
+                      key: "payType",
+                    },
+                    { title: t("status"), dataIndex: "status", key: "status" },
+                    {
+                      title: t("createdAt"),
+                      dataIndex: "createdAt",
+                      key: "createdAt",
+                      render: (text) =>
+                        text ? new Date(text).toLocaleString() : "-",
+                    },
+                    {
+                      title: t("paidAt"),
+                      dataIndex: "paidAt",
+                      key: "paidAt",
+                      render: (text) =>
+                        text ? new Date(text).toLocaleString() : "-",
+                    },
+                  ]}
+                  locale={{
+                    emptyText: paymentHistoryLoading
+                      ? ""
+                      : t("noPaymentHistory"),
+                  }}
+                  style={{ width: "100%" }}
+                />
+              </div>
+            </div>
+          )}
           {/* Purchase plans content */}
           {activeTab === "plans" && (
             <AnimatePresence mode="wait">
