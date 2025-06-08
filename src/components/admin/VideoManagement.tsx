@@ -832,6 +832,11 @@ const VideoManagement: React.FC = () => {
       key: "link",
       editable: false,
       width: "30%",
+      render: (text: string) => (
+        <a href={text} target="_blank" rel="noopener noreferrer">
+          {text}
+        </a>
+      ),
     },
     {
       title: "Created At",
