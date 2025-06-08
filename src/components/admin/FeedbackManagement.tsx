@@ -249,7 +249,11 @@ export default function FeedbackManagement() {
                           {new Date(item.timestamp).toLocaleString()}
                           {item.senderType === "admin" ? " · Admin" : ""}
                         </div>
-                        <div className="dark:text-gray-400">{item.message}</div>
+                        {item.message && (
+                          <div className="dark:text-gray-400">
+                            {item.message}
+                          </div>
+                        )}
                         {/* Render images if present */}
                         {Array.isArray(item.images) &&
                           item.images.map((img: string, idx: number) => (

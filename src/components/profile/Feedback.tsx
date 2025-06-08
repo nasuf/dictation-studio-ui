@@ -71,7 +71,7 @@ const Feedback: React.FC = () => {
 
   // Handle message submission
   const handleSubmit = async (values: { content: string }) => {
-    if (!values.content && fileList.length === 0) {
+    if (!values.content) {
       message.error(t("contentCannotBeEmpty"));
       return;
     }
@@ -167,7 +167,9 @@ const Feedback: React.FC = () => {
                       {new Date(item.timestamp).toLocaleString()}
                       {item.senderType === "admin" ? " · Admin" : ""}
                     </div>
-                    <div className="dark:text-gray-400">{item.message}</div>
+                    {item.message && (
+                      <div className="dark:text-gray-400">{item.message}</div>
+                    )}
                     {/* Render images if present */}
                     {Array.isArray(item.images) &&
                       item.images.map((img: string, idx: number) => (
