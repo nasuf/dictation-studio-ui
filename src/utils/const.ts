@@ -42,6 +42,7 @@ export const ZPAY_PLANS = [
     duration: "oneMonth",
     features: [
       { feature: "unlimitedDictations", included: true },
+      { feature: "unlimitedRedictations", included: true },
       { feature: "prioritySupport", included: true },
       { feature: "allowYoutubeChannelRecommendation", included: true },
     ],
@@ -53,6 +54,7 @@ export const ZPAY_PLANS = [
     duration: "threeMonths",
     features: [
       { feature: "unlimitedDictations", included: true },
+      { feature: "unlimitedRedictations", included: true },
       { feature: "prioritySupport", included: true },
       { feature: "allowYoutubeChannelRecommendation", included: true },
     ],
@@ -64,6 +66,7 @@ export const ZPAY_PLANS = [
     duration: "sixMonths",
     features: [
       { feature: "unlimitedDictations", included: true },
+      { feature: "unlimitedRedictations", included: true },
       { feature: "prioritySupport", included: true },
       { feature: "allowYoutubeChannelRecommendation", included: true },
     ],
