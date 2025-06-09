@@ -7,6 +7,8 @@ export interface UserInfo {
   role: string;
   dictation_config: DictationConfig;
   missed_words: StructuredMissedWords;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface Plan {

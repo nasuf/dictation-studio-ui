@@ -322,6 +322,28 @@ const UserManagement: React.FC = () => {
       dataIndex: "role",
       key: "role",
     },
+    {
+      title: "Created At",
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (created_at: number) => {
+        if (created_at) {
+          return new Date(created_at).toLocaleString();
+        }
+        return "";
+      },
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updated_at",
+      key: "updated_at",
+      render: (updated_at: number) => {
+        if (updated_at) {
+          return new Date(updated_at).toLocaleString();
+        }
+        return "";
+      },
+    },
   ];
 
   // 获取所有校验码
