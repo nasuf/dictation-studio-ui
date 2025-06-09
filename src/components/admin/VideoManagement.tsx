@@ -1097,7 +1097,7 @@ const VideoManagement: React.FC = () => {
       </Modal>
       <Modal
         maskClosable={false}
-        title="Video Transcript"
+        title={`Video Transcript - ${currentVideoId}`}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
