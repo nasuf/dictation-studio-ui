@@ -973,8 +973,8 @@ const VideoManagement: React.FC = () => {
 
   // Function to automatically merge transcript items
   const autoMergeTranscripts = () => {
-    if (currentTranscript.length < 2) {
-      message.info("Need at least 2 transcript items to merge");
+    if (!currentTranscript || currentTranscript.length === 0) {
+      message.warning("No transcript available to merge");
       return;
     }
 
@@ -982,7 +982,14 @@ const VideoManagement: React.FC = () => {
     setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
 
     const originalLength = currentTranscript.length;
-    const mergedResult = autoMergeTranscriptItems(currentTranscript, 10);
+    // Use enhanced merge function with configurable parameters
+    // maxDuration: 15 seconds, minDuration: 3 seconds, maxWords: 25
+    const mergedResult = autoMergeTranscriptItems(
+      currentTranscript,
+      15, // maxDuration - 15 seconds max per merged item
+      3, // minDuration - minimum 3 seconds to avoid too short segments
+      25 // maxWords - maximum 25 words per merged item
+    );
 
     // Update transcript state
     setCurrentTranscript(mergedResult);
