@@ -1015,13 +1015,12 @@ const VideoManagement: React.FC = () => {
     setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
 
     const originalLength = currentTranscript.length;
-    // Use enhanced merge function with configurable parameters
-    // maxDuration: 15 seconds, minDuration: 3 seconds, maxWords: 25
+    // Use simplified merge function with configurable parameters
+    // maxDuration: 10 seconds, toleranceDuration: 2 seconds
     const mergedResult = autoMergeTranscriptItems(
       currentTranscript,
-      15, // maxDuration - 15 seconds max per merged item
-      3, // minDuration - minimum 3 seconds to avoid too short segments
-      25 // maxWords - maximum 25 words per merged item
+      10, // maxDuration - 10 seconds max per merged item
+      2 // toleranceDuration - allow up to 2 seconds over the limit
     );
 
     // Update transcript state
@@ -1122,9 +1121,8 @@ const VideoManagement: React.FC = () => {
                 // Apply auto-merge to this transcript
                 const mergedTranscript = autoMergeTranscriptItems(
                   originalTranscript,
-                  15, // maxDuration - 15 seconds max per merged item
-                  3, // minDuration - minimum 3 seconds to avoid too short segments
-                  25 // maxWords - maximum 25 words per merged item
+                  10, // maxDuration - 10 seconds max per merged item
+                  2 // toleranceDuration - allow up to 2 seconds over the limit
                 );
 
                 // Check if there was actually a change
