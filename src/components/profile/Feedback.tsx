@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Input, Button, message, List, Upload, Form, Modal } from "antd";
+import { Card, Input, Button, message, List, Upload, Form, Image } from "antd";
 import {
   UploadOutlined,
   SendOutlined,
@@ -19,13 +19,6 @@ const Feedback: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [form] = Form.useForm();
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [scale, setScale] = useState(1);
-  const [dragging, setDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null
-  );
-  const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
 
   // Fetch feedback messages
   const fetchMessages = async () => {
@@ -97,28 +90,6 @@ const Feedback: React.FC = () => {
     }
   };
 
-  // mouse down
-  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (scale === 1) return; // only allow dragging when zoomed in
-    setDragging(true);
-    setDragStart({ x: e.clientX - imgOffset.x, y: e.clientY - imgOffset.y });
-  };
-
-  // mouse move
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging || !dragStart) return;
-    setImgOffset({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
-  };
-
-  // mouse up
-  const handleMouseUp = () => {
-    setDragging(false);
-    setDragStart(null);
-  };
-
   return (
     <div className="h-full flex flex-col p-4 md:p-6">
       <div className="w-full max-w-3xl mx-auto flex flex-col h-full">
@@ -173,13 +144,15 @@ const Feedback: React.FC = () => {
                     {/* Render images if present */}
                     {Array.isArray(item.images) &&
                       item.images.map((img: string, idx: number) => (
-                        <img
+                        <Image
                           key={idx}
                           src={img}
                           alt="Feedback"
-                          className="max-w-full h-auto mb-2 rounded cursor-pointer"
+                          className="mb-2 rounded"
                           style={{ maxHeight: 200 }}
-                          onClick={() => setPreviewImage(img)}
+                          preview={{
+                            mask: false,
+                          }}
                         />
                       ))}
                   </div>
@@ -221,68 +194,6 @@ const Feedback: React.FC = () => {
           </Form>
         </Card>
       </div>
-
-      <Modal
-        open={!!previewImage}
-        footer={null}
-        onCancel={() => setPreviewImage(null)}
-        centered
-        width={800}
-        styles={{
-          body: {
-            padding: 0,
-            background: "transparent",
-          },
-          content: {
-            padding: 0,
-          },
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "auto",
-            background: "#222",
-            cursor: dragging ? "grabbing" : scale > 1 ? "grab" : "default",
-            userSelect: "none",
-            position: "relative",
-          }}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          <img
-            src={previewImage || ""}
-            alt="Preview"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              transform: `scale(${scale}) translate(${imgOffset.x / scale}px, ${
-                imgOffset.y / scale
-              }px)`,
-              transition: dragging ? "none" : "transform 0.2s",
-              cursor: scale > 1 ? (dragging ? "grabbing" : "grab") : "zoom-in",
-              background: "#222",
-            }}
-            onWheel={(e) => {
-              e.preventDefault();
-              let newScale = scale;
-              if (e.deltaY < 0) {
-                newScale = Math.min(scale + 0.1, 5);
-              } else {
-                newScale = Math.max(scale - 0.1, 1);
-              }
-              setScale(newScale);
-              if (newScale === 1) setImgOffset({ x: 0, y: 0 }); // reset offset when zooming out
-            }}
-            onMouseDown={handleMouseDown}
-            draggable={false}
-          />
-        </div>
-      </Modal>
     </div>
   );
 };
