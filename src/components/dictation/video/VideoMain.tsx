@@ -99,6 +99,11 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [currentInterval, setCurrentInterval] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [playbackState, setPlaybackState] = useState({
+    isPlaying: false,
+    targetEndTime: 0,
+    actualStartTime: 0,
+  });
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -127,6 +132,10 @@ const VideoMain: React.ForwardRefRenderFunction<
   );
   const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
   const [isImeComposing, setIsImeComposing] = useState(false);
+  const [autoSaveInputCount, setAutoSaveInputCount] = useState(0);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const autoSaveProgressRef = useRef<() => Promise<void>>();
   const [quotaInfo, setQuotaInfo] = useState<QuotaResponse | null>(null);
   const [isCheckingQuota, setIsCheckingQuota] = useState(true);
   const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
@@ -403,6 +412,9 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
     setIsInitialLoad(false);
     playerRef.current?.pauseVideo();
+
+    // 恢复进度后清除未保存标记，因为恢复的数据已经是保存过的
+    setHasUnsavedChanges(false);
   };
 
   const resetProgress = (transcriptData?: TranscriptItem[]) => {
@@ -470,12 +482,12 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
   };
 
-  const clearIntervalIfExists = () => {
+  const clearIntervalIfExists = useCallback(() => {
     if (currentInterval) {
       clearInterval(currentInterval);
       setCurrentInterval(null);
     }
-  };
+  }, [currentInterval]);
 
   const stopTimer = useCallback(() => {
     if (isTimerRunning) {
@@ -502,6 +514,13 @@ const VideoMain: React.ForwardRefRenderFunction<
       playerRef.current.pauseVideo();
     }
     clearIntervalIfExists();
+
+    // 清理播放状态
+    setPlaybackState({
+      isPlaying: false,
+      targetEndTime: 0,
+      actualStartTime: 0,
+    });
   }, [clearIntervalIfExists]);
 
   const playSentence = useCallback(
@@ -510,9 +529,14 @@ const VideoMain: React.ForwardRefRenderFunction<
       playerRef.current.pauseVideo();
       playerRef.current.seekTo(sentence.start, true);
 
-      const playPromise = new Promise<void>((resolve) => {
+      const playPromise = new Promise<void>((resolve, reject) => {
+        let timeoutId: NodeJS.Timeout;
+        let resolved = false;
+
         const onStateChange = (event: { data: number }) => {
-          if (event.data === YouTube.PlayerState.PLAYING) {
+          if (event.data === YouTube.PlayerState.PLAYING && !resolved) {
+            resolved = true;
+            clearTimeout(timeoutId);
             playerRef.current?.removeEventListener(
               "onStateChange",
               onStateChange
@@ -521,35 +545,114 @@ const VideoMain: React.ForwardRefRenderFunction<
           }
         };
 
+        // 添加超时处理，防止播放器无响应
+        timeoutId = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            playerRef.current?.removeEventListener(
+              "onStateChange",
+              onStateChange
+            );
+            reject(new Error("Video playback timeout"));
+          }
+        }, 5000); // 5秒超时
+
         playerRef.current?.addEventListener("onStateChange", onStateChange);
         playerRef.current?.playVideo();
       });
 
-      playPromise.then(() => {
-        const duration = playbackSpeed * (sentence.end - sentence.start) * 1000;
-        const startTime = Date.now();
-        let hasEnded = false;
+      playPromise
+        .then(() => {
+          // 记录实际开始播放的时间和位置
+          const actualStartTime =
+            playerRef.current?.getCurrentTime() || sentence.start;
+          const actualDuration = (sentence.end - actualStartTime) * 1000;
+          const adjustedDuration = actualDuration / playbackSpeed;
+          const startTime = Date.now();
+          let hasEnded = false;
 
-        const checkInterval = setInterval(() => {
-          if (playerRef.current && !hasEnded) {
-            const currentTime = playerRef.current.getCurrentTime();
-            const elapsedTime = Date.now() - startTime;
-            if (currentTime >= sentence.end - 0.1 || elapsedTime >= duration) {
-              playerRef.current.pauseVideo();
-              clearInterval(checkInterval);
-              setCurrentInterval(null);
-              hasEnded = true;
-              if (onComplete) {
-                onComplete();
+          // 更新播放状态
+          setPlaybackState({
+            isPlaying: true,
+            targetEndTime: sentence.end,
+            actualStartTime: actualStartTime,
+          });
+
+          const checkInterval = setInterval(() => {
+            if (playerRef.current && !hasEnded) {
+              const currentTime = playerRef.current.getCurrentTime();
+              const elapsedTime = Date.now() - startTime;
+              const playerState = playerRef.current.getPlayerState();
+
+              // 播放精度监控（可选，用于调试）
+              const expectedTime =
+                actualStartTime + (elapsedTime / 1000) * playbackSpeed;
+              const timeDrift = Math.abs(currentTime - expectedTime);
+              if (timeDrift > 0.2) {
+                console.warn(
+                  `Playback drift detected: ${timeDrift.toFixed(
+                    3
+                  )}s at ${currentTime.toFixed(
+                    3
+                  )}s, target: ${playbackState.targetEndTime.toFixed(3)}s`
+                );
+              }
+
+              // 多重检查条件，提高精度
+              const timeBasedStop = currentTime >= sentence.end - 0.05; // 减少提前量到0.05秒
+              const durationBasedStop = elapsedTime >= adjustedDuration;
+              const bufferOverrun = currentTime > sentence.end + 0.3; // 防止播放过头
+              const playerPaused =
+                playerState === YouTube.PlayerState.PAUSED ||
+                playerState === YouTube.PlayerState.ENDED;
+
+              if (
+                timeBasedStop ||
+                durationBasedStop ||
+                bufferOverrun ||
+                playerPaused
+              ) {
+                if (!playerPaused) {
+                  playerRef.current.pauseVideo();
+                }
+                clearInterval(checkInterval);
+                setCurrentInterval(null);
+                hasEnded = true;
+
+                // 清理播放状态
+                setPlaybackState({
+                  isPlaying: false,
+                  targetEndTime: 0,
+                  actualStartTime: 0,
+                });
+
+                // 延迟执行回调，确保播放完全停止
+                if (onComplete) {
+                  setTimeout(onComplete, 50);
+                }
               }
             }
-          }
-        }, 50);
+          }, 25); // 提高检查频率到25ms
 
-        setCurrentInterval(checkInterval);
-      });
+          setCurrentInterval(checkInterval);
+        })
+        .catch((error) => {
+          console.error("Playback failed:", error);
+
+          // 清理播放状态
+          setPlaybackState({
+            isPlaying: false,
+            targetEndTime: 0,
+            actualStartTime: 0,
+          });
+
+          // 播放失败时也要执行回调
+          if (onComplete) {
+            setTimeout(onComplete, 100);
+          }
+        });
     },
-    [clearIntervalIfExists]
+    [clearIntervalIfExists, playbackSpeed]
   );
 
   const playCurrentSentence = useCallback(() => {
@@ -634,6 +737,25 @@ const VideoMain: React.ForwardRefRenderFunction<
           ? prev
           : [...prev, currentSentenceIndex]
       );
+
+      // 标记有未保存的更改
+      setHasUnsavedChanges(true);
+
+      // 增加自动保存输入计数
+      setAutoSaveInputCount((prev) => {
+        const newCount = prev + 1;
+        console.log(
+          `Auto-save input count: ${newCount}/5 (current: ${autoSaveInputCount})`
+        );
+        // 每5次输入后自动保存
+        if (newCount >= 5) {
+          setTimeout(() => {
+            autoSaveProgress();
+          }, 100); // 稍微延迟确保状态更新完成
+          return 0; // 重置计数
+        }
+        return newCount;
+      });
     }
     setUserInput("");
     dispatch(
@@ -842,6 +964,73 @@ const VideoMain: React.ForwardRefRenderFunction<
     setLastSaveTime(Date.now());
   };
 
+  // 自动保存函数（无提示框）
+  const autoSaveProgress = useCallback(async () => {
+    console.log(
+      "autoSaveProgress called, hasUnsavedChanges:",
+      hasUnsavedChanges
+    );
+    // 如果没有未保存的更改，不进行保存
+    if (!hasUnsavedChanges) {
+      console.log("No unsaved changes, skipping auto-save");
+      return;
+    }
+
+    const userInputJson: { [key: number]: string } = {};
+    transcript.forEach((item, index) => {
+      if (item.userInput && item.userInput.trim() !== "") {
+        userInputJson[index] = item.userInput.trim();
+      }
+    });
+
+    // 如果没有任何输入，不进行保存
+    if (Object.keys(userInputJson).length === 0) {
+      setHasUnsavedChanges(false); // 清除未保存标记
+      return;
+    }
+
+    const timeSinceLastSave = getTimeSinceLastSave();
+    resetLastSaveTime();
+
+    const progressData: ProgressData = {
+      channelId: channelId!,
+      videoId: videoId!,
+      userInput: userInputJson,
+      currentTime: new Date().getTime(),
+      overallCompletion: Number(overallCompletion.toFixed(2)),
+      duration: timeSinceLastSave,
+    };
+
+    try {
+      dispatch(setIsSavingProgress(true));
+      await api.saveProgress(progressData);
+      // 自动保存成功后清除未保存标记
+      setHasUnsavedChanges(false);
+      console.log("Auto-saved progress");
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+      // 自动保存失败也不显示错误提示，避免打扰用户
+      // 保持 hasUnsavedChanges 为 true，下次继续尝试保存
+    } finally {
+      dispatch(setIsSavingProgress(false));
+    }
+  }, [
+    channelId,
+    videoId,
+    transcript,
+    overallCompletion,
+    totalTime,
+    lastSaveTime,
+    hasUnsavedChanges,
+  ]);
+
+  // 保存最新的 autoSaveProgress 函数引用
+  useEffect(() => {
+    autoSaveProgressRef.current = autoSaveProgress;
+    console.log("autoSaveProgressRef updated");
+  }, [autoSaveProgress]);
+
+  // 手动保存函数（有提示框）
   const saveProgress = useCallback(async () => {
     const userInputJson: { [key: number]: string } = {};
     transcript.forEach((item, index) => {
@@ -864,6 +1053,8 @@ const VideoMain: React.ForwardRefRenderFunction<
     try {
       dispatch(setIsSavingProgress(true));
       await api.saveProgress(progressData);
+      // 手动保存成功后清除未保存标记
+      setHasUnsavedChanges(false);
       message.success(t("progressSaved"));
     } catch (error) {
       message.error(t("progressSaveFailed"));
@@ -885,7 +1076,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   useImperativeHandle(ref, () => ({
-    saveProgress,
+    saveProgress, // 这里使用手动保存函数，会显示提示框
     getMissedWords: () => missedWords,
     removeMissedWord,
     resetProgress,
@@ -934,12 +1125,44 @@ const VideoMain: React.ForwardRefRenderFunction<
     [isTimerRunning, isUserTyping, startTimer, stopTimer]
   );
 
+  // 30秒自动保存定时器
+  useEffect(() => {
+    console.log("Setting up auto-save timer");
+
+    const intervalId = setInterval(() => {
+      console.log("10s timer triggered, checking for unsaved changes...");
+      console.log("Current timestamp:", new Date().toLocaleTimeString());
+      console.log(
+        "autoSaveProgressRef.current exists:",
+        !!autoSaveProgressRef.current
+      );
+
+      if (autoSaveProgressRef.current) {
+        console.log("Calling autoSaveProgressRef.current()...");
+        autoSaveProgressRef.current();
+      } else {
+        console.warn("autoSaveProgressRef.current is not available");
+      }
+    }, 10000); // 10秒 (临时测试用)
+
+    autoSaveTimerRef.current = intervalId;
+    console.log("Auto-save timer started with interval ID:", intervalId);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current);
+        console.log("Auto-save timer cleared");
+      }
+    };
+  }, []); // 移除依赖，只在组件挂载时启动一次
+
   useEffect(() => {
     return () => {
       stopTimer();
       if (userTypingTimerRef.current) {
         clearTimeout(userTypingTimerRef.current);
       }
+      // Remove auto-save timer cleanup from here - it's handled in the timer setup useEffect
     };
   }, [stopTimer]);
 
