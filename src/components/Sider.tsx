@@ -15,12 +15,33 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { MenuItem } from "@/utils/type";
 
-const AppSider: React.FC = () => {
+interface AppSiderProps {
+  collapsed?: boolean;
+  onCollapse?: (collapsed: boolean) => void;
+}
+
+const AppSider: React.FC<AppSiderProps> = ({
+  collapsed = false,
+  onCollapse,
+}) => {
   const location = useLocation();
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 检测屏幕尺寸
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 768; // md breakpoint
+      setIsMobile(mobile);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   const mainSiderItems: MenuItem[] = [
     {
@@ -138,13 +159,30 @@ const AppSider: React.FC = () => {
   const defaultOpenKeys = [location.pathname.split("/")[1] || "Dictation"];
 
   return (
-    <Sider className="bg-white dark:bg-gray-800" width={200}>
+    <Sider
+      className="bg-white dark:bg-gray-800"
+      width={200}
+      collapsedWidth={isMobile ? 0 : 80}
+      collapsed={collapsed}
+      onCollapse={onCollapse}
+      collapsible={false}
+      trigger={null}
+      style={{
+        overflow: "auto",
+        height: "100%",
+        position: isMobile ? "fixed" : "relative",
+        left: isMobile && collapsed ? -200 : 0,
+        zIndex: isMobile ? 1000 : "auto",
+        transition: "all 0.2s",
+      }}
+    >
       <Menu
         mode="inline"
         selectedKeys={selectedKeys}
         defaultOpenKeys={defaultOpenKeys}
         style={{ height: "100%" }}
         className="bg-white dark:bg-gray-800"
+        inlineCollapsed={collapsed}
       >
         {renderMenuItems(siderItems)}
       </Menu>

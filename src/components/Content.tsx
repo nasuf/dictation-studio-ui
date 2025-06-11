@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   ArrowLeftOutlined,
   ReloadOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -57,6 +58,8 @@ const AppContent: React.FC = () => {
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
   const [shouldResetWords, setShouldResetWords] = useState(false);
   const [isSavingWords, setIsSavingWords] = useState(false);
+  const [siderCollapsed, setSiderCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 频道列表状态
   const [allChannels, setAllChannels] = useState<Channel[]>([]);
@@ -243,33 +246,76 @@ const AppContent: React.FC = () => {
     { label: "한국어", value: LANGUAGES.Korean },
   ];
 
+  // 检测屏幕尺寸
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setSiderCollapsed(mobile);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-6">
-        <div className="flex justify-between items-center">
-          <button
-            onClick={handleGoBack}
-            className="flex items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
-             dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600"
-          >
-            <ArrowLeftOutlined className="mr-2" />
-            <span>{t("goBack")}</span>
-          </button>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            {isMobile && (
+              <button
+                onClick={() => setSiderCollapsed(!siderCollapsed)}
+                className="flex items-center justify-center p-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
+                 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600"
+              >
+                <MenuOutlined />
+              </button>
+            )}
+            <button
+              onClick={handleGoBack}
+              className={`${
+                isMobile ? "hidden" : "flex"
+              } items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
+               dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600`}
+            >
+              <ArrowLeftOutlined className="mr-2" />
+              <span>{t("goBack")}</span>
+            </button>
 
-          <div className="flex items-center">
+            {/* 移动端语言选择器 */}
+            {isMobile && (isChannelListPage || isWordPage) && (
+              <div className="flex items-center gap-1 flex-1 min-w-0">
+                <span className="text-gray-600 dark:text-gray-300 text-xs whitespace-nowrap flex-shrink-0">
+                  {t("dictationLanguage")}:
+                </span>
+                <Select
+                  value={selectedLanguage}
+                  onChange={handleLanguageChange}
+                  style={{ flex: 1, minWidth: 80 }}
+                  options={languageOptions}
+                  className="dark:bg-gray-700"
+                  size="small"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full lg:w-auto">
             {isWordEditing && (
-              <div className="flex mr-4">
+              <div className="flex gap-2 w-full md:w-auto">
                 <button
                   onClick={handleMissedWordCancelDelete}
-                  className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
-                  dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 mr-2"
+                  className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50
+                  dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                 >
                   {t("cancel")}
                 </button>
                 <button
                   onClick={handleDeleteMissedWords}
                   disabled={wordsToDelete.size === 0 || isSavingWords}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
+                  className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
                   dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSavingWords ? <LoadingOutlined className="mr-2" /> : null}
@@ -278,29 +324,33 @@ const AppContent: React.FC = () => {
               </div>
             )}
 
-            {(isChannelListPage || isWordPage) && (
-              <div className="flex items-center">
-                <span className="mr-2 text-gray-600 dark:text-gray-300">
+            {/* 桌面端语言选择器 */}
+            {!isMobile && (isChannelListPage || isWordPage) && (
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <span className="text-gray-600 dark:text-gray-300 text-sm lg:text-base flex-shrink-0">
                   {t("dictationLanguage")}:
                 </span>
                 <Select
                   value={selectedLanguage}
                   onChange={handleLanguageChange}
-                  style={{ width: 150 }}
+                  style={{ minWidth: 150 }}
                   options={languageOptions}
                   className="dark:bg-gray-700"
                 />
               </div>
             )}
             {isVideoPage && (
-              <div className="space-x-4 button-container">
+              <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto button-container">
                 <button
                   onClick={showMissedWordsModal}
                   className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
      dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
                 >
                   <FileTextOutlined className="mr-2" />
-                  {t("missedWordsSummary")}
+                  <span className="hidden md:inline">
+                    {t("missedWordsSummary")}
+                  </span>
+                  <span className="md:hidden">{t("missedWords")}</span>
                 </button>
                 <button
                   onClick={handleResetProgress}
@@ -309,7 +359,8 @@ const AppContent: React.FC = () => {
      dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800"
                 >
                   <ReloadOutlined className="mr-2" />
-                  {t("resetProgress")}
+                  <span className="hidden md:inline">{t("resetProgress")}</span>
+                  <span className="md:hidden">{t("reset")}</span>
                 </button>
                 <button
                   onClick={handleSaveProgress}
@@ -322,16 +373,19 @@ const AppContent: React.FC = () => {
                   ) : (
                     <CloudUploadOutlined className="mr-2" />
                   )}
-                  {t("saveProgressBtnText")}
+                  <span className="hidden md:inline">
+                    {t("saveProgressBtnText")}
+                  </span>
+                  <span className="md:hidden">{t("save")}</span>
                 </button>
               </div>
             )}
           </div>
         </div>
       </div>
-      <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-6 mb-6">
+      <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-3 md:mx-6 mb-3 md:mb-6">
         <Layout className="h-full bg-transparent">
-          <AppSider />
+          <AppSider collapsed={siderCollapsed} onCollapse={setSiderCollapsed} />
           <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 custom-scrollbar">
             <Routes>
               <Route

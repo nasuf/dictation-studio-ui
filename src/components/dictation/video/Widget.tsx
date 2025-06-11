@@ -120,7 +120,12 @@ export const StyledYouTubeWrapper = styled(YouTubeWrapper)`
 export const ScrollableContainer = styled.div`
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 export const VideoCardGrid = styled.div`
@@ -128,6 +133,18 @@ export const VideoCardGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   align-content: start;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 `;
 
 export const HideYouTubeControls = styled.div`
@@ -245,10 +262,29 @@ export const ChannelGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 18px;
   padding: 0px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 8px;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 4px;
+  }
 `;
 
 export const ChannelCard = styled(Card)`
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -263,10 +299,37 @@ export const ChannelCard = styled(Card)`
 
   .ant-card-cover {
     height: 180px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
   }
 
   .ant-card-body {
     padding: 0;
+    height: 60px;
+  }
+
+  @media (max-width: 768px) {
+    height: 220px;
+
+    .ant-card-cover {
+      height: 160px;
+    }
+
+    .ant-card-body {
+      height: 60px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    height: 200px;
+
+    .ant-card-cover {
+      height: 140px;
+    }
+
+    .ant-card-body {
+      height: 60px;
+    }
   }
 `;
 
@@ -274,6 +337,13 @@ export const ChannelImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 `;
 
 export const ChannelInfo = styled.div`
@@ -286,6 +356,16 @@ export const ChannelInfo = styled.div`
 
   .dark & {
     background: #1f2937;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px;
+    height: 60px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    height: 60px;
   }
 `;
 
