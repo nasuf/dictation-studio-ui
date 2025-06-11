@@ -1313,6 +1313,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       handleSpeedChange={handleSpeedChange}
       handleAutoRepeatChange={handleAutoRepeatChange}
       handleShortcutSet={handleShortcutSet}
+      settingShortcut={settingShortcut}
     />
   );
 
