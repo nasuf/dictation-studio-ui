@@ -138,6 +138,16 @@ export const api = {
     );
     return response.data;
   },
+  batchUpdateTranscripts: async (
+    channelId: string,
+    videos: Array<{ video_id: string; transcript: TranscriptItem[] }>
+  ) => {
+    const response = await axiosInstance.put(
+      `/service/${channelId}/batch-transcript-update`,
+      { videos }
+    );
+    return response.data;
+  },
   getOriginalTranscript: (videoId: string) =>
     axiosInstance.get(`/service/video-transcript/air/${videoId}`),
 
@@ -166,8 +176,12 @@ export const api = {
     axiosInstance.put(`/service/channel/${channelId}`, { visibility }),
   updateChannelLanguage: (channelId: string, language: string) =>
     axiosInstance.put(`/service/channel/${channelId}`, { language }),
-  restoreTranscript: (channelId: string, videoId: string) =>
-    axiosInstance.post(`/service/${channelId}/${videoId}/restore-transcript`),
+  restoreTranscript: async (channelId: string, videoId: string) => {
+    const response = await axiosInstance.post(
+      `/service/${channelId}/${videoId}/restore-transcript`
+    );
+    return response.data;
+  },
   updateUserInfo: (userInfo: Partial<UserInfo>) => {
     return axiosInstance.post("/auth/userinfo", userInfo);
   },
@@ -281,4 +295,20 @@ export const api = {
     return axiosInstance.post(`/user/feedback/admin`, formData);
   },
   getZPayPaymentHistory: () => axiosInstance.get("/payment/zpay/history"),
+  batchRestoreTranscripts: async (
+    channelId: string,
+    videos: Array<{ video_id: string }>
+  ) => {
+    const response = await axiosInstance.put(
+      `/service/${channelId}/batch-restore-transcripts`,
+      { videos }
+    );
+    return response.data;
+  },
+  getTranscriptSummary: async (channelId: string) => {
+    const response = await axiosInstance.get(
+      `/service/${channelId}/transcript-summary`
+    );
+    return response.data;
+  },
 };

@@ -10,6 +10,9 @@ import {
   Card,
   Modal,
   Upload,
+  Progress,
+  Typography,
+  Tag,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -26,6 +29,7 @@ import {
   LoadingOutlined,
   CloseCircleOutlined,
   DownloadOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -377,6 +381,35 @@ const VideoManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [srtFiles, setSrtFiles] = useState<{ [key: string]: File }>({});
   const [isUpdatingTranscript, setIsUpdatingTranscript] = useState(false);
+  const [isBatchMerging, setIsBatchMerging] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({
+    isVisible: false,
+    total: 0,
+    completed: 0,
+    processing: 0,
+    results: [] as Array<{
+      video_id: string;
+      title: string;
+      status: "pending" | "processing" | "success" | "error";
+      message?: string;
+      originalCount?: number;
+      mergedCount?: number;
+    }>,
+  });
+  const [isTranscriptManagementVisible, setIsTranscriptManagementVisible] =
+    useState(false);
+  const [transcriptSummary, setTranscriptSummary] = useState<
+    Array<{
+      video_id: string;
+      title: string;
+      transcriptCount: number;
+      hasOriginal: boolean;
+      lastUpdated?: number;
+    }>
+  >([]);
+  const [isLoadingTranscriptSummary, setIsLoadingTranscriptSummary] =
+    useState(false);
+  const [isBatchRestoring, setIsBatchRestoring] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -998,6 +1031,417 @@ const VideoManagement: React.FC = () => {
     );
   };
 
+  // Function to automatically merge all transcripts in the channel
+  const autoMergeAllTranscripts = async () => {
+    if (!selectedChannel || videos.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+
+    // Filter videos that don't have original transcripts (haven't been modified)
+    const videosToMerge = transcriptSummary.filter(
+      (summary) => !summary.hasOriginal
+    );
+
+    if (videosToMerge.length === 0) {
+      message.info(
+        "No videos need merging. All videos either have original transcripts (already modified) or no transcripts."
+      );
+      return;
+    }
+
+    const confirmModal = Modal.confirm({
+      title: "Auto Merge All Transcripts",
+      content: `Are you sure you want to auto-merge transcripts for ${videosToMerge.length} videos (out of ${videos.length} total) that haven't been modified yet? This action will modify these transcripts and cannot be easily undone.`,
+      onOk: async () => {
+        // Close the confirm modal immediately
+        confirmModal.destroy();
+
+        setIsBatchMerging(true);
+
+        // Initialize progress state - only for videos that need merging
+        const initialResults = videosToMerge.map((summary) => ({
+          video_id: summary.video_id,
+          title: summary.title,
+          status: "pending" as const,
+        }));
+
+        setBatchProgress({
+          isVisible: true,
+          total: videosToMerge.length,
+          completed: 0,
+          processing: 0,
+          results: initialResults,
+        });
+
+        try {
+          const videosToUpdate: Array<{
+            video_id: string;
+            transcript: TranscriptItem[];
+          }> = [];
+          let processedCount = 0;
+          let mergedCount = 0;
+          const BATCH_SIZE = 5; // Process 5 videos at a time
+
+          // Process videos in batches - only process videos that need merging
+          for (let i = 0; i < videosToMerge.length; i += BATCH_SIZE) {
+            const batch = videosToMerge.slice(i, i + BATCH_SIZE);
+
+            // Update status to processing for current batch
+            setBatchProgress((prev) => ({
+              ...prev,
+              processing: batch.length,
+              results: prev.results.map((result) => {
+                const isInCurrentBatch = batch.some(
+                  (summary) => summary.video_id === result.video_id
+                );
+                return isInCurrentBatch && result.status === "pending"
+                  ? { ...result, status: "processing" as const }
+                  : result;
+              }),
+            }));
+
+            // Process current batch
+            const batchPromises = batch.map(async (summary) => {
+              try {
+                // Get the current transcript for this video
+                const response = await api.getVideoTranscript(
+                  selectedChannel,
+                  summary.video_id
+                );
+                const originalTranscript = response.data.transcript;
+
+                if (!originalTranscript || originalTranscript.length === 0) {
+                  return {
+                    video_id: summary.video_id,
+                    needsUpdate: false,
+                    message: "No transcript available",
+                  };
+                }
+
+                // Apply auto-merge to this transcript
+                const mergedTranscript = autoMergeTranscriptItems(
+                  originalTranscript,
+                  15, // maxDuration - 15 seconds max per merged item
+                  3, // minDuration - minimum 3 seconds to avoid too short segments
+                  25 // maxWords - maximum 25 words per merged item
+                );
+
+                // Check if there was actually a change
+                const needsUpdate =
+                  mergedTranscript.length !== originalTranscript.length;
+
+                return {
+                  video_id: summary.video_id,
+                  needsUpdate,
+                  originalCount: originalTranscript.length,
+                  mergedCount: mergedTranscript.length,
+                  transcript: needsUpdate ? mergedTranscript : null,
+                  message: needsUpdate
+                    ? `Reduced from ${originalTranscript.length} to ${mergedTranscript.length} items`
+                    : "No merging needed",
+                };
+              } catch (error) {
+                console.error(
+                  `Error processing video ${summary.video_id}:`,
+                  error
+                );
+                return {
+                  video_id: summary.video_id,
+                  needsUpdate: false,
+                  error: true,
+                  message: `Error: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                  }`,
+                };
+              }
+            });
+
+            // Wait for current batch to complete
+            const batchResults = await Promise.all(batchPromises);
+
+            // Update progress with batch results
+            setBatchProgress((prev) => ({
+              ...prev,
+              completed: prev.completed + batch.length,
+              processing: 0,
+              results: prev.results.map((result) => {
+                const batchResult = batchResults.find(
+                  (br) => br.video_id === result.video_id
+                );
+                if (batchResult) {
+                  return {
+                    ...result,
+                    status: batchResult.error
+                      ? ("error" as const)
+                      : ("success" as const),
+                    message: batchResult.message,
+                    originalCount: batchResult.originalCount,
+                    mergedCount: batchResult.mergedCount,
+                  };
+                }
+                return result;
+              }),
+            }));
+
+            // Collect videos that need updating
+            batchResults.forEach((result) => {
+              if (result.needsUpdate && result.transcript) {
+                videosToUpdate.push({
+                  video_id: result.video_id,
+                  transcript: result.transcript,
+                });
+                mergedCount++;
+              }
+            });
+
+            processedCount += batch.length;
+
+            // Small delay between batches to prevent overwhelming the server
+            if (i + BATCH_SIZE < videosToMerge.length) {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+          }
+
+          if (videosToUpdate.length === 0) {
+            message.info("No transcripts needed merging");
+            return;
+          }
+
+          // Update progress to show saving phase
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) => {
+              const needsUpdate = videosToUpdate.some(
+                (v) => v.video_id === result.video_id
+              );
+              return needsUpdate
+                ? {
+                    ...result,
+                    status: "processing" as const,
+                    message: "Saving to server...",
+                  }
+                : result;
+            }),
+          }));
+
+          // Batch update all modified transcripts
+          const result = await api.batchUpdateTranscripts(
+            selectedChannel,
+            videosToUpdate
+          );
+
+          // Update final status
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((progressResult) => {
+              const updateResult = result.results?.find(
+                (r: any) => r.video_id === progressResult.video_id
+              );
+              const needsUpdate = videosToUpdate.some(
+                (v) => v.video_id === progressResult.video_id
+              );
+
+              if (needsUpdate) {
+                return {
+                  ...progressResult,
+                  status: updateResult?.success
+                    ? ("success" as const)
+                    : ("error" as const),
+                  message: updateResult?.message || progressResult.message,
+                };
+              }
+              return progressResult;
+            }),
+          }));
+
+          message.success(
+            `Batch auto-merge completed: ${result.success_count} videos updated successfully, ${result.error_count} failed. Total processed: ${processedCount}, merged: ${mergedCount}`
+          );
+
+          // Refresh the video list to show updated timestamps
+          fetchVideos(selectedChannel);
+        } catch (error) {
+          console.error("Error in batch auto-merge:", error);
+          message.error("Failed to auto-merge all transcripts");
+
+          // Update all processing items to error
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) =>
+              result.status === "processing"
+                ? {
+                    ...result,
+                    status: "error" as const,
+                    message: "Process failed",
+                  }
+                : result
+            ),
+          }));
+        } finally {
+          setIsBatchMerging(false);
+          // Ensure the modal title updates correctly by forcing a re-render
+          setTimeout(() => {
+            if (batchProgress.isVisible) {
+              setBatchProgress((prev) => ({ ...prev }));
+            }
+          }, 100);
+        }
+      },
+      onCancel() {
+        // Do nothing if the user cancels
+      },
+    });
+  };
+
+  // Function to show transcript management modal
+  const showTranscriptManagement = async () => {
+    if (!selectedChannel || videos.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+
+    setIsTranscriptManagementVisible(true);
+    setIsLoadingTranscriptSummary(true);
+
+    try {
+      // Get transcript summary for all videos in one API call
+      const response = await api.getTranscriptSummary(selectedChannel);
+      const summaries = response.summaries || [];
+
+      // Transform the data to match our component's expected format
+      const transformedSummary = summaries.map((summary: any) => ({
+        video_id: summary.video_id,
+        title: summary.title,
+        transcriptCount: summary.transcript_count,
+        hasOriginal: summary.has_original,
+        lastUpdated: summary.last_updated,
+      }));
+
+      setTranscriptSummary(transformedSummary);
+    } catch (error) {
+      console.error("Error loading transcript summary:", error);
+      message.error("Failed to load transcript summary");
+    } finally {
+      setIsLoadingTranscriptSummary(false);
+    }
+  };
+
+  // Function to restore all transcripts
+  const restoreAllTranscripts = async () => {
+    if (!selectedChannel || videos.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+
+    const confirmModal = Modal.confirm({
+      title: "Restore All Transcripts",
+      content: `Are you sure you want to restore all ${videos.length} transcripts in this channel? This will revert all transcripts to their original state and cannot be undone.`,
+      onOk: async () => {
+        // Close the confirm modal immediately
+        confirmModal.destroy();
+
+        setIsBatchRestoring(true);
+
+        // Initialize progress state
+        const initialResults = videos.map((video) => ({
+          video_id: video.video_id,
+          title: video.title,
+          status: "pending" as const,
+        }));
+
+        setBatchProgress({
+          isVisible: true,
+          total: videos.length,
+          completed: 0,
+          processing: 0,
+          results: initialResults,
+        });
+
+        try {
+          const videosToRestore = videos.map((video) => ({
+            video_id: video.video_id,
+          }));
+
+          // Update progress to show saving phase
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) => ({
+              ...result,
+              status: "processing" as const,
+              message: "Restoring transcript...",
+            })),
+          }));
+
+          // Batch restore all transcripts
+          const result = await api.batchRestoreTranscripts(
+            selectedChannel,
+            videosToRestore
+          );
+
+          // Update final status
+          setBatchProgress((prev) => ({
+            ...prev,
+            completed: videos.length,
+            processing: 0,
+            results: prev.results.map((progressResult) => {
+              const restoreResult = result.results?.find(
+                (r: any) => r.video_id === progressResult.video_id
+              );
+
+              if (restoreResult) {
+                return {
+                  ...progressResult,
+                  status: restoreResult.success
+                    ? ("success" as const)
+                    : ("error" as const),
+                  message: restoreResult.message || progressResult.message,
+                };
+              }
+              return progressResult;
+            }),
+          }));
+
+          message.success(
+            `Batch restore completed: ${result.success_count} videos restored successfully, ${result.error_count} failed`
+          );
+
+          // Refresh the video list and transcript summary
+          fetchVideos(selectedChannel);
+          showTranscriptManagement();
+        } catch (error) {
+          console.error("Error in batch restore:", error);
+          message.error("Failed to restore all transcripts");
+
+          // Update all processing items to error
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) =>
+              result.status === "processing"
+                ? {
+                    ...result,
+                    status: "error" as const,
+                    message: "Process failed",
+                  }
+                : result
+            ),
+          }));
+        } finally {
+          setIsBatchRestoring(false);
+          // Ensure the modal title updates correctly by forcing a re-render
+          setTimeout(() => {
+            if (batchProgress.isVisible) {
+              setBatchProgress((prev) => ({ ...prev }));
+            }
+          }, 100);
+        }
+      },
+      onCancel() {
+        // Do nothing if the user cancels
+      },
+    });
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <Card title="Video Management">
@@ -1069,6 +1513,15 @@ const VideoManagement: React.FC = () => {
             style={{ marginLeft: 10 }}
           >
             Refresh
+          </Button>
+          <Button
+            type="primary"
+            onClick={showTranscriptManagement}
+            disabled={!selectedChannel || videos.length === 0}
+            icon={<MergeCellsOutlined />}
+            style={{ marginLeft: 10 }}
+          >
+            Transcript Management
           </Button>
         </Space>
         <Form form={form} component={false}>
@@ -1173,6 +1626,259 @@ const VideoManagement: React.FC = () => {
             />
           </Form>
         )}
+      </Modal>
+
+      {/* Transcript Management Modal */}
+      <Modal
+        title="Transcript Management"
+        open={isTranscriptManagementVisible}
+        onCancel={() => setIsTranscriptManagementVisible(false)}
+        footer={[
+          <Button
+            key="auto-merge"
+            type="primary"
+            onClick={autoMergeAllTranscripts}
+            loading={isBatchMerging}
+            disabled={
+              isBatchRestoring ||
+              transcriptSummary.filter((s) => !s.hasOriginal).length === 0
+            }
+            icon={<MergeCellsOutlined />}
+          >
+            Auto Merge All (
+            {transcriptSummary.filter((s) => !s.hasOriginal).length})
+          </Button>,
+          <Button
+            key="restore-all"
+            onClick={restoreAllTranscripts}
+            loading={isBatchRestoring}
+            disabled={isBatchMerging}
+            icon={<UndoOutlined />}
+          >
+            Restore All
+          </Button>,
+          <Button
+            key="refresh"
+            onClick={() => {
+              fetchVideos(selectedChannel!);
+              showTranscriptManagement();
+            }}
+            icon={<ReloadOutlined />}
+          >
+            Refresh
+          </Button>,
+          <Button
+            key="close"
+            onClick={() => setIsTranscriptManagementVisible(false)}
+          >
+            Close
+          </Button>,
+        ]}
+        width={1000}
+        style={{ maxWidth: "95vw" }}
+        className="transcript-management-modal"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text strong style={{ color: "var(--ant-text-color)" }}>
+            Channel: {selectedChannel} ({videos.length} videos)
+          </Typography.Text>
+        </div>
+
+        <Table
+          dataSource={transcriptSummary}
+          loading={isLoadingTranscriptSummary}
+          rowKey="video_id"
+          size="small"
+          scroll={{ y: 400 }}
+          columns={[
+            {
+              title: "Video ID",
+              dataIndex: "video_id",
+              key: "video_id",
+              width: "20%",
+              ellipsis: true,
+            },
+            {
+              title: "Title",
+              dataIndex: "title",
+              key: "title",
+              width: "35%",
+              ellipsis: true,
+            },
+            {
+              title: "Transcript Items",
+              dataIndex: "transcriptCount",
+              key: "transcriptCount",
+              width: "15%",
+              align: "center",
+              render: (count: number) => (
+                <Tag color={count > 0 ? "green" : "red"}>{count} items</Tag>
+              ),
+            },
+            {
+              title: "Has Original",
+              dataIndex: "hasOriginal",
+              key: "hasOriginal",
+              width: "15%",
+              align: "center",
+              render: (hasOriginal: boolean) => (
+                <Tag color={hasOriginal ? "blue" : "default"}>
+                  {hasOriginal ? "Yes" : "No"}
+                </Tag>
+              ),
+            },
+            {
+              title: "Last Updated",
+              dataIndex: "lastUpdated",
+              key: "lastUpdated",
+              width: "15%",
+              render: (timestamp: number) =>
+                timestamp ? formatUnixTimestamp(timestamp) : "Never",
+            },
+          ]}
+        />
+      </Modal>
+
+      {/* Batch Progress Modal */}
+      <Modal
+        title={isBatchMerging ? "Auto Merge Progress" : "Restore Progress"}
+        open={batchProgress.isVisible}
+        onCancel={() =>
+          setBatchProgress((prev) => ({ ...prev, isVisible: false }))
+        }
+        footer={[
+          <Button
+            key="close"
+            onClick={() =>
+              setBatchProgress((prev) => ({ ...prev, isVisible: false }))
+            }
+            disabled={isBatchMerging || isBatchRestoring}
+          >
+            {isBatchMerging || isBatchRestoring ? "Processing..." : "Close"}
+          </Button>,
+        ]}
+        width={800}
+        style={{ maxWidth: "95vw" }}
+        className="batch-progress-modal"
+        destroyOnClose={true}
+        maskClosable={false}
+      >
+        <style>
+          {`
+            .batch-progress-modal .ant-modal-body ::-webkit-scrollbar {
+              width: 8px;
+            }
+            .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-track {
+              background: rgb(243 244 246);
+            }
+            .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-thumb {
+              background: rgb(156 163 175);
+              border-radius: 4px;
+            }
+            .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-thumb:hover {
+              background: rgb(107 114 128);
+            }
+            [data-theme="dark"] .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-track {
+              background: rgb(31 41 55);
+            }
+            [data-theme="dark"] .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-thumb {
+              background: rgb(75 85 99);
+            }
+            [data-theme="dark"] .batch-progress-modal .ant-modal-body ::-webkit-scrollbar-thumb:hover {
+              background: rgb(107 114 128);
+            }
+          `}
+        </style>
+        <div className="mb-4 text-gray-800 dark:text-gray-200">
+          <div className="font-semibold text-gray-900 dark:text-white">
+            Progress: {batchProgress.completed} / {batchProgress.total} videos
+            processed
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <Progress
+            percent={
+              batchProgress.total > 0
+                ? Math.round(
+                    (batchProgress.completed / batchProgress.total) * 100
+                  )
+                : 0
+            }
+            status={isBatchMerging || isBatchRestoring ? "active" : "normal"}
+            showInfo={true}
+            strokeColor={{
+              "0%": "#108ee9",
+              "100%": "#87d068",
+            }}
+            trailColor="rgba(0, 0, 0, 0.06)"
+            format={(percent) => (
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {percent}%
+              </span>
+            )}
+          />
+        </div>
+
+        <div
+          className="max-h-96 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md p-2"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgb(156 163 175) rgb(243 244 246)",
+          }}
+        >
+          {batchProgress.results.map((item, index) => (
+            <div
+              key={item.video_id}
+              className={`p-3 flex justify-between items-center ${
+                index < batchProgress.results.length - 1
+                  ? "border-b border-gray-100 dark:border-gray-700"
+                  : ""
+              }`}
+            >
+              <div className="flex-1">
+                <div className="text-gray-900 dark:text-white font-semibold mb-1">
+                  {item.title}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {item.video_id}
+                </div>
+                {item.message && (
+                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+                    {item.message}
+                  </div>
+                )}
+                {item.originalCount && item.mergedCount && (
+                  <div className="text-xs text-green-600 dark:text-green-400">
+                    {item.originalCount} → {item.mergedCount} items (
+                    {item.originalCount - item.mergedCount} reduced)
+                  </div>
+                )}
+              </div>
+              <div>
+                <Tag
+                  color={
+                    item.status === "pending"
+                      ? "default"
+                      : item.status === "processing"
+                      ? "blue"
+                      : item.status === "success"
+                      ? "green"
+                      : "red"
+                  }
+                >
+                  {item.status === "pending"
+                    ? "Pending"
+                    : item.status === "processing"
+                    ? "Processing"
+                    : item.status === "success"
+                    ? "Success"
+                    : "Error"}
+                </Tag>
+              </div>
+            </div>
+          ))}
+        </div>
       </Modal>
     </div>
   );
