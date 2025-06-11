@@ -1476,77 +1476,106 @@ const VideoMain: React.ForwardRefRenderFunction<
                   className="flex-grow overflow-y-auto hide-scrollbar"
                 >
                   <div className="p-4 pb-20">
-                    {transcript.map((item, index) => (
-                      <div
-                        key={index}
-                        className={`subtitle-item ${
-                          revealedSentences.includes(index) ? "revealed" : ""
-                        } ${
-                          !revealedSentences.includes(index) ? "blurred" : ""
-                        } ${index === currentSentenceIndex ? "current" : ""}`}
-                      >
-                        <div className="flex justify-between items-start p-2">
-                          <div className="flex-1 mr-4">
-                            {revealedSentences.includes(index) ? (
-                              <>
-                                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                                  {compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).transcriptResult.map((word, wordIndex) => (
-                                    <span
-                                      key={wordIndex}
-                                      className={`${
-                                        word.isCorrect
-                                          ? "bg-green-200 dark:bg-green-700"
-                                          : "bg-red-200 dark:bg-red-700"
-                                      } px-1 py-0.5 rounded`}
-                                    >
-                                      {word.word}{" "}
-                                    </span>
-                                  ))}
-                                </p>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                                  <Tag color="blue">{t("yourInput")}</Tag>{" "}
-                                  {item.userInput &&
-                                    compareInputWithTranscript(
-                                      item.userInput,
-                                      item.transcript
-                                    ).inputResult.map((word, wordIndex) => (
-                                      <span
-                                        key={wordIndex}
-                                        className={
-                                          word.isCorrect
-                                            ? "text-green-600 dark:text-green-400"
-                                            : "text-red-600 dark:text-red-400"
-                                        }
-                                      >
-                                        {word.word}{" "}
-                                      </span>
-                                    ))}
-                                </p>
-                              </>
-                            ) : (
-                              <p className="text-gray-800 dark:text-gray-200">
-                                {item.transcript}
-                              </p>
+                    {transcript.map((item, index) => {
+                      const isRevealed = revealedSentences.includes(index);
+                      const isCurrent = index === currentSentenceIndex;
+                      const comparisonResult = compareInputWithTranscript(
+                        item.userInput || "",
+                        item.transcript
+                      );
+
+                      return (
+                        <div
+                          key={index}
+                          className={`subtitle-item ${
+                            isRevealed ? "revealed" : ""
+                          } ${isCurrent ? "current" : ""}`}
+                        >
+                          {/* Progress indicator for current item */}
+                          {isCurrent && (
+                            <div
+                              className="progress-indicator"
+                              style={{
+                                width: isRevealed
+                                  ? `${comparisonResult.completionPercentage}%`
+                                  : "0%",
+                              }}
+                            />
+                          )}
+
+                          <div className="flex items-start gap-4">
+                            <div className="flex-1 min-w-0">
+                              {isRevealed ? (
+                                <>
+                                  {/* Original transcript with word highlighting */}
+                                  <div className="text-content text-gray-800 dark:text-gray-200 mb-3">
+                                    {comparisonResult.transcriptResult.map(
+                                      (word, wordIndex) => (
+                                        <span
+                                          key={wordIndex}
+                                          className={`${
+                                            word.isCorrect
+                                              ? "word-correct"
+                                              : "word-incorrect"
+                                          } mr-1`}
+                                        >
+                                          {word.word}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+
+                                  {/* User input section */}
+                                  {item.userInput && (
+                                    <div className="user-input-section">
+                                      <div className="flex items-start gap-2">
+                                        <Tag
+                                          color="blue"
+                                          className="text-xs font-medium flex-shrink-0"
+                                        >
+                                          {t("yourInput")}
+                                        </Tag>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400 flex-1 min-w-0">
+                                          {comparisonResult.inputResult.map(
+                                            (word, wordIndex) => (
+                                              <span
+                                                key={wordIndex}
+                                                className={`${
+                                                  word.isCorrect
+                                                    ? "text-green-600 dark:text-green-400"
+                                                    : "text-red-500 dark:text-red-400"
+                                                } mr-1 font-medium`}
+                                              >
+                                                {word.word}
+                                              </span>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="text-content text-gray-800 dark:text-gray-200">
+                                  {item.transcript}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Progress circle for revealed items - always visible */}
+                            {isRevealed && (
+                              <div className="flex-shrink-0 w-16 flex justify-center">
+                                <ProgressCircle
+                                  percentage={
+                                    comparisonResult.completionPercentage
+                                  }
+                                />
+                              </div>
                             )}
                           </div>
-                          {revealedSentences.includes(index) && (
-                            <div className="flex-shrink-0">
-                              <ProgressCircle
-                                percentage={
-                                  compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).completionPercentage
-                                }
-                              />
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
