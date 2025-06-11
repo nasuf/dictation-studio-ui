@@ -1143,7 +1143,7 @@ const VideoMain: React.ForwardRefRenderFunction<
       } else {
         console.warn("autoSaveProgressRef.current is not available");
       }
-    }, 10000); // 10秒 (临时测试用)
+    }, 30000);
 
     autoSaveTimerRef.current = intervalId;
     console.log("Auto-save timer started with interval ID:", intervalId);
