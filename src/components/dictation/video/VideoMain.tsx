@@ -1106,7 +1106,7 @@ const VideoMain: React.ForwardRefRenderFunction<
           stopTimer();
         }
       }
-    }, 30000);
+    }, 5000);
   }, [stopTimer]);
 
   const onVideoStateChange = useCallback(
@@ -1344,14 +1344,9 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   // Add periodic refresh of quota information
   useEffect(() => {
-    // Refresh quota information every 30 seconds to ensure UI shows the latest data
-    const intervalId = setInterval(() => {
-      if (!isLoadingTranscript) {
-        checkQuota();
-      }
-    }, 30000);
-
-    return () => clearInterval(intervalId);
+    if (!isLoadingTranscript) {
+      checkQuota();
+    }
   }, [isLoadingTranscript]);
 
   return (
