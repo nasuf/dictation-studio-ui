@@ -177,6 +177,15 @@ const AddVideosForm: React.FC<{
       onFinish={onFinish}
       autoComplete="off"
     >
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/30 dark:border-blue-700">
+        <Typography.Text className="text-blue-700 dark:text-blue-300">
+          <strong>Add Videos:</strong> Paste YouTube video links. Video titles
+          will be automatically fetched. SRT subtitle files are optional - if
+          not uploaded, the system will automatically try to download subtitles
+          using yt-dlp.
+        </Typography.Text>
+      </div>
+
       <Form.List name="video_links">
         {(fields, { add, remove }) => (
           <>
@@ -222,10 +231,16 @@ const AddVideosForm: React.FC<{
                   <Form.Item
                     {...restField}
                     name={[name, "title"]}
-                    rules={[{ required: true, message: t("pleaseInputTitle") }]}
+                    rules={[
+                      { required: false, message: t("pleaseInputTitle") },
+                    ]}
                     style={{ flex: "1", marginRight: 8, marginBottom: 0 }}
                   >
-                    <Input placeholder={t("videoTitle")} />
+                    <Input
+                      placeholder={
+                        t("videoTitle") + " (optional - will be auto-fetched)"
+                      }
+                    />
                   </Form.Item>
 
                   {/* Get subtitles button */}
@@ -266,7 +281,7 @@ const AddVideosForm: React.FC<{
                           ] === "loading"
                         }
                       >
-                        {t("uploadSubtitle")}
+                        {t("uploadSubtitle")} (Optional)
                       </Button>
                     </Upload>
                   </Form.Item>
@@ -342,8 +357,14 @@ const AddVideosForm: React.FC<{
 
       {/* Submit button */}
       <Form.Item>
-        <Button type="primary" htmlType="submit" loading={isLoading}>
-          {t("submit")}
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={isLoading}
+          size="large"
+        >
+          <CloudDownloadOutlined style={{ marginRight: 8 }} />
+          Add Videos
         </Button>
       </Form.Item>
     </Form>
@@ -492,9 +513,10 @@ const VideoManagement: React.FC = () => {
       );
       return;
     }
+    // Keep the original filename but map it to the video ID
     const newFile = new File([file], `${videoId}.srt`, { type: file.type });
     setSrtFiles((prev) => ({ ...prev, [videoId]: newFile }));
-    message.success(`${newFile.name} file uploaded successfully`);
+    message.success(`SRT file uploaded for video ${videoId}`);
   };
 
   const onFinish = async (values: {
@@ -513,6 +535,7 @@ const VideoManagement: React.FC = () => {
 
       formData.append("data", JSON.stringify(videoData));
 
+      // Add SRT files if uploaded (optional)
       videoData.forEach((video) => {
         const videoId = extractVideoId(video.video_link);
         const file = srtFiles[videoId];
@@ -532,6 +555,39 @@ const VideoManagement: React.FC = () => {
         }
       } else {
         message.success("Videos uploaded successfully");
+      }
+
+      // Show detailed results if available
+      if (res.results && Array.isArray(res.results)) {
+        interface VideoUploadResult {
+          success?: string;
+          transcript_source?: string;
+          transcript_count?: number;
+        }
+
+        const ytdlpCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "ytdlp_download"
+        ).length;
+        const uploadedCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "uploaded_srt"
+        ).length;
+        const noTranscriptCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "none"
+        ).length;
+
+        if (ytdlpCount > 0) {
+          message.info(
+            `${ytdlpCount} video(s) had subtitles automatically downloaded`
+          );
+        }
+        if (uploadedCount > 0) {
+          message.info(`${uploadedCount} video(s) used uploaded SRT files`);
+        }
+        if (noTranscriptCount > 0) {
+          message.warning(
+            `${noTranscriptCount} video(s) have no subtitles available`
+          );
+        }
       }
 
       fetchVideos(selectedChannel!);
