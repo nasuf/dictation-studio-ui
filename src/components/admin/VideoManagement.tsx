@@ -410,6 +410,12 @@ const VideoManagement: React.FC = () => {
   const [isLoadingTranscriptSummary, setIsLoadingTranscriptSummary] =
     useState(false);
   const [isBatchRestoring, setIsBatchRestoring] = useState(false);
+  const [isBatchUpdatingVisibility, setIsBatchUpdatingVisibility] =
+    useState(false);
+  const [isBatchVisibilityModalVisible, setIsBatchVisibilityModalVisible] =
+    useState(false);
+  const [selectedVisibilityOption, setSelectedVisibilityOption] =
+    useState<string>("");
 
   useEffect(() => {
     fetchChannels();
@@ -1438,6 +1444,130 @@ const VideoManagement: React.FC = () => {
     });
   };
 
+  // Function to batch update visibility for all videos in the channel
+  const batchUpdateVisibility = async (visibility: string) => {
+    if (!selectedChannel || videos.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+
+    const confirmModal = Modal.confirm({
+      title: "Batch Update Video Visibility",
+      content: `Are you sure you want to update visibility to "${visibility}" for all ${videos.length} videos in this channel? This action cannot be undone.`,
+      onOk: async () => {
+        // Close the confirm modal immediately
+        confirmModal.destroy();
+
+        setIsBatchUpdatingVisibility(true);
+
+        // Initialize progress state
+        const initialResults = videos.map((video) => ({
+          video_id: video.video_id,
+          title: video.title,
+          status: "pending" as const,
+        }));
+
+        setBatchProgress({
+          isVisible: true,
+          total: videos.length,
+          completed: 0,
+          processing: 0,
+          results: initialResults,
+        });
+
+        try {
+          // Update progress to show processing phase
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) => ({
+              ...result,
+              status: "processing" as const,
+              message: `Updating visibility to ${visibility}...`,
+            })),
+          }));
+
+          // Call the batch update API
+          const result = await api.batchUpdateVideoVisibility(
+            selectedChannel,
+            visibility
+          );
+
+          // Update final status based on API results
+          setBatchProgress((prev) => ({
+            ...prev,
+            completed: videos.length,
+            processing: 0,
+            results: prev.results.map((progressResult) => {
+              const apiResult = result.results?.find(
+                (r: any) => r.video_id === progressResult.video_id
+              );
+
+              if (apiResult) {
+                return {
+                  ...progressResult,
+                  status: apiResult.success
+                    ? ("success" as const)
+                    : ("error" as const),
+                  message: apiResult.message || progressResult.message,
+                };
+              }
+              return {
+                ...progressResult,
+                status: "success" as const,
+                message: `Visibility updated to ${visibility}`,
+              };
+            }),
+          }));
+
+          message.success(
+            `Batch visibility update completed: ${result.success_count} videos updated successfully, ${result.error_count} failed`
+          );
+
+          // Refresh the video list to show updated visibility
+          fetchVideos(selectedChannel);
+        } catch (error) {
+          console.error("Error in batch visibility update:", error);
+          message.error("Failed to update video visibility");
+
+          // Update all processing items to error
+          setBatchProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) =>
+              result.status === "processing"
+                ? {
+                    ...result,
+                    status: "error" as const,
+                    message: "Update failed",
+                  }
+                : result
+            ),
+          }));
+        } finally {
+          setIsBatchUpdatingVisibility(false);
+          // Ensure the modal title updates correctly by forcing a re-render
+          setTimeout(() => {
+            if (batchProgress.isVisible) {
+              setBatchProgress((prev) => ({ ...prev }));
+            }
+          }, 100);
+        }
+      },
+      onCancel() {
+        // Do nothing if the user cancels
+      },
+    });
+  };
+
+  // Function to show batch visibility update modal
+  const showBatchVisibilityModal = () => {
+    if (!selectedChannel || videos.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+    setIsBatchVisibilityModalVisible(true);
+    setSelectedVisibilityOption("");
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <Card title="Video Management">
@@ -1518,6 +1648,15 @@ const VideoManagement: React.FC = () => {
             style={{ marginLeft: 10 }}
           >
             Transcript Management
+          </Button>
+          <Button
+            type="primary"
+            onClick={showBatchVisibilityModal}
+            disabled={!selectedChannel || videos.length === 0}
+            icon={<EditOutlined />}
+            style={{ marginLeft: 10 }}
+          >
+            Batch Visibility Update
           </Button>
         </Space>
         <Form form={form} component={false}>
@@ -1738,7 +1877,15 @@ const VideoManagement: React.FC = () => {
 
       {/* Batch Progress Modal */}
       <Modal
-        title={isBatchMerging ? "Auto Merge Progress" : "Restore Progress"}
+        title={
+          isBatchMerging
+            ? "Auto Merge Progress"
+            : isBatchRestoring
+            ? "Restore Progress"
+            : isBatchUpdatingVisibility
+            ? "Visibility Update Progress"
+            : "Progress"
+        }
         open={batchProgress.isVisible}
         onCancel={() =>
           setBatchProgress((prev) => ({ ...prev, isVisible: false }))
@@ -1749,9 +1896,13 @@ const VideoManagement: React.FC = () => {
             onClick={() =>
               setBatchProgress((prev) => ({ ...prev, isVisible: false }))
             }
-            disabled={isBatchMerging || isBatchRestoring}
+            disabled={
+              isBatchMerging || isBatchRestoring || isBatchUpdatingVisibility
+            }
           >
-            {isBatchMerging || isBatchRestoring ? "Processing..." : "Close"}
+            {isBatchMerging || isBatchRestoring || isBatchUpdatingVisibility
+              ? "Processing..."
+              : "Close"}
           </Button>,
         ]}
         width={800}
@@ -1802,7 +1953,11 @@ const VideoManagement: React.FC = () => {
                   )
                 : 0
             }
-            status={isBatchMerging || isBatchRestoring ? "active" : "normal"}
+            status={
+              isBatchMerging || isBatchRestoring || isBatchUpdatingVisibility
+                ? "active"
+                : "normal"
+            }
             showInfo={true}
             strokeColor={{
               "0%": "#108ee9",
@@ -1875,6 +2030,75 @@ const VideoManagement: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </Modal>
+
+      {/* Batch Visibility Update Modal */}
+      <Modal
+        title="Batch Update Video Visibility"
+        open={isBatchVisibilityModalVisible}
+        onCancel={() => setIsBatchVisibilityModalVisible(false)}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setIsBatchVisibilityModalVisible(false)}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="update"
+            type="primary"
+            onClick={() => {
+              if (selectedVisibilityOption) {
+                batchUpdateVisibility(selectedVisibilityOption);
+                setIsBatchVisibilityModalVisible(false);
+              } else {
+                message.warning("Please select a visibility option");
+              }
+            }}
+            disabled={!selectedVisibilityOption || isBatchUpdatingVisibility}
+            loading={isBatchUpdatingVisibility}
+          >
+            Update All Videos
+          </Button>,
+        ]}
+        width={500}
+        maskClosable={false}
+      >
+        <div className="mb-4">
+          <Typography.Text strong className="text-gray-900 dark:text-white">
+            Channel: {selectedChannel} ({videos.length} videos)
+          </Typography.Text>
+        </div>
+
+        <div className="mb-4">
+          <Typography.Text className="text-gray-700 dark:text-gray-300">
+            Select the new visibility setting for all videos in this channel:
+          </Typography.Text>
+        </div>
+
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Select visibility option"
+          value={selectedVisibilityOption}
+          onChange={setSelectedVisibilityOption}
+          size="large"
+        >
+          {Object.entries(VISIBILITY_OPTIONS)
+            .filter(([_, value]) => value !== "all")
+            .map(([key, value]) => (
+              <Option key={value} value={value}>
+                {key}
+              </Option>
+            ))}
+        </Select>
+
+        <div className="mt-4 p-3 bg-orange-50 border-l-4 border-orange-500 rounded-md dark:bg-orange-900/30 dark:border-orange-400">
+          <Typography.Text className="text-orange-700 dark:text-orange-300 text-sm">
+            <strong>Warning:</strong> This action will update the visibility of
+            ALL {videos.length} videos in the selected channel. This operation
+            cannot be undone.
+          </Typography.Text>
         </div>
       </Modal>
     </div>

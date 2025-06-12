@@ -311,4 +311,11 @@ export const api = {
     );
     return response.data;
   },
+  batchUpdateVideoVisibility: async (channelId: string, visibility: string) => {
+    const response = await axiosInstance.put(
+      `/service/${channelId}/batch-visibility-update`,
+      { visibility }
+    );
+    return response.data;
+  },
 };
