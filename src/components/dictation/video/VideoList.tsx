@@ -81,7 +81,26 @@ const VideoList: React.FC = () => {
       ) : (
         <VideoCardGrid>
           {videos
-            .sort((a, b) => b.created_at - a.created_at)
+            .sort((a, b) => {
+              // Get progress for both videos
+              const progressA = progress[a.video_id] || 0;
+              const progressB = progress[b.video_id] || 0;
+
+              // Check if videos have progress (> 0)
+              const hasProgressA = progressA > 0;
+              const hasProgressB = progressB > 0;
+
+              // If one has progress and the other doesn't, prioritize the one with progress
+              if (hasProgressA && !hasProgressB) {
+                return -1; // a comes first
+              }
+              if (!hasProgressA && hasProgressB) {
+                return 1; // b comes first
+              }
+
+              // If both have progress or both don't have progress, sort by created_at (descending)
+              return b.created_at - a.created_at;
+            })
             .map((video) => (
               <Link
                 key={video.video_id}
