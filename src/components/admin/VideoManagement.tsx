@@ -1019,8 +1019,7 @@ const VideoManagement: React.FC = () => {
     // maxDuration: 10 seconds, toleranceDuration: 2 seconds
     const mergedResult = autoMergeTranscriptItems(
       currentTranscript,
-      10, // maxDuration - 10 seconds max per merged item
-      2 // toleranceDuration - allow up to 2 seconds over the limit
+      10 // maxDuration - 10 seconds max per merged item
     );
 
     // Update transcript state
@@ -1121,8 +1120,7 @@ const VideoManagement: React.FC = () => {
                 // Apply auto-merge to this transcript
                 const mergedTranscript = autoMergeTranscriptItems(
                   originalTranscript,
-                  10, // maxDuration - 10 seconds max per merged item
-                  2 // toleranceDuration - allow up to 2 seconds over the limit
+                  10 // maxDuration - 10 seconds max per merged item
                 );
 
                 // Check if there was actually a change
@@ -1675,6 +1673,7 @@ const VideoManagement: React.FC = () => {
         width={1000}
         style={{ maxWidth: "95vw" }}
         className="transcript-management-modal"
+        maskClosable={false}
       >
         <div style={{ marginBottom: 16 }}>
           <Typography.Text strong style={{ color: "var(--ant-text-color)" }}>

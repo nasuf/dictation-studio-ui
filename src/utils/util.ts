@@ -121,8 +121,7 @@ const shouldMergeItems = (current: TranscriptItem): boolean => {
 // Simplified function to automatically merge transcript items based on punctuation
 export const autoMergeTranscriptItems = (
   transcript: TranscriptItem[],
-  maxDuration: number = 10, // Default 10 seconds max
-  toleranceDuration: number = 2 // Allow up to 2 seconds over the limit
+  maxDuration: number = 10 // Default 10 seconds max
 ): TranscriptItem[] => {
   if (transcript.length < 2) {
     return transcript;
@@ -146,8 +145,7 @@ export const autoMergeTranscriptItems = (
     const isCurrentComplete = isCompleteSentence(current.transcript);
 
     // Check if merging would exceed time limit (with tolerance)
-    const wouldExceedTimeLimit =
-      mergedDuration > maxDuration + toleranceDuration;
+    const wouldExceedTimeLimit = mergedDuration > maxDuration;
 
     // Check if current should be merged based on punctuation
     const shouldMerge = shouldMergeItems(current);
