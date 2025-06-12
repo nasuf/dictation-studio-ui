@@ -454,7 +454,7 @@ const UserManagement: React.FC = () => {
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
-            User Management
+            User Management | Total: {users.length}
           </div>
         }
         extra={

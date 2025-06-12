@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:prod": "vite --mode production",
     "build": "tsc -b && vite build",
+    "build:dev": "tsc -b && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "serve -s dist -l 5173"
+    "preview:dev": "vite preview --mode development",
+    "preview:prod": "vite preview --mode production",
+    "start": "serve -s dist -l 5173",
+    "env:info": "echo 'Available environments:' && echo '- development: npm run dev (or npm run build:dev)' && echo '- production: npm run dev:prod (or npm run build)'"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",

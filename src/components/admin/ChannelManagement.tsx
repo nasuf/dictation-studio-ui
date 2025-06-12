@@ -736,7 +736,13 @@ const ChannelManagement: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <Card title="Channel Management">
+      <Card
+        title={
+          <div className="text-xl font-semibold dark:text-white">
+            Channel Management | Total: {channels.length}
+          </div>
+        }
+      >
         <Space style={{ marginBottom: 16 }}>
           <span style={{ marginRight: 10, marginLeft: 10 }}>Languages:</span>
           <Select
