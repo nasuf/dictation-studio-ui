@@ -2,7 +2,7 @@ import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import {
   ContainerTwoTone,
-  CustomerServiceTwoTone,
+  CustomerServiceOutlined,
   HistoryOutlined,
   IdcardTwoTone,
   PlusCircleTwoTone,
@@ -46,7 +46,7 @@ const AppSider: React.FC<AppSiderProps> = ({
   const mainSiderItems: MenuItem[] = [
     {
       key: "Video Dictation",
-      icon: <CustomerServiceTwoTone />,
+      icon: <CustomerServiceOutlined />,
       label: t("videoDictation"),
       path: "/dictation/video",
     },
