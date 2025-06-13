@@ -1824,6 +1824,7 @@ const VideoManagement: React.FC = () => {
         title={`Video Transcript - ${currentVideoId}`}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
+        zIndex={1100}
         footer={[
           <Button
             key="loadOriginal"
@@ -1960,14 +1961,14 @@ const VideoManagement: React.FC = () => {
               title: "Video ID",
               dataIndex: "video_id",
               key: "video_id",
-              width: "20%",
+              width: "18%",
               ellipsis: true,
             },
             {
               title: "Title",
               dataIndex: "title",
               key: "title",
-              width: "35%",
+              width: "32%",
               ellipsis: true,
             },
             {
@@ -1999,6 +2000,24 @@ const VideoManagement: React.FC = () => {
               width: "15%",
               render: (timestamp: number) =>
                 timestamp ? formatUnixTimestamp(timestamp) : "Never",
+            },
+            {
+              title: "Action",
+              key: "action",
+              width: "10%",
+              align: "center",
+              render: (_: any, record: any) => (
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() =>
+                    showTranscript(selectedChannel!, record.video_id)
+                  }
+                  icon={<EditOutlined />}
+                >
+                  View
+                </Button>
+              ),
             },
           ]}
         />
