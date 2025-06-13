@@ -479,6 +479,12 @@ const VideoManagement: React.FC = () => {
     results: [],
   });
 
+  // Filter-related state
+  const [filters, setFilters] = useState<string[]>([]);
+  const [selectedText, setSelectedText] = useState<string>("");
+  const [isSavingFilters, setIsSavingFilters] = useState(false);
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+
   useEffect(() => {
     fetchChannels();
   }, []);
@@ -488,6 +494,13 @@ const VideoManagement: React.FC = () => {
       fetchVideos(selectedChannel, selectedLanguage);
     }
   }, [selectedChannel, selectedLanguage]);
+
+  // Load filters when modal opens (only one useEffect needed)
+  useEffect(() => {
+    if (isModalVisible && selectedChannel) {
+      loadFilters();
+    }
+  }, [isModalVisible, selectedChannel]);
 
   const fetchChannels = async () => {
     try {
@@ -564,9 +577,12 @@ const VideoManagement: React.FC = () => {
     setIsTranscriptLoading(true);
     setIsModalVisible(true);
     setCurrentVideoId(videoId);
+    setSelectedChannel(channelId);
     try {
       const response = await api.getVideoTranscript(channelId, videoId);
       setCurrentTranscript(response.data.transcript);
+
+      // Don't call loadFilters here - let useEffect handle it
     } catch (error) {
       console.error("Error fetching transcript:", error);
       message.error("Failed to fetch transcript");
@@ -1582,6 +1598,120 @@ const VideoManagement: React.FC = () => {
     setSelectedVisibilityOption("");
   };
 
+  // Filter-related functions
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      setSelectedText(selection.toString().trim());
+    }
+  };
+
+  const addToFilters = () => {
+    if (!selectedText.trim()) {
+      message.warning("Please select some text first");
+      return;
+    }
+
+    if (filters.includes(selectedText)) {
+      message.warning("This filter already exists");
+      return;
+    }
+
+    setFilters([...filters, selectedText]);
+    message.success(`Added "${selectedText}" to filters`);
+    setSelectedText("");
+  };
+
+  const removeFilter = (filter: string) => {
+    setFilters(filters.filter((f) => f !== filter));
+    message.success(`Removed "${filter}" from filters`);
+  };
+
+  const saveFilters = async () => {
+    if (filters.length === 0) {
+      message.warning("No filters to save");
+      return;
+    }
+
+    setIsSavingFilters(true);
+    try {
+      // Save all current filters to Redis
+      await api.saveTranscriptFilters(selectedChannel!, filters);
+
+      message.success(`Saved ${filters.length} filters successfully`);
+    } catch (error) {
+      console.error("Error saving filters:", error);
+      message.error("Failed to save filters");
+    } finally {
+      setIsSavingFilters(false);
+    }
+  };
+
+  const loadFilters = async () => {
+    if (!selectedChannel) {
+      return;
+    }
+
+    try {
+      const response = await api.getTranscriptFilters(selectedChannel);
+
+      // API function already returns response.data, so response = {channel_id: "...", filters: [...]}
+      let filtersData = [];
+      if (response && Array.isArray(response.filters)) {
+        filtersData = response.filters;
+      }
+
+      setFilters(filtersData);
+    } catch (error) {
+      console.error("Error loading filters:", error);
+      setFilters([]); // Set empty array on error
+    }
+  };
+
+  const applyAllFilters = () => {
+    if (filters.length === 0) {
+      message.warning("No filters to apply");
+      return;
+    }
+
+    setIsApplyingFilters(true);
+
+    // Save current state to history before making changes
+    setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+    try {
+      const filteredTranscript = currentTranscript.map((item) => {
+        let filteredText = item.transcript;
+
+        // Apply each filter to remove matching text
+        filters.forEach((filter) => {
+          // Create a case-insensitive regex to match the filter text
+          const regex = new RegExp(
+            filter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            "gi"
+          );
+          filteredText = filteredText.replace(regex, "").trim();
+
+          // Clean up extra spaces
+          filteredText = filteredText.replace(/\s+/g, " ").trim();
+        });
+
+        return {
+          ...item,
+          transcript: filteredText,
+        };
+      });
+
+      setCurrentTranscript(filteredTranscript);
+      message.success(`Applied ${filters.length} filters to transcript`);
+    } catch (error) {
+      console.error("Error applying filters:", error);
+      message.error("Failed to apply filters");
+    } finally {
+      setIsApplyingFilters(false);
+    }
+  };
+
   const onFinish = async (values: {
     video_links: Array<{ link: string; title: string }>;
   }) => {
@@ -1823,53 +1953,101 @@ const VideoManagement: React.FC = () => {
         maskClosable={false}
         title={`Video Transcript - ${currentVideoId}`}
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          // Clear filter states when modal closes
+          setSelectedText("");
+        }}
         zIndex={1100}
-        footer={[
-          <Button
-            key="loadOriginal"
-            onClick={loadOriginalTranscript}
-            icon={<CloudDownloadOutlined />}
-            size="middle"
-          >
-            Load Original Transcript
-          </Button>,
-          <Button
-            key="undo"
-            onClick={undoMerge}
-            disabled={transcriptHistory.length === 0}
-            icon={<UndoOutlined />}
-            size="middle"
-          >
-            Undo
-          </Button>,
-          <Button
-            key="autoMerge"
-            onClick={autoMergeTranscripts}
-            icon={<MergeCellsOutlined />}
-            size="middle"
-          >
-            Auto Merge
-          </Button>,
-          <Button
-            key="merge"
-            onClick={mergeTranscripts}
-            disabled={selectedRows.length < 2}
-            icon={<MergeCellsOutlined />}
-            size="middle"
-          >
-            Merge Selected
-          </Button>,
-          <Button
-            loading={isUpdatingTranscript}
-            key="update"
-            onClick={updateFullTranscript}
-            type="primary"
-            size="middle"
-          >
-            Update Full Transcript
-          </Button>,
-        ]}
+        footer={
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* First Row: Transcript & Merge Operations */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Space>
+                <Button
+                  onClick={loadOriginalTranscript}
+                  icon={<CloudDownloadOutlined />}
+                  size="middle"
+                >
+                  Restore
+                </Button>
+                <Button
+                  onClick={undoMerge}
+                  disabled={transcriptHistory.length === 0}
+                  icon={<UndoOutlined />}
+                  size="middle"
+                >
+                  Undo
+                </Button>
+                <Button
+                  onClick={autoMergeTranscripts}
+                  icon={<MergeCellsOutlined />}
+                  size="middle"
+                >
+                  Auto Merge
+                </Button>
+                <Button
+                  onClick={mergeTranscripts}
+                  disabled={selectedRows.length < 2}
+                  icon={<MergeCellsOutlined />}
+                  size="middle"
+                >
+                  Merge Selected
+                </Button>
+              </Space>
+            </div>
+
+            {/* Second Row: Filter Operations & Update */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Space>
+                <Button
+                  onClick={addToFilters}
+                  disabled={!selectedText}
+                  size="middle"
+                >
+                  Add to Filter
+                </Button>
+                <Button
+                  onClick={saveFilters}
+                  loading={isSavingFilters}
+                  disabled={filters.length === 0}
+                  size="middle"
+                >
+                  Save Filters ({filters.length})
+                </Button>
+                <Button
+                  onClick={applyAllFilters}
+                  loading={isApplyingFilters}
+                  disabled={filters.length === 0}
+                  size="middle"
+                >
+                  Apply Filters ({filters.length})
+                </Button>
+              </Space>
+
+              <Button
+                loading={isUpdatingTranscript}
+                onClick={updateFullTranscript}
+                type="primary"
+                size="middle"
+              >
+                Update
+              </Button>
+            </div>
+          </div>
+        }
         width={1000}
         style={{
           maxWidth: "95vw",
@@ -1880,16 +2058,67 @@ const VideoManagement: React.FC = () => {
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <Form form={form} component={false}>
-            <Table
-              rowSelection={rowSelection}
-              columns={transcriptColumns}
-              dataSource={currentTranscript}
-              rowKey={(record) => record.start.toString()}
-              pagination={{ pageSize: 10 }}
-              scroll={{ y: 400 }}
-            />
-          </Form>
+          <div>
+            {/* Filter Status Section */}
+            <div
+              style={{
+                marginBottom: 16,
+                padding: 12,
+                backgroundColor: "#f5f5f5",
+                borderRadius: 6,
+              }}
+            >
+              <div style={{ marginBottom: 8 }}>
+                <Typography.Text strong>Selected Text: </Typography.Text>
+                <Typography.Text code>{selectedText || "None"}</Typography.Text>
+              </div>
+
+              <div>
+                <Typography.Text strong>Filters: </Typography.Text>
+                <Typography.Text
+                  style={{ marginLeft: 8, fontSize: "12px", color: "#666" }}
+                >
+                  ({filters.length} filters)
+                </Typography.Text>
+                <div style={{ marginTop: 4 }}>
+                  {filters.length > 0 ? (
+                    filters.map((filter, index) => (
+                      <Tag
+                        key={index}
+                        closable
+                        onClose={() => removeFilter(filter)}
+                        color="blue"
+                        style={{ marginBottom: 4 }}
+                      >
+                        {filter}
+                      </Tag>
+                    ))
+                  ) : (
+                    <Typography.Text
+                      type="secondary"
+                      style={{ fontSize: "12px" }}
+                    >
+                      No filters found
+                    </Typography.Text>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Form form={form} component={false}>
+              <Table
+                rowSelection={rowSelection}
+                columns={transcriptColumns}
+                dataSource={currentTranscript}
+                rowKey={(record) => record.start.toString()}
+                pagination={{ pageSize: 10 }}
+                scroll={{ y: 400 }}
+                onRow={() => ({
+                  onMouseUp: handleTextSelection,
+                })}
+              />
+            </Form>
+          </div>
         )}
       </Modal>
 

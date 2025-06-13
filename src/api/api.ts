@@ -318,4 +318,20 @@ export const api = {
     );
     return response.data;
   },
+
+  // Transcript filter related APIs
+  saveTranscriptFilters: async (channelId: string, filters: string[]) => {
+    const response = await axiosInstance.post(
+      `/service/${channelId}/transcript-filters`,
+      { filters }
+    );
+    return response.data;
+  },
+
+  getTranscriptFilters: async (channelId: string) => {
+    const response = await axiosInstance.get(
+      `/service/${channelId}/transcript-filters`
+    );
+    return response.data;
+  },
 };
