@@ -346,4 +346,17 @@ export const api = {
     );
     return response.data;
   },
+
+  // Single video apply filters
+  applySingleVideoFilters: async (
+    channelId: string,
+    videoId: string,
+    filters: string[]
+  ) => {
+    const response = await axiosInstance.post(
+      `/service/${channelId}/${videoId}/apply-filters`,
+      { filters }
+    );
+    return response.data;
+  },
 };

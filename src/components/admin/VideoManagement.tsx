@@ -1697,9 +1697,14 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const applyAllFilters = () => {
+  const applyAllFilters = async () => {
     if (filters.length === 0) {
       message.warning("No filters to apply");
+      return;
+    }
+
+    if (!currentVideoId || !selectedChannel) {
+      message.error("No video or channel selected");
       return;
     }
 
@@ -1709,33 +1714,41 @@ const VideoManagement: React.FC = () => {
     setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
 
     try {
-      const filteredTranscript = currentTranscript.map((item) => {
-        let filteredText = item.transcript;
+      // Call backend API to apply filters
+      const response = await api.applySingleVideoFilters(
+        selectedChannel,
+        currentVideoId,
+        filters
+      );
 
-        // Apply each filter to remove matching text
-        filters.forEach((filter) => {
-          // Create a case-insensitive regex to match the filter text
-          const regex = new RegExp(
-            filter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            "gi"
+      // Update transcript with the filtered result from backend
+      if (response.transcript) {
+        setCurrentTranscript(response.transcript);
+
+        // Show detailed success message
+        const totalChanges = response.total_changes || 0;
+        if (totalChanges > 0) {
+          message.success(
+            `Applied ${filters.length} filters to transcript: ${totalChanges} changes made`
           );
-          filteredText = filteredText.replace(regex, "").trim();
-
-          // Clean up extra spaces
-          filteredText = filteredText.replace(/\s+/g, " ").trim();
-        });
-
-        return {
-          ...item,
-          transcript: filteredText,
-        };
-      });
-
-      setCurrentTranscript(filteredTranscript);
-      message.success(`Applied ${filters.length} filters to transcript`);
+        } else {
+          message.info(
+            `Applied ${filters.length} filters to transcript: No matches found`
+          );
+        }
+      } else {
+        message.error("No transcript data received from server");
+      }
     } catch (error) {
       console.error("Error applying filters:", error);
       message.error("Failed to apply filters");
+
+      // Restore previous state on error
+      if (transcriptHistory.length > 0) {
+        const previousState = transcriptHistory[transcriptHistory.length - 1];
+        setCurrentTranscript(previousState);
+        setTranscriptHistory(transcriptHistory.slice(0, -1));
+      }
     } finally {
       setIsApplyingFilters(false);
     }
