@@ -2365,8 +2365,22 @@ const VideoManagement: React.FC = () => {
             }
             icon={<MergeCellsOutlined />}
           >
-            Auto Merge All (
+            Auto Merge to All Transcripts (
             {transcriptSummary.filter((s) => !s.hasOriginal).length})
+          </Button>,
+          <Button
+            type="primary"
+            onClick={batchApplyFiltersToAllTranscripts}
+            loading={isBatchApplyingFilters}
+            disabled={
+              filters.length === 0 ||
+              transcriptSummary.filter((s) => s.transcriptCount > 0).length ===
+                0
+            }
+            icon={<FilterOutlined />}
+          >
+            Apply Filters to All Transcripts (
+            {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
           </Button>,
           <Button
             key="restore-all"
@@ -2411,20 +2425,6 @@ const VideoManagement: React.FC = () => {
             <Typography.Text strong className="text-gray-900 dark:text-white">
               Channel Filters ({filters.length})
             </Typography.Text>
-            <Button
-              type="primary"
-              onClick={batchApplyFiltersToAllTranscripts}
-              loading={isBatchApplyingFilters}
-              disabled={
-                filters.length === 0 ||
-                transcriptSummary.filter((s) => s.transcriptCount > 0)
-                  .length === 0
-              }
-              icon={<FilterOutlined />}
-            >
-              Apply Filters to All Transcripts (
-              {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
-            </Button>
           </div>
 
           {filters.length > 0 ? (
