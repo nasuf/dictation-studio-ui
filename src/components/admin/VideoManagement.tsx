@@ -818,25 +818,6 @@ const VideoManagement: React.FC = () => {
       dataIndex: "transcript",
       key: "transcript",
       editable: true,
-      render: (text: string, record: TranscriptItem) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Form.Item
-            name="transcript"
-            style={{ margin: 0 }}
-            rules={[
-              { required: true, message: "Please input the transcript!" },
-            ]}
-          >
-            <TextArea
-              autoSize={{ minRows: 2, maxRows: 6 }}
-              defaultValue={text}
-            />
-          </Form.Item>
-        ) : (
-          text
-        );
-      },
     },
     {
       title: "Action",
@@ -869,6 +850,22 @@ const VideoManagement: React.FC = () => {
       width: "15%",
     },
   ];
+
+  const mergedTranscriptColumns = transcriptColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: TranscriptItem) => ({
+        record,
+        inputType: col.dataIndex === "transcript" ? "textarea" : "text",
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditing(record),
+      }),
+    };
+  });
 
   const handleDeleteVideo = async (channelId: string, videoId: string) => {
     Modal.confirm({
@@ -1079,12 +1076,7 @@ const VideoManagement: React.FC = () => {
       return;
     }
 
-    // Filter videos that don't have original transcripts (haven't been modified)
-    const videosToMerge = transcriptSummary.filter(
-      (summary) => !summary.hasOriginal
-    );
-
-    if (videosToMerge.length === 0) {
+    if (transcriptSummary.length === 0) {
       message.info(
         "No videos need merging. All videos either have original transcripts (already modified) or no transcripts."
       );
@@ -1093,7 +1085,7 @@ const VideoManagement: React.FC = () => {
 
     const confirmModal = Modal.confirm({
       title: "Auto Merge All Transcripts",
-      content: `Are you sure you want to auto-merge transcripts for ${videosToMerge.length} videos (out of ${videos.length} total) that haven't been modified yet? This action will modify these transcripts and cannot be easily undone.`,
+      content: `Are you sure you want to auto-merge transcripts for ${transcriptSummary.length} videos (out of ${videos.length} total)`,
       onOk: async () => {
         // Close the confirm modal immediately
         confirmModal.destroy();
@@ -1101,7 +1093,7 @@ const VideoManagement: React.FC = () => {
         setIsBatchMerging(true);
 
         // Initialize progress state - only for videos that need merging
-        const initialResults = videosToMerge.map((summary) => ({
+        const initialResults = transcriptSummary.map((summary) => ({
           video_id: summary.video_id,
           title: summary.title,
           status: "pending" as const,
@@ -1109,7 +1101,7 @@ const VideoManagement: React.FC = () => {
 
         setBatchProgress({
           isVisible: true,
-          total: videosToMerge.length,
+          total: transcriptSummary.length,
           completed: 0,
           processing: 0,
           results: initialResults,
@@ -1125,8 +1117,8 @@ const VideoManagement: React.FC = () => {
           const BATCH_SIZE = 5; // Process 5 videos at a time
 
           // Process videos in batches - only process videos that need merging
-          for (let i = 0; i < videosToMerge.length; i += BATCH_SIZE) {
-            const batch = videosToMerge.slice(i, i + BATCH_SIZE);
+          for (let i = 0; i < transcriptSummary.length; i += BATCH_SIZE) {
+            const batch = transcriptSummary.slice(i, i + BATCH_SIZE);
 
             // Update status to processing for current batch
             setBatchProgress((prev) => ({
@@ -1237,7 +1229,7 @@ const VideoManagement: React.FC = () => {
             processedCount += batch.length;
 
             // Small delay between batches to prevent overwhelming the server
-            if (i + BATCH_SIZE < videosToMerge.length) {
+            if (i + BATCH_SIZE < transcriptSummary.length) {
               await new Promise((resolve) => setTimeout(resolve, 500));
             }
           }
@@ -2322,8 +2314,13 @@ const VideoManagement: React.FC = () => {
 
             <Form form={form} component={false}>
               <Table
+                components={{
+                  body: {
+                    cell: EditableCell,
+                  },
+                }}
                 rowSelection={rowSelection}
-                columns={transcriptColumns}
+                columns={mergedTranscriptColumns}
                 dataSource={currentTranscript}
                 rowKey={(record) => record.start.toString()}
                 pagination={{ pageSize: 10 }}
@@ -2348,14 +2345,11 @@ const VideoManagement: React.FC = () => {
             type="primary"
             onClick={autoMergeAllTranscripts}
             loading={isBatchMerging}
-            disabled={
-              isBatchRestoring ||
-              transcriptSummary.filter((s) => !s.hasOriginal).length === 0
-            }
+            disabled={isBatchRestoring}
             icon={<MergeCellsOutlined />}
           >
             Auto Merge to All Transcripts (
-            {transcriptSummary.filter((s) => !s.hasOriginal).length})
+            {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
           </Button>,
           <Button
             type="primary"
@@ -2998,6 +2992,13 @@ const EditableCell: React.FC<any> = ({
     return <td {...restProps}>{children}</td>;
   }
 
+  const inputNode =
+    inputType === "textarea" ? (
+      <TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
+    ) : (
+      <Input />
+    );
+
   return (
     <td {...restProps}>
       {editing ? (
@@ -3011,7 +3012,7 @@ const EditableCell: React.FC<any> = ({
             },
           ]}
         >
-          <Input />
+          {inputNode}
         </Form.Item>
       ) : (
         children
