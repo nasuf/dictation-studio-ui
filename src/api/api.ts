@@ -334,4 +334,16 @@ export const api = {
     );
     return response.data;
   },
+
+  batchApplyFilters: async (
+    channelId: string,
+    videoIds: string[],
+    filters: string[]
+  ) => {
+    const response = await axiosInstance.post(
+      `/service/${channelId}/batch-apply-filters`,
+      { video_ids: videoIds, filters }
+    );
+    return response.data;
+  },
 };

@@ -30,6 +30,9 @@ import {
   CloseCircleOutlined,
   DownloadOutlined,
   ReloadOutlined,
+  FilterOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -484,6 +487,27 @@ const VideoManagement: React.FC = () => {
   const [selectedText, setSelectedText] = useState<string>("");
   const [isSavingFilters, setIsSavingFilters] = useState(false);
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+  const [isBatchApplyingFilters, setIsBatchApplyingFilters] = useState(false);
+  const [batchFilterProgress, setBatchFilterProgress] = useState<{
+    isVisible: boolean;
+    total: number;
+    completed: number;
+    processing: number;
+    results: Array<{
+      video_id: string;
+      title: string;
+      status: "pending" | "processing" | "success" | "error";
+      message?: string;
+      totalChanges?: number;
+      filterStats?: { [filterText: string]: number };
+    }>;
+  }>({
+    isVisible: false,
+    total: 0,
+    completed: 0,
+    processing: 0,
+    results: [],
+  });
 
   useEffect(() => {
     fetchChannels();
@@ -1337,9 +1361,13 @@ const VideoManagement: React.FC = () => {
     setIsLoadingTranscriptSummary(true);
 
     try {
-      // Get transcript summary for all videos in one API call
-      const response = await api.getTranscriptSummary(selectedChannel);
-      const summaries = response.summaries || [];
+      // Get transcript summary and filters in parallel
+      const [summaryResponse, filtersResponse] = await Promise.all([
+        api.getTranscriptSummary(selectedChannel),
+        api.getTranscriptFilters(selectedChannel),
+      ]);
+
+      const summaries = summaryResponse.summaries || [];
 
       // Transform the data to match our component's expected format
       const transformedSummary = summaries.map((summary: any) => ({
@@ -1351,9 +1379,10 @@ const VideoManagement: React.FC = () => {
       }));
 
       setTranscriptSummary(transformedSummary);
+      setFilters(filtersResponse.filters || []);
     } catch (error) {
-      console.error("Error loading transcript summary:", error);
-      message.error("Failed to load transcript summary");
+      console.error("Error loading transcript management data:", error);
+      message.error("Failed to load transcript management data");
     } finally {
       setIsLoadingTranscriptSummary(false);
     }
@@ -1710,6 +1739,187 @@ const VideoManagement: React.FC = () => {
     } finally {
       setIsApplyingFilters(false);
     }
+  };
+
+  // Batch apply filters to all transcripts
+  const batchApplyFiltersToAllTranscripts = async () => {
+    if (!selectedChannel || transcriptSummary.length === 0) {
+      message.warning("No channel selected or no videos available");
+      return;
+    }
+
+    if (filters.length === 0) {
+      message.warning("No filters available to apply");
+      return;
+    }
+
+    // Filter videos that have transcripts
+    const videosWithTranscripts = transcriptSummary.filter(
+      (summary) => summary.transcriptCount > 0
+    );
+
+    if (videosWithTranscripts.length === 0) {
+      message.info("No videos with transcripts found");
+      return;
+    }
+
+    const confirmModal = Modal.confirm({
+      title: "Batch Apply Filters to All Transcripts",
+      content: `Are you sure you want to apply ${filters.length} filters to ${videosWithTranscripts.length} videos with transcripts? This action will modify these transcripts and cannot be easily undone.`,
+      onOk: async () => {
+        confirmModal.destroy();
+
+        setIsBatchApplyingFilters(true);
+
+        // Initialize progress state
+        const initialResults = videosWithTranscripts.map((summary) => ({
+          video_id: summary.video_id,
+          title: summary.title,
+          status: "pending" as const,
+        }));
+
+        setBatchFilterProgress({
+          isVisible: true,
+          total: videosWithTranscripts.length,
+          completed: 0,
+          processing: 0,
+          results: initialResults,
+        });
+
+        try {
+          let processedCount = 0;
+          let successCount = 0;
+          let errorCount = 0;
+          const BATCH_SIZE = 5; // Process 5 videos at a time as requested
+
+          // Process videos in batches
+          for (let i = 0; i < videosWithTranscripts.length; i += BATCH_SIZE) {
+            const batch = videosWithTranscripts.slice(i, i + BATCH_SIZE);
+            const batchVideoIds = batch.map((summary) => summary.video_id);
+
+            // Update status to processing for current batch
+            setBatchFilterProgress((prev) => ({
+              ...prev,
+              processing: batch.length,
+              results: prev.results.map((result) => {
+                const isInCurrentBatch = batch.some(
+                  (summary) => summary.video_id === result.video_id
+                );
+                return isInCurrentBatch && result.status === "pending"
+                  ? { ...result, status: "processing" as const }
+                  : result;
+              }),
+            }));
+
+            try {
+              // Call batch apply filters API
+              const response = await api.batchApplyFilters(
+                selectedChannel,
+                batchVideoIds,
+                filters
+              );
+
+              // Update progress with batch results
+              setBatchFilterProgress((prev) => ({
+                ...prev,
+                completed: prev.completed + batch.length,
+                processing: 0,
+                results: prev.results.map((progressResult) => {
+                  const apiResult = response.results?.find(
+                    (r: any) => r.video_id === progressResult.video_id
+                  );
+
+                  if (apiResult) {
+                    if (apiResult.success) {
+                      successCount++;
+                    } else {
+                      errorCount++;
+                    }
+
+                    return {
+                      ...progressResult,
+                      status: apiResult.success
+                        ? ("success" as const)
+                        : ("error" as const),
+                      message: apiResult.message,
+                      totalChanges: apiResult.total_changes,
+                      filterStats: apiResult.filter_stats,
+                    };
+                  }
+                  return progressResult;
+                }),
+              }));
+
+              processedCount += batch.length;
+
+              // Small delay between batches to prevent overwhelming the server
+              if (i + BATCH_SIZE < videosWithTranscripts.length) {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              }
+            } catch (error) {
+              console.error(
+                `Error processing batch starting at index ${i}:`,
+                error
+              );
+
+              // Mark all videos in this batch as error
+              setBatchFilterProgress((prev) => ({
+                ...prev,
+                completed: prev.completed + batch.length,
+                processing: 0,
+                results: prev.results.map((result) => {
+                  const isInCurrentBatch = batch.some(
+                    (summary) => summary.video_id === result.video_id
+                  );
+                  if (isInCurrentBatch && result.status === "processing") {
+                    errorCount++;
+                    return {
+                      ...result,
+                      status: "error" as const,
+                      message: `Batch processing error: ${
+                        error instanceof Error ? error.message : "Unknown error"
+                      }`,
+                    };
+                  }
+                  return result;
+                }),
+              }));
+
+              processedCount += batch.length;
+            }
+          }
+
+          message.success(
+            `Batch filter application completed: ${successCount} videos processed successfully, ${errorCount} failed. Applied ${filters.length} filters.`
+          );
+
+          // Refresh the transcript summary to show updated counts
+          showTranscriptManagement();
+        } catch (error) {
+          console.error("Error in batch filter application:", error);
+          message.error("Failed to apply filters to transcripts");
+
+          // Update all processing items to error
+          setBatchFilterProgress((prev) => ({
+            ...prev,
+            results: prev.results.map((result) =>
+              result.status === "processing"
+                ? {
+                    ...result,
+                    status: "error" as const,
+                    message: "Process failed",
+                  }
+                : result
+            ),
+          }));
+        } finally {
+          setIsBatchApplyingFilters(false);
+        }
+      },
+      onCancel() {
+        // Do nothing if the user cancels
+      },
+    });
   };
 
   const onFinish = async (values: {
@@ -2179,6 +2389,58 @@ const VideoManagement: React.FC = () => {
           </Typography.Text>
         </div>
 
+        {/* Filters Section */}
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: "var(--ant-color-bg-container)",
+            border: "1px solid var(--ant-color-border)",
+            borderRadius: 6,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <Typography.Text strong>
+              Channel Filters ({filters.length})
+            </Typography.Text>
+            <Button
+              type="primary"
+              onClick={batchApplyFiltersToAllTranscripts}
+              loading={isBatchApplyingFilters}
+              disabled={
+                filters.length === 0 ||
+                transcriptSummary.filter((s) => s.transcriptCount > 0)
+                  .length === 0
+              }
+              icon={<FilterOutlined />}
+            >
+              Apply Filters to All Transcripts (
+              {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
+            </Button>
+          </div>
+
+          {filters.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {filters.map((filter, index) => (
+                <Tag key={index} color="blue" style={{ margin: 0 }}>
+                  {filter}
+                </Tag>
+              ))}
+            </div>
+          ) : (
+            <Typography.Text type="secondary">
+              No filters configured for this channel
+            </Typography.Text>
+          )}
+        </div>
+
         <Table
           dataSource={transcriptSummary}
           loading={isLoadingTranscriptSummary}
@@ -2250,6 +2512,142 @@ const VideoManagement: React.FC = () => {
             },
           ]}
         />
+      </Modal>
+
+      {/* Batch Filter Progress Modal */}
+      <Modal
+        title="Batch Filter Application Progress"
+        open={batchFilterProgress.isVisible}
+        onCancel={() =>
+          setBatchFilterProgress((prev) => ({ ...prev, isVisible: false }))
+        }
+        footer={[
+          <Button
+            key="close"
+            onClick={() =>
+              setBatchFilterProgress((prev) => ({ ...prev, isVisible: false }))
+            }
+            disabled={isBatchApplyingFilters}
+          >
+            {isBatchApplyingFilters ? "Processing..." : "Close"}
+          </Button>,
+        ]}
+        width={900}
+        style={{ maxWidth: "95vw" }}
+        className="batch-filter-progress-modal"
+        destroyOnClose={true}
+        maskClosable={false}
+      >
+        <div className="mb-4 text-gray-800 dark:text-gray-200">
+          <div className="font-semibold text-gray-900 dark:text-white">
+            Progress: {batchFilterProgress.completed} /{" "}
+            {batchFilterProgress.total} videos processed
+            {batchFilterProgress.processing > 0 && (
+              <span className="text-blue-600 dark:text-blue-400">
+                {" "}
+                (Processing {batchFilterProgress.processing}...)
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <Progress
+            percent={
+              batchFilterProgress.total > 0
+                ? Math.round(
+                    (batchFilterProgress.completed /
+                      batchFilterProgress.total) *
+                      100
+                  )
+                : 0
+            }
+            status={isBatchApplyingFilters ? "active" : "normal"}
+            showInfo={true}
+            strokeColor={{
+              "0%": "#108ee9",
+              "100%": "#87d068",
+            }}
+            trailColor="rgba(0, 0, 0, 0.06)"
+            format={(percent) => (
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {percent}%
+              </span>
+            )}
+          />
+        </div>
+
+        <div
+          className="max-h-96 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md p-2"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgb(156 163 175) rgb(243 244 246)",
+          }}
+        >
+          {batchFilterProgress.results.map((item) => (
+            <div
+              key={item.video_id}
+              className={`p-3 mb-2 rounded-md border ${
+                item.status === "success"
+                  ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                  : item.status === "error"
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                  : item.status === "processing"
+                  ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                  : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                    {item.title}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Video ID: {item.video_id}
+                  </div>
+                  {item.message && (
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      {item.message}
+                    </div>
+                  )}
+                  {item.totalChanges !== undefined && (
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      <strong>Total changes: {item.totalChanges}</strong>
+                    </div>
+                  )}
+                  {item.filterStats &&
+                    Object.keys(item.filterStats).length > 0 && (
+                      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        <div className="font-medium">Filter details:</div>
+                        {Object.entries(item.filterStats).map(
+                          ([filter, count]) =>
+                            count > 0 && (
+                              <div key={filter} className="ml-2">
+                                • "{filter}": {count} times
+                              </div>
+                            )
+                        )}
+                      </div>
+                    )}
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  {item.status === "success" && (
+                    <CheckCircleOutlined className="text-green-500 text-lg" />
+                  )}
+                  {item.status === "error" && (
+                    <CloseCircleOutlined className="text-red-500 text-lg" />
+                  )}
+                  {item.status === "processing" && (
+                    <LoadingOutlined className="text-blue-500 text-lg" />
+                  )}
+                  {item.status === "pending" && (
+                    <ClockCircleOutlined className="text-gray-400 text-lg" />
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </Modal>
 
       {/* Upload Progress Modal */}
