@@ -2270,27 +2270,33 @@ const VideoManagement: React.FC = () => {
         ) : (
           <div>
             {/* Filter Status Section */}
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                backgroundColor: "#f5f5f5",
-                borderRadius: 6,
-              }}
-            >
-              <div style={{ marginBottom: 8 }}>
-                <Typography.Text strong>Selected Text: </Typography.Text>
-                <Typography.Text code>{selectedText || "None"}</Typography.Text>
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+              <div className="mb-2">
+                <Typography.Text
+                  strong
+                  className="text-gray-900 dark:text-white"
+                >
+                  Selected Text:
+                </Typography.Text>
+                <Typography.Text
+                  code
+                  className="ml-2 bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200"
+                >
+                  {selectedText || "None"}
+                </Typography.Text>
               </div>
 
               <div>
-                <Typography.Text strong>Filters: </Typography.Text>
                 <Typography.Text
-                  style={{ marginLeft: 8, fontSize: "12px", color: "#666" }}
+                  strong
+                  className="text-gray-900 dark:text-white"
                 >
+                  Filters:
+                </Typography.Text>
+                <Typography.Text className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                   ({filters.length} filters)
                 </Typography.Text>
-                <div style={{ marginTop: 4 }}>
+                <div className="mt-2">
                   {filters.length > 0 ? (
                     filters.map((filter, index) => (
                       <Tag
@@ -2298,16 +2304,13 @@ const VideoManagement: React.FC = () => {
                         closable
                         onClose={() => removeFilter(filter)}
                         color="blue"
-                        style={{ marginBottom: 4 }}
+                        className="mb-1 bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-800 dark:text-blue-200"
                       >
                         {filter}
                       </Tag>
                     ))
                   ) : (
-                    <Typography.Text
-                      type="secondary"
-                      style={{ fontSize: "12px" }}
-                    >
+                    <Typography.Text className="text-sm text-gray-500 dark:text-gray-400">
                       No filters found
                     </Typography.Text>
                   )}
@@ -2390,24 +2393,9 @@ const VideoManagement: React.FC = () => {
         </div>
 
         {/* Filters Section */}
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 12,
-            backgroundColor: "var(--ant-color-bg-container)",
-            border: "1px solid var(--ant-color-border)",
-            borderRadius: 6,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
-          >
-            <Typography.Text strong>
+        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <Typography.Text strong className="text-gray-900 dark:text-white">
               Channel Filters ({filters.length})
             </Typography.Text>
             <Button
@@ -2427,15 +2415,19 @@ const VideoManagement: React.FC = () => {
           </div>
 
           {filters.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <div className="flex flex-wrap gap-2">
               {filters.map((filter, index) => (
-                <Tag key={index} color="blue" style={{ margin: 0 }}>
+                <Tag
+                  key={index}
+                  color="blue"
+                  className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-800 dark:text-blue-200"
+                >
                   {filter}
                 </Tag>
               ))}
             </div>
           ) : (
-            <Typography.Text type="secondary">
+            <Typography.Text className="text-gray-600 dark:text-gray-400">
               No filters configured for this channel
             </Typography.Text>
           )}
