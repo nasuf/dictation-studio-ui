@@ -128,6 +128,10 @@ const AddVideosForm: React.FC<{
     [key: string]: "success" | "error" | "loading" | null;
   }>({});
 
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
   const debouncedFetchTitle = useCallback(
     _.debounce((videoLink: string, fieldIndex: number) => {
       if (videoLink) {
@@ -180,9 +184,13 @@ const AddVideosForm: React.FC<{
       <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/30 dark:border-blue-700">
         <Typography.Text className="text-blue-700 dark:text-blue-300">
           <strong>Add Videos:</strong> Paste YouTube video links. Video titles
-          will be automatically fetched. SRT subtitle files are optional - if
-          not uploaded, the system will automatically try to download subtitles
-          using yt-dlp.
+          will be automatically fetched. SRT subtitle files are{" "}
+          {isLocalhost ? "optional" : "required"} - if not uploaded, the system
+          will{" "}
+          {isLocalhost
+            ? "try to download subtitles using yt-dlp"
+            : "require manual SRT upload"}
+          .
         </Typography.Text>
       </div>
 
@@ -232,13 +240,19 @@ const AddVideosForm: React.FC<{
                     {...restField}
                     name={[name, "title"]}
                     rules={[
-                      { required: false, message: t("pleaseInputTitle") },
+                      {
+                        required: !isLocalhost,
+                        message: t("pleaseInputTitle"),
+                      },
                     ]}
                     style={{ flex: "1", marginRight: 8, marginBottom: 0 }}
                   >
                     <Input
                       placeholder={
-                        t("videoTitle") + " (optional - will be auto-fetched)"
+                        t("videoTitle") +
+                        (isLocalhost
+                          ? " (optional - will be auto-fetched)"
+                          : " (required)")
                       }
                     />
                   </Form.Item>
@@ -260,7 +274,15 @@ const AddVideosForm: React.FC<{
                   </Button>
 
                   {/* Upload subtitle button */}
-                  <Form.Item style={{ marginBottom: 0, marginRight: 8 }}>
+                  <Form.Item
+                    style={{ marginBottom: 0, marginRight: 8 }}
+                    rules={[
+                      {
+                        required: !isLocalhost,
+                        message: t("pleaseUploadSubtitle"),
+                      },
+                    ]}
+                  >
                     <Upload
                       beforeUpload={(file) => {
                         const videoLink = form.getFieldValue([
@@ -281,7 +303,8 @@ const AddVideosForm: React.FC<{
                           ] === "loading"
                         }
                       >
-                        {t("uploadSubtitle")} (Optional)
+                        {t("uploadSubtitle")}{" "}
+                        {isLocalhost ? "(Optional)" : "(Required)"}
                       </Button>
                     </Upload>
                   </Form.Item>
@@ -437,6 +460,24 @@ const VideoManagement: React.FC = () => {
     useState(false);
   const [selectedVisibilityOption, setSelectedVisibilityOption] =
     useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<{
+    isVisible: boolean;
+    total: number;
+    completed: number;
+    processing: number;
+    results: Array<{
+      video_id: string;
+      title: string;
+      status: "pending" | "processing" | "success" | "error";
+      message?: string;
+    }>;
+  }>({
+    isVisible: false,
+    total: 0,
+    completed: 0,
+    processing: 0,
+    results: [],
+  });
 
   useEffect(() => {
     fetchChannels();
@@ -517,89 +558,6 @@ const VideoManagement: React.FC = () => {
     const newFile = new File([file], `${videoId}.srt`, { type: file.type });
     setSrtFiles((prev) => ({ ...prev, [videoId]: newFile }));
     message.success(`SRT file uploaded for video ${videoId}`);
-  };
-
-  const onFinish = async (values: {
-    video_links: Array<{ link: string; title: string }>;
-  }) => {
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-
-      const videoData = values.video_links.map((video) => ({
-        channel_id: selectedChannel,
-        video_link: video.link,
-        title: video.title,
-        visibility: VISIBILITY_OPTIONS.Private,
-      }));
-
-      formData.append("data", JSON.stringify(videoData));
-
-      // Add SRT files if uploaded (optional)
-      videoData.forEach((video) => {
-        const videoId = extractVideoId(video.video_link);
-        const file = srtFiles[videoId];
-        if (file) {
-          formData.append("transcript_files", file, file.name);
-        }
-      });
-
-      const res = await api.uploadVideos(formData);
-
-      if (res.message === "partially success") {
-        message.success("Some videos uploaded successfully.");
-        if (res.duplicate_video_ids && res.duplicate_video_ids.length > 0) {
-          message.warning(
-            `Duplicate videos skipped: ${res.duplicate_video_ids.join(", ")}`
-          );
-        }
-      } else {
-        message.success("Videos uploaded successfully");
-      }
-
-      // Show detailed results if available
-      if (res.results && Array.isArray(res.results)) {
-        interface VideoUploadResult {
-          success?: string;
-          transcript_source?: string;
-          transcript_count?: number;
-        }
-
-        const ytdlpCount = res.results.filter(
-          (r: VideoUploadResult) => r.transcript_source === "ytdlp_download"
-        ).length;
-        const uploadedCount = res.results.filter(
-          (r: VideoUploadResult) => r.transcript_source === "uploaded_srt"
-        ).length;
-        const noTranscriptCount = res.results.filter(
-          (r: VideoUploadResult) => r.transcript_source === "none"
-        ).length;
-
-        if (ytdlpCount > 0) {
-          message.info(
-            `${ytdlpCount} video(s) had subtitles automatically downloaded`
-          );
-        }
-        if (uploadedCount > 0) {
-          message.info(`${uploadedCount} video(s) used uploaded SRT files`);
-        }
-        if (noTranscriptCount > 0) {
-          message.warning(
-            `${noTranscriptCount} video(s) have no subtitles available`
-          );
-        }
-      }
-
-      fetchVideos(selectedChannel!);
-      setSrtFiles({});
-      setIsAddVideoModalVisible(false);
-      form.resetFields();
-    } catch (error) {
-      console.error("Error uploading videos:", error);
-      message.error("Failed to upload videos");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const showTranscript = async (channelId: string, videoId: string) => {
@@ -1624,6 +1582,121 @@ const VideoManagement: React.FC = () => {
     setSelectedVisibilityOption("");
   };
 
+  const onFinish = async (values: {
+    video_links: Array<{ link: string; title: string }>;
+  }) => {
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+
+      const videoData = values.video_links.map((video) => ({
+        channel_id: selectedChannel,
+        video_link: video.link,
+        title: video.title,
+        visibility: VISIBILITY_OPTIONS.Private,
+      }));
+
+      formData.append("data", JSON.stringify(videoData));
+
+      // Add SRT files if uploaded (optional)
+      videoData.forEach((video) => {
+        const videoId = extractVideoId(video.video_link);
+        const file = srtFiles[videoId];
+        if (file) {
+          formData.append("transcript_files", file, file.name);
+        }
+      });
+
+      // Initialize progress state
+      const initialResults = videoData.map((video) => ({
+        video_id: extractVideoId(video.video_link),
+        title: video.title || video.video_link,
+        status: "pending" as const,
+      }));
+
+      setUploadProgress({
+        isVisible: true,
+        total: videoData.length,
+        completed: 0,
+        processing: 0,
+        results: initialResults,
+      });
+
+      const res = await api.uploadVideos(formData);
+
+      // Update progress with results
+      setUploadProgress((prev) => ({
+        ...prev,
+        completed: videoData.length,
+        processing: 0,
+        results: prev.results.map((result) => {
+          const apiResult = res.results?.find(
+            (r: any) => r.video_id === result.video_id
+          );
+          return {
+            ...result,
+            status: apiResult?.success ? "success" : "error",
+            message: apiResult?.message || "Upload completed",
+          };
+        }),
+      }));
+
+      if (res.message === "partially success") {
+        message.success("Some videos uploaded successfully.");
+        if (res.duplicate_video_ids && res.duplicate_video_ids.length > 0) {
+          message.warning(
+            `Duplicate videos skipped: ${res.duplicate_video_ids.join(", ")}`
+          );
+        }
+      } else {
+        message.success("Videos uploaded successfully");
+      }
+
+      // Show detailed results if available
+      if (res.results && Array.isArray(res.results)) {
+        interface VideoUploadResult {
+          success?: string;
+          transcript_source?: string;
+          transcript_count?: number;
+        }
+
+        const ytdlpCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "ytdlp_download"
+        ).length;
+        const uploadedCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "uploaded_srt"
+        ).length;
+        const noTranscriptCount = res.results.filter(
+          (r: VideoUploadResult) => r.transcript_source === "none"
+        ).length;
+
+        if (ytdlpCount > 0) {
+          message.info(
+            `${ytdlpCount} video(s) had subtitles automatically downloaded`
+          );
+        }
+        if (uploadedCount > 0) {
+          message.info(`${uploadedCount} video(s) used uploaded SRT files`);
+        }
+        if (noTranscriptCount > 0) {
+          message.warning(
+            `${noTranscriptCount} video(s) have no subtitles available`
+          );
+        }
+      }
+
+      fetchVideos(selectedChannel!);
+      setSrtFiles({});
+      setIsAddVideoModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      console.error("Error uploading videos:", error);
+      message.error("Failed to upload videos");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <Card title="Video Management">
@@ -1929,6 +2002,116 @@ const VideoManagement: React.FC = () => {
             },
           ]}
         />
+      </Modal>
+
+      {/* Upload Progress Modal */}
+      <Modal
+        title="Upload Progress"
+        open={uploadProgress.isVisible}
+        onCancel={() =>
+          setUploadProgress((prev) => ({ ...prev, isVisible: false }))
+        }
+        footer={[
+          <Button
+            key="close"
+            onClick={() =>
+              setUploadProgress((prev) => ({ ...prev, isVisible: false }))
+            }
+            disabled={isLoading}
+          >
+            {isLoading ? "Uploading..." : "Close"}
+          </Button>,
+        ]}
+        width={800}
+        style={{ maxWidth: "95vw" }}
+        className="upload-progress-modal"
+        destroyOnClose={true}
+        maskClosable={false}
+      >
+        <div className="mb-4 text-gray-800 dark:text-gray-200">
+          <div className="font-semibold text-gray-900 dark:text-white">
+            Progress: {uploadProgress.completed} / {uploadProgress.total} videos
+            processed
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <Progress
+            percent={
+              uploadProgress.total > 0
+                ? Math.round(
+                    (uploadProgress.completed / uploadProgress.total) * 100
+                  )
+                : 0
+            }
+            status={isLoading ? "active" : "normal"}
+            showInfo={true}
+            strokeColor={{
+              "0%": "#108ee9",
+              "100%": "#87d068",
+            }}
+            trailColor="rgba(0, 0, 0, 0.06)"
+            format={(percent) => (
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {percent}%
+              </span>
+            )}
+          />
+        </div>
+
+        <div
+          className="max-h-96 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md p-2"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgb(156 163 175) rgb(243 244 246)",
+          }}
+        >
+          {uploadProgress.results.map((item, index) => (
+            <div
+              key={item.video_id}
+              className={`p-3 flex justify-between items-center ${
+                index < uploadProgress.results.length - 1
+                  ? "border-b border-gray-100 dark:border-gray-700"
+                  : ""
+              }`}
+            >
+              <div className="flex-1">
+                <div className="text-gray-900 dark:text-white font-semibold mb-1">
+                  {item.title}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {item.video_id}
+                </div>
+                {item.message && (
+                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+                    {item.message}
+                  </div>
+                )}
+              </div>
+              <div>
+                <Tag
+                  color={
+                    item.status === "pending"
+                      ? "default"
+                      : item.status === "processing"
+                      ? "blue"
+                      : item.status === "success"
+                      ? "green"
+                      : "red"
+                  }
+                >
+                  {item.status === "pending"
+                    ? "Pending"
+                    : item.status === "processing"
+                    ? "Processing"
+                    : item.status === "success"
+                    ? "Success"
+                    : "Error"}
+                </Tag>
+              </div>
+            </div>
+          ))}
+        </div>
       </Modal>
 
       {/* Batch Progress Modal */}
