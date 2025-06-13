@@ -300,6 +300,7 @@ const enTranslations = {
   createdAt: "Created At",
   paidAt: "Paid At",
   noPaymentHistory: "No payment history found.",
+  progress: "Progress",
 };
 
 const zhTranslations = {
@@ -581,6 +582,7 @@ const zhTranslations = {
   createdAt: "创建时间",
   paidAt: "支付时间",
   noPaymentHistory: "暂无支付历史",
+  progress: "进度",
 };
 
 const zhTraditionalTranslations = {
@@ -814,6 +816,7 @@ const zhTraditionalTranslations = {
   repeatCurrentSentence: "重複當前句子",
   playPreviousSentence: "播放上一句",
   playNextSentence: "播放下一句",
+  progress: "进度",
 };
 
 const jaTranslations = {
@@ -1040,6 +1043,7 @@ const jaTranslations = {
   createdAt: "作成日時",
   paidAt: "支払日時",
   noPaymentHistory: "支払い履歴がありません。",
+  progress: "進捗",
 };
 
 const koTranslations = {
@@ -1278,6 +1282,7 @@ const koTranslations = {
   createdAt: "생성일시",
   paidAt: "결제일시",
   noPaymentHistory: "결제 내역이 없습니다.",
+  progress: "진행 상황",
 };
 
 i18n.use(initReactI18next).init({

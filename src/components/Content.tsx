@@ -4,7 +4,6 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   CloudUploadOutlined,
   LoadingOutlined,
-  FileTextOutlined,
   ArrowLeftOutlined,
   ReloadOutlined,
   MenuOutlined,
@@ -30,7 +29,7 @@ import { COMPONENT_STYLE } from "@/utils/const";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import MissedWordsModal from "@/components/dictation/video/MissedWordsModal";
 import { api } from "@/api/api";
-import { setCurrentMissedWords, setMissedWords } from "@/redux/userSlice";
+import { setMissedWords } from "@/redux/userSlice";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import { Select } from "antd";
 import { Channel } from "@/utils/type";
@@ -167,12 +166,12 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const showMissedWordsModal = () => {
-    if (videoMainRef.current) {
-      dispatch(setCurrentMissedWords(videoMainRef.current.getMissedWords()));
-      setIsMissedWordsModalVisible(true);
-    }
-  };
+  // const showMissedWordsModal = () => {
+  //   if (videoMainRef.current) {
+  //     dispatch(setCurrentMissedWords(videoMainRef.current.getMissedWords()));
+  //     setIsMissedWordsModalVisible(true);
+  //   }
+  // };
 
   const handleGoBack = async () => {
     // if is video page, save progress
@@ -341,7 +340,7 @@ const AppContent: React.FC = () => {
             )}
             {isVideoPage && (
               <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto button-container">
-                <button
+                {/* <button
                   onClick={showMissedWordsModal}
                   className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
      dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
@@ -351,7 +350,7 @@ const AppContent: React.FC = () => {
                     {t("missedWordsSummary")}
                   </span>
                   <span className="md:hidden">{t("missedWords")}</span>
-                </button>
+                </button> */}
                 <button
                   onClick={handleResetProgress}
                   disabled={!isDictationStarted}
@@ -415,6 +414,7 @@ const AppContent: React.FC = () => {
                   />
                 }
               />
+              <Route path="/dictation/progress" element={<UserProgress />} />
               <Route
                 path="/dictation/video/:channelId"
                 element={<VideoList />}

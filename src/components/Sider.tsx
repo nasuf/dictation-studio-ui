@@ -1,9 +1,9 @@
 import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import {
-  BookTwoTone,
   ContainerTwoTone,
   CustomerServiceTwoTone,
+  HistoryOutlined,
   IdcardTwoTone,
   PlusCircleTwoTone,
   RocketTwoTone,
@@ -50,11 +50,17 @@ const AppSider: React.FC<AppSiderProps> = ({
       label: t("videoDictation"),
       path: "/dictation/video",
     },
+    // {
+    //   key: "Word Collection",
+    //   icon: <BookTwoTone />,
+    //   label: t("wordCollection"),
+    //   path: "/dictation/word",
+    // },
     {
-      key: "Word Collection",
-      icon: <BookTwoTone />,
-      label: t("wordCollection"),
-      path: "/dictation/word",
+      key: "DictationProgress",
+      icon: <HistoryOutlined />,
+      label: t("progress"),
+      path: "/dictation/progress",
     },
   ];
 
@@ -65,12 +71,12 @@ const AppSider: React.FC<AppSiderProps> = ({
       label: t("information"),
       path: "/profile/information",
     },
-    {
-      key: "DictationProgress",
-      icon: <CustomerServiceTwoTone />,
-      label: t("dictationProgress"),
-      path: "/profile/progress",
-    },
+    // {
+    //   key: "DictationProgress",
+    //   icon: <CustomerServiceTwoTone />,
+    //   label: t("dictationProgress"),
+    //   path: "/profile/progress",
+    // },
     {
       key: "UpgradePlan",
       icon: <RocketTwoTone />,
