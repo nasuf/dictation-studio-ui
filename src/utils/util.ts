@@ -118,7 +118,34 @@ const shouldMergeItems = (current: TranscriptItem): boolean => {
   }
 };
 
-// Simplified function to automatically merge transcript items based on punctuation
+// Check if a complete sentence is too short and should be merged regardless of time limit
+const isShortCompleteSentence = (text: string, language: string): boolean => {
+  const trimmedText = text.trim();
+
+  switch (language) {
+    case "en":
+      // English: count words, consider short if less than 5 words
+      const words = trimmedText.split(/\s+/).filter((word) => word.length > 0);
+      return words.length < 5;
+
+    case "zh":
+    case "ja":
+    case "ko":
+      // CJK languages: count characters, consider short if less than 6 characters
+      // Remove punctuation for counting
+      const chars = trimmedText.replace(/[。！？｡.!?，、；：—–-\s]/g, "");
+      return chars.length < 6;
+
+    default:
+      // Default to English logic
+      const defaultWords = trimmedText
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+      return defaultWords.length < 3;
+  }
+};
+
+// Simplified function to automatically merge transcript items based on punctuation and length
 export const autoMergeTranscriptItems = (
   transcript: TranscriptItem[],
   maxDuration: number = 10 // Default 10 seconds max
@@ -144,17 +171,22 @@ export const autoMergeTranscriptItems = (
     // Check if current sentence is complete (ends with sentence-ending punctuation)
     const isCurrentComplete = isCompleteSentence(current.transcript);
 
+    // Check if current complete sentence is too short
+    const isCurrentShort =
+      isCurrentComplete &&
+      isShortCompleteSentence(current.transcript, language);
+
     // Check if merging would exceed time limit (with tolerance)
     const wouldExceedTimeLimit = mergedDuration > maxDuration;
 
     // Check if current should be merged based on punctuation
     const shouldMerge = shouldMergeItems(current);
 
-    // Decision logic for merging
+    // Enhanced decision logic for merging
     const shouldFinalizeCurrent =
-      isCurrentComplete || // Complete sentence - don't merge
-      wouldExceedTimeLimit || // Would exceed time limit even with tolerance
-      !shouldMerge; // Punctuation suggests not to merge
+      (isCurrentComplete && !isCurrentShort) || // Complete sentence that's not short - don't merge
+      (wouldExceedTimeLimit && !isCurrentShort) || // Would exceed time limit and not short - don't merge
+      (!shouldMerge && !isCurrentShort); // Punctuation suggests not to merge and not short
 
     if (shouldFinalizeCurrent) {
       result.push(current);
