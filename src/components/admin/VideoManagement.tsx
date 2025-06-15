@@ -348,7 +348,7 @@ const AddVideosForm: React.FC<{
                     </Upload>
                   </Form.Item>
 
-                  {/* Upload status icons */}
+                  {/* Upload status icons and file name */}
                   {(() => {
                     const videoLink = form.getFieldValue([
                       "video_links",
@@ -358,6 +358,34 @@ const AddVideosForm: React.FC<{
                     const videoId = videoLink
                       ? extractVideoId(videoLink)
                       : null;
+                    const fileName = videoId ? srtFiles[videoId]?.name : null;
+
+                    if (
+                      videoId &&
+                      uploadStatus[videoId] === "success" &&
+                      fileName
+                    ) {
+                      return (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginRight: 8,
+                          }}
+                        >
+                          <CheckOutlined
+                            style={{
+                              color: "#52c41a",
+                              fontSize: "16px",
+                              marginRight: 4,
+                            }}
+                          />
+                          <span style={{ color: "#52c41a", fontSize: "12px" }}>
+                            {fileName}
+                          </span>
+                        </div>
+                      );
+                    }
 
                     if (videoId && uploadStatus[videoId] === "success") {
                       return (
@@ -418,34 +446,6 @@ const AddVideosForm: React.FC<{
                     style={{ marginLeft: "auto" }}
                   />
                 </div>
-
-                {/* Display uploaded file name */}
-                {(() => {
-                  const videoLink = form.getFieldValue([
-                    "video_links",
-                    name,
-                    "link",
-                  ]);
-                  const videoId = videoLink ? extractVideoId(videoLink) : null;
-                  const fileName = videoId ? srtFiles[videoId]?.name : null;
-
-                  if (fileName) {
-                    return (
-                      <div
-                        style={{
-                          marginLeft: "auto",
-                          paddingLeft: 8,
-                          color: "#52c41a",
-                        }}
-                      >
-                        <CheckOutlined style={{ marginRight: 4 }} />
-                        {fileName}
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })()}
               </div>
             ))}
 
