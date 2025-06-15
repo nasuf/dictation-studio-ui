@@ -122,7 +122,15 @@ const AddVideosForm: React.FC<{
   form: any;
   handleSrtUpload: (videoLink: string, file: File) => void;
   srtFiles: { [key: string]: File };
-}> = ({ onFinish, isLoading, form, handleSrtUpload, srtFiles }) => {
+  setSrtFiles: React.Dispatch<React.SetStateAction<{ [key: string]: File }>>;
+}> = ({
+  onFinish,
+  isLoading,
+  form,
+  handleSrtUpload,
+  srtFiles,
+  setSrtFiles,
+}) => {
   const { t } = useTranslation();
   const [titleLoadingStates, setTitleLoadingStates] = useState<{
     [key: string]: boolean;
@@ -154,17 +162,26 @@ const AddVideosForm: React.FC<{
 
   const handleSrtUploadWithStatus = (videoLink: string, file: File) => {
     try {
-      setUploadStatus((prev) => ({ ...prev, [videoLink]: "loading" }));
+      const videoId = extractVideoId(videoLink);
+      if (!videoId) {
+        message.error(t("invalidYoutubeLink"));
+        return;
+      }
+
+      setUploadStatus((prev) => ({ ...prev, [videoId]: "loading" }));
 
       handleSrtUpload(videoLink, file);
 
       setTimeout(() => {
-        setUploadStatus((prev) => ({ ...prev, [videoLink]: "success" }));
+        setUploadStatus((prev) => ({ ...prev, [videoId]: "success" }));
         message.success(t("fileUploadSuccess", { filename: file.name }));
       }, 500);
     } catch (error) {
       console.error("Error uploading SRT:", error);
-      setUploadStatus((prev) => ({ ...prev, [videoLink]: "error" }));
+      const videoId = extractVideoId(videoLink);
+      if (videoId) {
+        setUploadStatus((prev) => ({ ...prev, [videoId]: "error" }));
+      }
       message.error(t("fileUploadFailed", { filename: file.name }));
     }
   };
@@ -204,8 +221,36 @@ const AddVideosForm: React.FC<{
                     <Input
                       placeholder={t("videoLink")}
                       onChange={(e) => {
-                        const videoLink = e.target.value;
-                        debouncedFetchTitle(videoLink, name);
+                        const newVideoLink = e.target.value;
+                        const newVideoId = newVideoLink
+                          ? extractVideoId(newVideoLink)
+                          : null;
+
+                        // Clear upload status for the old video ID if it exists
+                        const oldVideoLink = form.getFieldValue([
+                          "video_links",
+                          name,
+                          "link",
+                        ]);
+                        const oldVideoId = oldVideoLink
+                          ? extractVideoId(oldVideoLink)
+                          : null;
+
+                        if (oldVideoId && oldVideoId !== newVideoId) {
+                          setUploadStatus((prev) => {
+                            const newStatus = { ...prev };
+                            delete newStatus[oldVideoId];
+                            return newStatus;
+                          });
+                          // Also clear the SRT file for the old video ID
+                          setSrtFiles((prev) => {
+                            const newFiles = { ...prev };
+                            delete newFiles[oldVideoId];
+                            return newFiles;
+                          });
+                        }
+
+                        debouncedFetchTitle(newVideoLink, name);
                       }}
                       suffix={
                         titleLoadingStates[
@@ -284,11 +329,19 @@ const AddVideosForm: React.FC<{
                     >
                       <Button
                         icon={<UploadOutlined />}
-                        loading={
-                          uploadStatus[
-                            form.getFieldValue(["video_links", name, "link"])
-                          ] === "loading"
-                        }
+                        loading={(() => {
+                          const videoLink = form.getFieldValue([
+                            "video_links",
+                            name,
+                            "link",
+                          ]);
+                          const videoId = videoLink
+                            ? extractVideoId(videoLink)
+                            : null;
+                          return Boolean(
+                            videoId && uploadStatus[videoId] === "loading"
+                          );
+                        })()}
                       >
                         {t("uploadSubtitle")} (Required)
                       </Button>
@@ -296,56 +349,103 @@ const AddVideosForm: React.FC<{
                   </Form.Item>
 
                   {/* Upload status icons */}
-                  {uploadStatus[
-                    form.getFieldValue(["video_links", name, "link"])
-                  ] === "success" && (
-                    <CheckOutlined
-                      style={{
-                        color: "#52c41a",
-                        fontSize: "20px",
-                        marginRight: 8,
-                      }}
-                    />
-                  )}
-                  {uploadStatus[
-                    form.getFieldValue(["video_links", name, "link"])
-                  ] === "error" && (
-                    <CloseCircleOutlined
-                      style={{
-                        color: "#ff4d4f",
-                        fontSize: "20px",
-                        marginRight: 8,
-                      }}
-                    />
-                  )}
+                  {(() => {
+                    const videoLink = form.getFieldValue([
+                      "video_links",
+                      name,
+                      "link",
+                    ]);
+                    const videoId = videoLink
+                      ? extractVideoId(videoLink)
+                      : null;
+
+                    if (videoId && uploadStatus[videoId] === "success") {
+                      return (
+                        <CheckOutlined
+                          style={{
+                            color: "#52c41a",
+                            fontSize: "20px",
+                            marginRight: 8,
+                          }}
+                        />
+                      );
+                    }
+
+                    if (videoId && uploadStatus[videoId] === "error") {
+                      return (
+                        <CloseCircleOutlined
+                          style={{
+                            color: "#ff4d4f",
+                            fontSize: "20px",
+                            marginRight: 8,
+                          }}
+                        />
+                      );
+                    }
+
+                    return null;
+                  })()}
 
                   {/* Delete button */}
                   <Button
                     type="text"
                     icon={<MinusCircleOutlined />}
-                    onClick={() => remove(name)}
+                    onClick={() => {
+                      // Clear upload status when removing video
+                      const videoLink = form.getFieldValue([
+                        "video_links",
+                        name,
+                        "link",
+                      ]);
+                      const videoId = videoLink
+                        ? extractVideoId(videoLink)
+                        : null;
+                      if (videoId) {
+                        setUploadStatus((prev) => {
+                          const newStatus = { ...prev };
+                          delete newStatus[videoId];
+                          return newStatus;
+                        });
+                        // Also clear the SRT file for this video ID
+                        setSrtFiles((prev) => {
+                          const newFiles = { ...prev };
+                          delete newFiles[videoId];
+                          return newFiles;
+                        });
+                      }
+                      remove(name);
+                    }}
                     style={{ marginLeft: "auto" }}
                   />
                 </div>
 
                 {/* Display uploaded file name */}
-                {srtFiles[form.getFieldValue(["video_links", name, "link"])]
-                  ?.name && (
-                  <div
-                    style={{
-                      marginLeft: "auto",
-                      paddingLeft: 8,
-                      color: "#52c41a",
-                    }}
-                  >
-                    <CheckOutlined style={{ marginRight: 4 }} />
-                    {
-                      srtFiles[
-                        form.getFieldValue(["video_links", name, "link"])
-                      ]?.name
-                    }
-                  </div>
-                )}
+                {(() => {
+                  const videoLink = form.getFieldValue([
+                    "video_links",
+                    name,
+                    "link",
+                  ]);
+                  const videoId = videoLink ? extractVideoId(videoLink) : null;
+                  const fileName = videoId ? srtFiles[videoId]?.name : null;
+
+                  if (fileName) {
+                    return (
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          paddingLeft: 8,
+                          color: "#52c41a",
+                        }}
+                      >
+                        <CheckOutlined style={{ marginRight: 4 }} />
+                        {fileName}
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })()}
               </div>
             ))}
 
@@ -568,6 +668,7 @@ const VideoManagement: React.FC = () => {
 
   const handleSrtUpload = (videoLink: string, file: File) => {
     const videoId = extractVideoId(videoLink);
+    console.log(`Frontend extractVideoId: '${videoId}' from URL: ${videoLink}`);
     if (!videoId) {
       message.error(
         "Invalid YouTube URL. Please enter a valid URL before uploading SRT."
@@ -576,6 +677,9 @@ const VideoManagement: React.FC = () => {
     }
     // Keep the original filename but map it to the video ID
     const newFile = new File([file], `${videoId}.srt`, { type: file.type });
+    console.log(
+      `Created file with name: ${newFile.name} for videoId: ${videoId}`
+    );
     setSrtFiles((prev) => ({ ...prev, [videoId]: newFile }));
     message.success(`SRT file uploaded for video ${videoId}`);
   };
@@ -1910,13 +2014,103 @@ const VideoManagement: React.FC = () => {
     });
   };
 
+  // Helper function to create FormData for a batch of videos
+  const createBatchFormData = (
+    videoBatch: any[],
+    batchSrtFiles: { [key: string]: File }
+  ) => {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(videoBatch));
+
+    // Add SRT files for this batch
+    videoBatch.forEach((video) => {
+      const videoId = extractVideoId(video.video_link);
+      const file = batchSrtFiles[videoId];
+      if (file) {
+        formData.append("transcript_files", file, file.name);
+      }
+    });
+
+    return formData;
+  };
+
+  // Helper function to upload a single batch
+  const uploadBatch = async (
+    videoBatch: any[],
+    batchIndex: number,
+    batchSrtFiles: { [key: string]: File }
+  ) => {
+    try {
+      const formData = createBatchFormData(videoBatch, batchSrtFiles);
+
+      // Update progress: mark batch as processing
+      setUploadProgress((prev) => ({
+        ...prev,
+        processing: prev.processing + videoBatch.length,
+        results: prev.results.map((result) => {
+          const isInCurrentBatch = videoBatch.some(
+            (video) => extractVideoId(video.video_link) === result.video_id
+          );
+          return isInCurrentBatch
+            ? { ...result, status: "processing" as const }
+            : result;
+        }),
+      }));
+
+      const res = await api.uploadVideos(formData);
+
+      // Update progress with batch results
+      setUploadProgress((prev) => ({
+        ...prev,
+        completed: prev.completed + videoBatch.length,
+        processing: prev.processing - videoBatch.length,
+        results: prev.results.map((result) => {
+          const apiResult = res.results?.find(
+            (r: any) => r.video_id === result.video_id
+          );
+          if (apiResult) {
+            return {
+              ...result,
+              status: apiResult.success ? "success" : "error",
+              message: apiResult.message || "Upload completed",
+            };
+          }
+          return result;
+        }),
+      }));
+
+      return res;
+    } catch (error) {
+      // Update progress: mark batch as error
+      setUploadProgress((prev) => ({
+        ...prev,
+        completed: prev.completed + videoBatch.length,
+        processing: prev.processing - videoBatch.length,
+        results: prev.results.map((result) => {
+          const isInCurrentBatch = videoBatch.some(
+            (video) => extractVideoId(video.video_link) === result.video_id
+          );
+          return isInCurrentBatch
+            ? {
+                ...result,
+                status: "error" as const,
+                message: `Batch ${batchIndex + 1} upload failed: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`,
+              }
+            : result;
+        }),
+      }));
+
+      throw error;
+    }
+  };
+
   const onFinish = async (values: {
     video_links: Array<{ link: string; title: string }>;
   }) => {
     setIsLoading(true);
     try {
-      const formData = new FormData();
-
       const videoData = values.video_links.map((video) => ({
         channel_id: selectedChannel,
         video_link: video.link,
@@ -1925,34 +2119,48 @@ const VideoManagement: React.FC = () => {
       }));
 
       // Validate that all videos have SRT files uploaded
-      const missingFiles: string[] = [];
+      const missingFiles: Array<{
+        title: string;
+        videoId: string;
+        link: string;
+      }> = [];
       videoData.forEach((video) => {
         const videoId = extractVideoId(video.video_link);
         const file = srtFiles[videoId];
         if (!file) {
-          missingFiles.push(video.title || video.video_link);
+          missingFiles.push({
+            title: video.title || "Untitled",
+            videoId: videoId,
+            link: video.video_link,
+          });
         }
       });
 
       if (missingFiles.length > 0) {
-        message.error(
-          `Please upload SRT files for the following videos: ${missingFiles.join(
-            ", "
-          )}`
-        );
+        const errorMessage =
+          `Missing SRT files for ${missingFiles.length} video(s):\n` +
+          missingFiles
+            .map(
+              (item, index) =>
+                `${index + 1}. ${item.title} (ID: ${item.videoId})`
+            )
+            .join("\n");
+
+        console.error("Missing SRT files:", missingFiles);
+        message.error({
+          content: errorMessage,
+          duration: 10, // Show for 10 seconds
+        });
         setIsLoading(false);
         return;
       }
 
-      formData.append("data", JSON.stringify(videoData));
-
-      // Add SRT files (required)
-      videoData.forEach((video) => {
-        const videoId = extractVideoId(video.video_link);
-        const file = srtFiles[videoId];
-        if (file) {
-          formData.append("transcript_files", file, file.name);
-        }
+      // Double-check SRT files before processing
+      console.log("SRT files validation:", {
+        totalVideos: videoData.length,
+        srtFilesCount: Object.keys(srtFiles).length,
+        srtFiles: Object.keys(srtFiles),
+        videoIds: videoData.map((v) => extractVideoId(v.video_link)),
       });
 
       // Initialize progress state
@@ -1970,45 +2178,80 @@ const VideoManagement: React.FC = () => {
         results: initialResults,
       });
 
-      const res = await api.uploadVideos(formData);
+      // Split videos into batches of 5
+      const BATCH_SIZE = 5;
+      const batches: any[][] = [];
+      for (let i = 0; i < videoData.length; i += BATCH_SIZE) {
+        batches.push(videoData.slice(i, i + BATCH_SIZE));
+      }
 
-      // Update progress with results
-      setUploadProgress((prev) => ({
-        ...prev,
-        completed: videoData.length,
-        processing: 0,
-        results: prev.results.map((result) => {
-          const apiResult = res.results?.find(
-            (r: any) => r.video_id === result.video_id
-          );
-          return {
-            ...result,
-            status: apiResult?.success ? "success" : "error",
-            message: apiResult?.message || "Upload completed",
-          };
-        }),
-      }));
+      console.log(
+        `Processing ${videoData.length} videos in ${batches.length} batches of ${BATCH_SIZE}`
+      );
 
-      if (res.message === "partially success") {
-        message.success("Some videos uploaded successfully.");
-        if (res.duplicate_video_ids && res.duplicate_video_ids.length > 0) {
-          message.warning(
-            `Duplicate videos skipped: ${res.duplicate_video_ids.join(", ")}`
-          );
+      // Process batches sequentially to avoid overwhelming the server
+      const allResults: any[] = [];
+      const allDuplicateIds: string[] = [];
+      let totalSuccessCount = 0;
+      let totalErrorCount = 0;
+
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(
+          `Processing batch ${i + 1}/${batches.length} with ${
+            batch.length
+          } videos`
+        );
+
+        try {
+          const batchResult = await uploadBatch(batch, i, srtFiles);
+
+          allResults.push(...(batchResult.results || []));
+          if (batchResult.duplicate_video_ids) {
+            allDuplicateIds.push(...batchResult.duplicate_video_ids);
+          }
+          totalSuccessCount += batchResult.success_count || 0;
+          totalErrorCount += batchResult.error_count || 0;
+
+          // Small delay between batches to prevent overwhelming the server
+          if (i < batches.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        } catch (error) {
+          console.error(`Batch ${i + 1} failed:`, error);
+          totalErrorCount += batch.length;
+          // Continue with next batch even if current batch fails
         }
+      }
+
+      // Show final results
+      if (totalErrorCount === 0) {
+        message.success(
+          `All ${totalSuccessCount} videos uploaded successfully`
+        );
+      } else if (totalSuccessCount > 0) {
+        message.success(
+          `${totalSuccessCount} videos uploaded successfully, ${totalErrorCount} failed`
+        );
       } else {
-        message.success("Videos uploaded successfully");
+        message.error("All video uploads failed");
+      }
+
+      if (allDuplicateIds.length > 0) {
+        message.warning(
+          `Duplicate videos skipped: ${allDuplicateIds.join(", ")}`
+        );
       }
 
       // Show detailed results if available
-      if (res.results && Array.isArray(res.results)) {
+      if (allResults.length > 0) {
         interface VideoUploadResult {
           success?: string;
           transcript_source?: string;
           transcript_count?: number;
         }
 
-        const uploadedCount = res.results.filter(
+        const uploadedCount = allResults.filter(
           (r: VideoUploadResult) => r.transcript_source === "uploaded_srt"
         ).length;
 
@@ -2151,6 +2394,7 @@ const VideoManagement: React.FC = () => {
           form={form}
           handleSrtUpload={handleSrtUpload}
           srtFiles={srtFiles}
+          setSrtFiles={setSrtFiles}
         />
       </Modal>
       <Modal
