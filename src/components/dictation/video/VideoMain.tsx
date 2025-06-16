@@ -1355,22 +1355,24 @@ const VideoMain: React.ForwardRefRenderFunction<
         <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto hide-scrollbar">
           <div className="w-full max-w-xl mb-4">
             {/* Group quota info into a single line display */}
-            {quotaInfo && (!userInfo?.plan || !userInfo?.plan?.name) && (
-              <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
-                <p className="text-md text-blue-700 dark:text-blue-300">
-                  {t("freeUserQuotaHeader", {
-                    used: quotaInfo.used,
-                    limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
-                  })}
-                  <span className="mx-1">•</span>
-                  <span className="text-sm text-blue-600 dark:text-blue-200">
-                    {t("freeUserQuotaRenewal", {
-                      endDate: quotaInfo.endDate,
+            {quotaInfo &&
+              quotaInfo.limit !== -1 &&
+              (!userInfo?.plan || !userInfo?.plan?.name) && (
+                <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
+                  <p className="text-md text-blue-700 dark:text-blue-300">
+                    {t("freeUserQuotaHeader", {
+                      used: quotaInfo.used,
+                      limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
                     })}
-                  </span>
-                </p>
-              </div>
-            )}
+                    <span className="mx-1">•</span>
+                    <span className="text-sm text-blue-600 dark:text-blue-200">
+                      {t("freeUserQuotaRenewal", {
+                        endDate: quotaInfo.endDate,
+                      })}
+                    </span>
+                  </p>
+                </div>
+              )}
 
             {videoTitle && (
               <h1 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200 line-clamp-2">
