@@ -2230,7 +2230,7 @@ const VideoManagement: React.FC = () => {
           `All ${totalSuccessCount} videos uploaded successfully`
         );
       } else if (totalSuccessCount > 0) {
-        message.success(
+        message.warning(
           `${totalSuccessCount} videos uploaded successfully, ${totalErrorCount} failed`
         );
       } else {
@@ -2241,25 +2241,6 @@ const VideoManagement: React.FC = () => {
         message.warning(
           `Duplicate videos skipped: ${allDuplicateIds.join(", ")}`
         );
-      }
-
-      // Show detailed results if available
-      if (allResults.length > 0) {
-        interface VideoUploadResult {
-          success?: string;
-          transcript_source?: string;
-          transcript_count?: number;
-        }
-
-        const uploadedCount = allResults.filter(
-          (r: VideoUploadResult) => r.transcript_source === "uploaded_srt"
-        ).length;
-
-        if (uploadedCount > 0) {
-          message.info(
-            `${uploadedCount} video(s) processed with uploaded SRT files`
-          );
-        }
       }
 
       fetchVideos(selectedChannel!);
