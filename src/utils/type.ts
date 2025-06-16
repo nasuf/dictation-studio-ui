@@ -154,6 +154,22 @@ export interface FeedbackUserList {
   timestamp: number;
 }
 
+export interface VideoErrorReport {
+  id: string;
+  channelId: string;
+  channelName: string;
+  videoId: string;
+  videoTitle: string;
+  userEmail: string;
+  userName: string;
+  errorType: string;
+  description: string;
+  status: "pending" | "resolved" | "rejected";
+  timestamp: number;
+  adminResponse?: string;
+  resolvedAt?: number;
+}
+
 // ZPAY related types
 export interface ZPayOrderResponse {
   orderId: string;

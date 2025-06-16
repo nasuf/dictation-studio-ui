@@ -7,6 +7,7 @@ import {
   IdcardTwoTone,
   PlusCircleTwoTone,
   RocketTwoTone,
+  ExclamationCircleTwoTone,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -95,6 +96,12 @@ const AppSider: React.FC<AppSiderProps> = ({
       label: t("feedback"),
       path: "/profile/feedback",
     },
+    {
+      key: "VideoErrorReports",
+      icon: <ExclamationCircleTwoTone />,
+      label: t("videoErrorReports"),
+      path: "/profile/video-error-reports",
+    },
   ];
 
   const adminSiderItems: MenuItem[] = [
@@ -120,6 +127,12 @@ const AppSider: React.FC<AppSiderProps> = ({
       key: "FeedbackManagement",
       label: "Feedback",
       path: "/admin/feedback",
+      icon: <></>,
+    },
+    {
+      key: "VideoErrorReportManagement",
+      label: "Video Reports",
+      path: "/admin/video-error-reports",
       icon: <></>,
     },
   ];

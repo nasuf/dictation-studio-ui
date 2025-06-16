@@ -359,4 +359,30 @@ export const api = {
     );
     return response.data;
   },
+
+  // Video error report APIs
+  submitVideoErrorReport: (reportData: {
+    channelId: string;
+    channelName?: string;
+    videoId: string;
+    videoTitle: string;
+    errorType: string;
+    description: string;
+  }) => axiosInstance.post("/user/video-error-reports", reportData),
+
+  getVideoErrorReports: (channelId?: string, videoId?: string) =>
+    axiosInstance.get("/user/video-error-reports", {
+      params: { channelId, videoId },
+    }),
+
+  getAllVideoErrorReports: () =>
+    axiosInstance.get("/user/video-error-reports/admin"),
+
+  updateVideoErrorReportStatus: (
+    reportId: string,
+    data: {
+      status: string;
+      adminResponse?: string;
+    }
+  ) => axiosInstance.put(`/user/video-error-reports/${reportId}`, data),
 };

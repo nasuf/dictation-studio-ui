@@ -7,6 +7,7 @@ import {
   ArrowLeftOutlined,
   ReloadOutlined,
   MenuOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -28,6 +29,7 @@ import Information from "@/components/profile/Information";
 import { COMPONENT_STYLE } from "@/utils/const";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import MissedWordsModal from "@/components/dictation/video/MissedWordsModal";
+import VideoErrorReportModal from "@/components/dictation/video/VideoErrorReportModal";
 import { api } from "@/api/api";
 import { setMissedWords } from "@/redux/userSlice";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
@@ -36,6 +38,8 @@ import { Channel } from "@/utils/type";
 import ChannelRecommendation from "@/components/profile/ChannelRecommendation";
 import Feedback from "@/components/profile/Feedback";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
+import VideoErrorReportManagement from "@/components/admin/VideoErrorReportManagement";
+import UserVideoErrorReports from "@/components/profile/VideoErrorReports";
 
 const { Content } = Layout;
 
@@ -43,6 +47,13 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // Extract video information from URL for error reporting
+  const pathParts = location.pathname.split("/");
+  const currentChannelId = pathParts[3]; // /dictation/video/channelId/videoId
+  const currentVideoId = pathParts[4];
+  const [currentVideoTitle, setCurrentVideoTitle] = useState("");
+  const [currentChannelName, setCurrentChannelName] = useState("");
   const videoMainRef = useRef<VideoMainRef>(null);
   const { t, i18n } = useTranslation();
   const isDictationStarted = useSelector(
@@ -52,6 +63,8 @@ const AppContent: React.FC = () => {
     (state: RootState) => state.user.isSavingProgress
   );
   const [isMissedWordsModalVisible, setIsMissedWordsModalVisible] =
+    useState(false);
+  const [isVideoErrorReportModalVisible, setIsVideoErrorReportModalVisible] =
     useState(false);
   const [isWordEditing, setIsWordEditing] = useState(false);
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
@@ -146,7 +159,48 @@ const AppContent: React.FC = () => {
     if (isChannelListPage) {
       fetchAllChannels();
     }
-  }, [location.pathname, dispatch, isChannelListPage]);
+
+    // 如果是视频页面，获取视频标题和频道名称用于错误报告
+    if (isVideoPage && currentChannelId && currentVideoId) {
+      fetchVideoTitle();
+      fetchChannelName();
+    }
+  }, [
+    location.pathname,
+    dispatch,
+    isChannelListPage,
+    isVideoPage,
+    currentChannelId,
+    currentVideoId,
+  ]);
+
+  // 获取视频标题
+  const fetchVideoTitle = async () => {
+    try {
+      const response = await api.getVideoTranscript(
+        currentChannelId,
+        currentVideoId
+      );
+      setCurrentVideoTitle(response.data.title || "");
+    } catch (error) {
+      console.error("Error fetching video title:", error);
+    }
+  };
+
+  // 获取频道名称
+  const fetchChannelName = async () => {
+    try {
+      const response = await api.getChannels("all", "all");
+      const channel = response.data.find(
+        (ch: Channel) => ch.id === currentChannelId
+      );
+      if (channel && channel.name) {
+        setCurrentChannelName(channel.name);
+      }
+    } catch (error) {
+      console.error("Error fetching channel name:", error);
+    }
+  };
 
   useEffect(() => {
     if (allChannels.length > 0) {
@@ -352,6 +406,15 @@ const AppContent: React.FC = () => {
                   <span className="md:hidden">{t("missedWords")}</span>
                 </button> */}
                 <button
+                  onClick={() => setIsVideoErrorReportModalVisible(true)}
+                  className="flex items-center justify-center px-4 py-2 bg-red-500 text-white shadow-md rounded-md hover:bg-red-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50
+     dark:bg-red-700 dark:text-white dark:hover:bg-red-800"
+                >
+                  <ExclamationCircleOutlined className="mr-2" />
+                  <span className="hidden md:inline">{t("reportError")}</span>
+                  <span className="md:hidden">{t("report")}</span>
+                </button>
+                <button
                   onClick={handleResetProgress}
                   disabled={!isDictationStarted}
                   className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50
@@ -444,6 +507,10 @@ const AppContent: React.FC = () => {
               <Route path="/admin/video" element={<VideoManagement />} />
               <Route path="/admin/user" element={<UserManagement />} />
               <Route path="/admin/feedback" element={<FeedbackManagement />} />
+              <Route
+                path="/admin/video-error-reports"
+                element={<VideoErrorReportManagement />}
+              />
               <Route path="/profile" element={<Information />} />
               <Route path="/profile/information" element={<Information />} />
               <Route path="/profile/progress" element={<UserProgress />} />
@@ -453,6 +520,10 @@ const AppContent: React.FC = () => {
                 element={<ChannelRecommendation />}
               />
               <Route path="/profile/feedback" element={<Feedback />} />
+              <Route
+                path="/profile/video-error-reports"
+                element={<UserVideoErrorReports />}
+              />
             </Routes>
           </Content>
         </Layout>
@@ -462,6 +533,16 @@ const AppContent: React.FC = () => {
         onClose={() => setIsMissedWordsModalVisible(false)}
         videoMainRef={videoMainRef}
       />
+      {isVideoPage && currentChannelId && currentVideoId && (
+        <VideoErrorReportModal
+          visible={isVideoErrorReportModalVisible}
+          onClose={() => setIsVideoErrorReportModalVisible(false)}
+          channelId={currentChannelId}
+          videoId={currentVideoId}
+          videoTitle={currentVideoTitle}
+          channelName={currentChannelName}
+        />
+      )}
     </div>
   );
 };
