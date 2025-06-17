@@ -608,16 +608,6 @@ const UserManagement: React.FC = () => {
             y: 500, // Fixed height to ensure pagination is visible
             x: 1200, // Allow horizontal scroll if needed
           }}
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "20", "50"],
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} users`,
-            showQuickJumper: true,
-            position: ["bottomCenter"],
-          }}
-          size="middle"
           className="dark:bg-gray-800 dark:text-white"
         />
       </Card>
