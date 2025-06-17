@@ -12,6 +12,8 @@ import {
   List,
   Tag,
   Tooltip,
+  Input,
+  Space,
 } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -24,6 +26,7 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   UserAddOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 
 const { Option } = Select;
@@ -297,11 +300,93 @@ const UserManagement: React.FC = () => {
       title: "Username",
       dataIndex: "username",
       key: "username",
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            placeholder="Search username"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+      ),
+      onFilter: (value: any, record: UserInfo) =>
+        record.username?.toLowerCase().includes(value.toLowerCase()) || false,
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            placeholder="Search email"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+      ),
+      onFilter: (value: any, record: UserInfo) =>
+        record.email?.toLowerCase().includes(value.toLowerCase()) || false,
     },
     {
       title: "Plan Name",
@@ -321,6 +406,11 @@ const UserManagement: React.FC = () => {
       title: "Role",
       dataIndex: "role",
       key: "role",
+      filters: [
+        { text: "Admin", value: "admin" },
+        { text: "User", value: "user" },
+      ],
+      onFilter: (value: any, record: UserInfo) => record.role === value,
     },
     {
       title: "Created At",
@@ -332,6 +422,8 @@ const UserManagement: React.FC = () => {
         }
         return "";
       },
+      sorter: (a: UserInfo, b: UserInfo) =>
+        (a.created_at || 0) - (b.created_at || 0),
     },
     {
       title: "Updated At",
@@ -343,6 +435,8 @@ const UserManagement: React.FC = () => {
         }
         return "";
       },
+      sorter: (a: UserInfo, b: UserInfo) =>
+        (a.updated_at || 0) - (b.updated_at || 0),
     },
   ];
 
@@ -458,7 +552,7 @@ const UserManagement: React.FC = () => {
           </div>
         }
         extra={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               type="primary"
               onClick={handleRefresh}
@@ -499,6 +593,7 @@ const UserManagement: React.FC = () => {
             </Button>
           </div>
         }
+        bodyStyle={{ paddingBottom: "80px" }}
       >
         <Table
           rowSelection={{
@@ -509,6 +604,21 @@ const UserManagement: React.FC = () => {
           dataSource={users}
           rowKey="email"
           loading={isLoading}
+          scroll={{
+            y: 500, // Fixed height to ensure pagination is visible
+            x: 1200, // Allow horizontal scroll if needed
+          }}
+          pagination={{
+            pageSize: 15,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "15", "20", "50"],
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} users`,
+            showQuickJumper: true,
+            position: ["bottomCenter"],
+          }}
+          size="middle"
+          className="dark:bg-gray-800 dark:text-white"
         />
       </Card>
 
