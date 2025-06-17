@@ -340,7 +340,10 @@ const UserManagement: React.FC = () => {
         <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
       ),
       onFilter: (value: any, record: UserInfo) =>
-        record.username?.toLowerCase().includes(value.toLowerCase()) || false,
+        record.username
+          ?.toString()
+          .toLowerCase()
+          .includes(value.toLowerCase()) || false,
     },
     {
       title: "Email",
@@ -386,12 +389,20 @@ const UserManagement: React.FC = () => {
         <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
       ),
       onFilter: (value: any, record: UserInfo) =>
-        record.email?.toLowerCase().includes(value.toLowerCase()) || false,
+        record.email?.toString().toLowerCase().includes(value.toLowerCase()) ||
+        false,
     },
     {
       title: "Plan Name",
       dataIndex: ["plan", "name"],
       key: "planName",
+      filters: [
+        { text: "Free", value: "Free" },
+        { text: "Basic", value: "Basic" },
+        { text: "Pro", value: "Pro" },
+        { text: "Premium", value: "Premium" },
+      ],
+      onFilter: (value: any, record: UserInfo) => record.plan?.name === value,
       render: (name: string) => name || "",
     },
     {
