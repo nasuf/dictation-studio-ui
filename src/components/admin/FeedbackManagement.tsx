@@ -40,6 +40,12 @@ export default function FeedbackManagement() {
     setPageLoading(true);
     try {
       const res = await api.getAllFeedbackUserList();
+      // res.data could be empty array
+      if (res.data.length === 0) {
+        setFeedbackUserList([]);
+        setSelectedUser("");
+        return;
+      }
       const list = res.data.sort(
         (a: FeedbackUserList, b: FeedbackUserList) => b.timestamp - a.timestamp
       );
