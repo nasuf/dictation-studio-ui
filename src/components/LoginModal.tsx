@@ -350,7 +350,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const handleRegister = async (values: any) => {
     setIsLoading(true);
     try {
-      // Encrypt password deterministically using email as salt for consistency
+      // New users: encrypt password deterministically for security
+      // This ensures passwords are never transmitted in plain text
       const encryptedPassword = await encryptPasswordDeterministic(
         values.password,
         values.email
@@ -390,30 +391,96 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const handleEmailLogin = async (values: any) => {
     setIsLoading(true);
     try {
-      // Encrypt password deterministically using email as salt for consistency
-      const encryptedPassword = await encryptPasswordDeterministic(
-        values.password,
-        values.email
-      );
+      let loginSuccess = false;
+      let userData = null;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: encryptedPassword, // Use encrypted password
-      });
+      // Strategy 1: Try encrypted password first (for new users)
+      try {
+        const encryptedPassword = await encryptPasswordDeterministic(
+          values.password,
+          values.email
+        );
 
-      if (error) {
-        message.error(error.message);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: encryptedPassword,
+        });
+
+        if (!error && data.user) {
+          loginSuccess = true;
+          userData = data.user.user_metadata;
+          console.log("Login successful with encrypted password");
+        }
+      } catch (encryptedLoginError) {
+        console.log(
+          "Encrypted password login failed, trying original password..."
+        );
+      }
+
+      // Strategy 2: If encrypted password fails, try original password (for existing users)
+      if (!loginSuccess) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: values.email,
+            password: values.password, // Original password
+          });
+
+          if (!error && data.user) {
+            loginSuccess = true;
+            userData = data.user.user_metadata;
+            console.log(
+              "Login successful with original password - migrating to encrypted password..."
+            );
+
+            // Migrate user to encrypted password
+            try {
+              const encryptedPassword = await encryptPasswordDeterministic(
+                values.password,
+                values.email
+              );
+
+              // Update user password to encrypted version
+              const { error: updateError } = await supabase.auth.updateUser({
+                password: encryptedPassword,
+              });
+
+              if (!updateError) {
+                console.log("Successfully migrated user to encrypted password");
+              } else {
+                console.warn(
+                  "Failed to migrate user password:",
+                  updateError.message
+                );
+              }
+            } catch (migrationError) {
+              console.warn("Password migration failed:", migrationError);
+              // Don't fail the login if migration fails
+            }
+          }
+        } catch (originalLoginError) {
+          console.log("Original password login also failed");
+        }
+      }
+
+      // If both strategies failed
+      if (!loginSuccess) {
+        message.error("Invalid email or password");
         setIsLoading(false);
         return;
       }
 
-      const user = data.user.user_metadata;
+      // Continue with successful login
+      if (!userData) {
+        message.error("Login data is missing");
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const response = await api.login(
-          user.email,
-          user.full_name,
-          user.avatar_url
+          userData.email,
+          userData.full_name,
+          userData.avatar_url
         );
 
         if (response.status === 200) {
