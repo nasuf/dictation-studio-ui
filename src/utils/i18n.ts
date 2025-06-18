@@ -24,6 +24,8 @@ const enTranslations = {
   loginFormUsernameOrEmailPrompt: "Please enter your email",
   loginFormPasswordPrompt: "Please enter your password",
   loginFormSubmitButtonText: "Submit",
+  registerSuccessful:
+    "Registration successful! Please check your email to verify your account.",
   registerFormUsernamePrompt: "Please enter your username",
   registerFormEmailPrompt: "Please enter your email",
   registerFormEmailInvalidPrompt: "Please enter a valid email",
@@ -387,6 +389,7 @@ const zhTranslations = {
   loginFormUsernameOrEmailPrompt: "请输入邮箱",
   loginFormPasswordPrompt: "请输入密码",
   loginFormSubmitButtonText: "登录",
+  registerSuccessful: "注册成功！请检查您的电子邮件以验证您的帐户。",
   registerFormUsernamePrompt: "请输入用户名",
   registerFormEmailPrompt: "请输入邮箱地址",
   registerFormEmailInvalidPrompt: "请输入有效的邮箱地址",
@@ -729,6 +732,7 @@ const zhTraditionalTranslations = {
   loginFormUsernameOrEmailPrompt: "請輸入電子郵件",
   loginFormPasswordPrompt: "請輸入密碼",
   loginFormSubmitButtonText: "登入",
+  registerSuccessful: "註冊成功！請檢查您的電子郵件以驗證您的帳戶。",
   registerFormUsernamePrompt: "請輸入用戶名",
   registerFormEmailPrompt: "請輸入電子郵件地址",
   registerFormEmailInvalidPrompt: "請輸入有效的電子郵件地址",
@@ -964,6 +968,8 @@ const jaTranslations = {
     "ユーザー名またはメールアドレスを入力してください",
   loginFormPasswordPrompt: "パスワードを入力してください",
   loginFormSubmitButtonText: "ログイン",
+  registerSuccessful:
+    "登録成功！メールアドレスを確認して登録が完了しました。アカウントを認証するには、メールをご確認ください。",
   registerFormUsernamePrompt: "ユーザー名を入力してください",
   registerFormEmailPrompt: "メールアドレスを入力してください",
   registerFormEmailInvalidPrompt:
@@ -1190,6 +1196,8 @@ const koTranslations = {
   loginFormUsernameOrEmailPrompt: "사용자 이름 또는 이메일을 입력하세요",
   loginFormPasswordPrompt: "비밀번호를 입력하세요",
   loginFormSubmitButtonText: "로그인",
+  registerSuccessful:
+    "회원가입이 완료되었습니다. 계정을 인증하려면 이메일을 확인해 주세요.",
   registerFormUsernamePrompt: "사용자 이름을 입력하세요",
   registerFormEmailPrompt: "이메일 주소를 입력하세요",
   registerFormEmailInvalidPrompt: "이메일 주소는 유효한 것을 입력하세요",

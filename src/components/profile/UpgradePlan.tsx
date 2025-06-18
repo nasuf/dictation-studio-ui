@@ -29,6 +29,7 @@ import {
   WechatOutlined,
 } from "@ant-design/icons";
 import { ScrollableContainer } from "@/components/dictation/video/Widget";
+import { formatTimestamp } from "../../utils/util";
 
 const LoadingIcon: React.FC = () => {
   const { t } = useTranslation();
@@ -1372,9 +1373,8 @@ export const UpgradePlan: React.FC = () => {
                       {t("expires")}:
                     </span>
                     <span className="font-medium dark:text-white">
-                      {currentPlan.expireTime &&
-                      typeof currentPlan.expireTime === "string"
-                        ? new Date(currentPlan.expireTime).toLocaleDateString()
+                      {currentPlan.expireTime
+                        ? formatTimestamp(currentPlan.expireTime)
                         : t("notAvailable")}
                     </span>
                   </div>

@@ -10,6 +10,7 @@ import { DailyDuration } from "@/utils/type";
 import { motion } from "framer-motion";
 import { USER_PLAN, USER_ROLE } from "@/utils/const";
 import { ScrollableContainer } from "@/components/dictation/video/Widget";
+import { formatTimestamp } from "../../utils/util";
 
 const Information: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
@@ -122,9 +123,11 @@ const Information: React.FC = () => {
                       : t("expireTime")
                   }
                   value={
-                    userInfo?.plan?.nextPaymentTime ||
-                    userInfo?.plan?.expireTime ||
-                    t("noLimit")
+                    userInfo?.plan?.nextPaymentTime
+                      ? formatTimestamp(userInfo.plan.nextPaymentTime)
+                      : userInfo?.plan?.expireTime
+                      ? formatTimestamp(userInfo.plan.expireTime)
+                      : t("noLimit")
                   }
                 />
                 <InfoCard

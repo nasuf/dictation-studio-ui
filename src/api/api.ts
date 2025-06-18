@@ -87,13 +87,6 @@ export const api = {
   },
   loadUserInfo: (email: string) => axiosInstance.get(`/auth/userinfo/${email}`),
   logout: () => axiosInstance.post("/auth/logout"),
-  register: (
-    username: string,
-    email: string,
-    password: string,
-    avatar: string
-  ) =>
-    axiosInstance.post("/auth/register", { username, email, password, avatar }),
 
   login: (email: string, username: string, avatar: string) =>
     axiosInstance.post("/auth/login", { email, username, avatar }),

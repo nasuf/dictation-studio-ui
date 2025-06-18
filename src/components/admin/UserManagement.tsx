@@ -30,6 +30,7 @@ import {
   UserAddOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { formatTimestamp } from "../../utils/util";
 
 const { Option } = Select;
 const { Text, Paragraph } = Typography;
@@ -511,8 +512,8 @@ const UserManagement: React.FC = () => {
       title: "Expire Time",
       dataIndex: ["plan", "expireTime"],
       key: "expireTime",
-      render: (expireTime: string) => {
-        return expireTime ? new Date(expireTime).toLocaleString() : "";
+      render: (expireTime: number) => {
+        return expireTime ? formatTimestamp(expireTime) : "";
       },
     },
     {

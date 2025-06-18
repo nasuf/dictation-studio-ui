@@ -210,3 +210,45 @@ export const autoMergeTranscriptItems = (
 
   return result;
 };
+
+/**
+ * Format millisecond timestamp to readable date time string
+ * @param timestamp - millisecond timestamp
+ * @param format - format type ('date' for YYYY-MM-DD, 'datetime' for YYYY-MM-DD HH:mm:ss, 'time' for HH:mm:ss)
+ * @returns formatted date time string
+ */
+export const formatTimestamp = (
+  timestamp: number | string | null | undefined,
+  format: "date" | "datetime" | "time" = "datetime"
+): string => {
+  if (!timestamp) return "";
+
+  try {
+    const date = new Date(Number(timestamp));
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    switch (format) {
+      case "date":
+        return `${year}-${month}-${day}`;
+      case "time":
+        return `${hours}:${minutes}:${seconds}`;
+      case "datetime":
+      default:
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+  } catch (error) {
+    console.error("Error formatting timestamp:", error);
+    return "";
+  }
+};

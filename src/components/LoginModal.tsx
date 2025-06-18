@@ -18,6 +18,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { AvatarGrid, EditIcon } from "@/components/dictation/video/Widget";
 import { localStorageCleanup } from "@/utils/util";
+import { encryptPasswordDeterministic } from "@/utils/encryption";
 
 // Styled Components
 const AuthModal = styled(Modal)`
@@ -349,9 +350,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const handleRegister = async (values: any) => {
     setIsLoading(true);
     try {
+      // Encrypt password deterministically using email as salt for consistency
+      const encryptedPassword = await encryptPasswordDeterministic(
+        values.password,
+        values.email
+      );
+
       const { error } = await supabase.auth.signUp({
         email: values.email,
-        password: values.password,
+        password: encryptedPassword, // Use encrypted password
         options: {
           emailRedirectTo: `${UI_HOST}/signup-success`,
           data: {
@@ -363,15 +370,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
 
       if (error) {
         message.error(error.message);
-      } else {
-        onClose();
-        message.success(
-          t(
-            "Registration successful! Please check your email to verify your account."
-          )
-        );
+        return;
       }
+
+      onClose();
+      // display this warning message for 10 seconds
+      message.success(
+        t("registerSuccessful"),
+        10 // Duration in seconds
+      );
     } catch (error) {
+      console.error("Registration error:", error);
       message.error(t("registerFormErrorMessage"));
     } finally {
       setIsLoading(false);
@@ -381,9 +390,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
   const handleEmailLogin = async (values: any) => {
     setIsLoading(true);
     try {
+      // Encrypt password deterministically using email as salt for consistency
+      const encryptedPassword = await encryptPasswordDeterministic(
+        values.password,
+        values.email
+      );
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
-        password: values.password,
+        password: encryptedPassword, // Use encrypted password
       });
 
       if (error) {
@@ -419,6 +434,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
         message.error(t("loginFormErrorMessage"));
       }
     } catch (error) {
+      console.error("Login error:", error);
       message.error(t("loginFormErrorMessage"));
     } finally {
       setIsLoading(false);
