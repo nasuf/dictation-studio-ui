@@ -14,6 +14,8 @@ import {
   Tooltip,
   Input,
   Space,
+  ConfigProvider,
+  theme,
 } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -306,7 +308,21 @@ const UserManagement: React.FC = () => {
         confirm,
         clearFilters,
       }: any) => (
-        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          style={{
+            backgroundColor: document.documentElement.classList.contains("dark")
+              ? "#374151"
+              : "#ffffff",
+            borderColor: document.documentElement.classList.contains("dark")
+              ? "#4B5563"
+              : "#d9d9d9",
+            boxShadow: document.documentElement.classList.contains("dark")
+              ? "0 8px 24px rgba(0, 0, 0, 0.4)"
+              : "0 4px 12px rgba(0, 0, 0, 0.15)",
+          }}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <Input
             placeholder="Search username"
             value={selectedKeys[0]}
@@ -314,22 +330,52 @@ const UserManagement: React.FC = () => {
               setSelectedKeys(e.target.value ? [e.target.value] : [])
             }
             onPressEnter={() => confirm()}
-            style={{ marginBottom: 8, display: "block" }}
+            className="mb-3"
+            style={{
+              backgroundColor: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "#4B5563"
+                : "#ffffff",
+              borderColor: document.documentElement.classList.contains("dark")
+                ? "#6B7280"
+                : "#d9d9d9",
+              color: document.documentElement.classList.contains("dark")
+                ? "#F9FAFB"
+                : "#000000",
+            }}
           />
-          <Space>
+          <Space className="flex justify-between w-full">
             <Button
               type="primary"
               onClick={() => confirm()}
               icon={<SearchOutlined />}
               size="small"
-              style={{ width: 90 }}
+              className="w-20"
+              style={{
+                backgroundColor: "#3B82F6",
+                borderColor: "#3B82F6",
+              }}
             >
               Search
             </Button>
             <Button
               onClick={() => clearFilters()}
               size="small"
-              style={{ width: 90 }}
+              className="w-20"
+              style={{
+                backgroundColor: document.documentElement.classList.contains(
+                  "dark"
+                )
+                  ? "#4B5563"
+                  : "#ffffff",
+                borderColor: document.documentElement.classList.contains("dark")
+                  ? "#6B7280"
+                  : "#d9d9d9",
+                color: document.documentElement.classList.contains("dark")
+                  ? "#F9FAFB"
+                  : "#000000",
+              }}
             >
               Reset
             </Button>
@@ -337,7 +383,13 @@ const UserManagement: React.FC = () => {
         </div>
       ),
       filterIcon: (filtered: boolean) => (
-        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
       ),
       onFilter: (value: any, record: UserInfo) =>
         record.username
@@ -355,7 +407,21 @@ const UserManagement: React.FC = () => {
         confirm,
         clearFilters,
       }: any) => (
-        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          style={{
+            backgroundColor: document.documentElement.classList.contains("dark")
+              ? "#374151"
+              : "#ffffff",
+            borderColor: document.documentElement.classList.contains("dark")
+              ? "#4B5563"
+              : "#d9d9d9",
+            boxShadow: document.documentElement.classList.contains("dark")
+              ? "0 8px 24px rgba(0, 0, 0, 0.4)"
+              : "0 4px 12px rgba(0, 0, 0, 0.15)",
+          }}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <Input
             placeholder="Search email"
             value={selectedKeys[0]}
@@ -363,22 +429,52 @@ const UserManagement: React.FC = () => {
               setSelectedKeys(e.target.value ? [e.target.value] : [])
             }
             onPressEnter={() => confirm()}
-            style={{ marginBottom: 8, display: "block" }}
+            className="mb-3"
+            style={{
+              backgroundColor: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "#4B5563"
+                : "#ffffff",
+              borderColor: document.documentElement.classList.contains("dark")
+                ? "#6B7280"
+                : "#d9d9d9",
+              color: document.documentElement.classList.contains("dark")
+                ? "#F9FAFB"
+                : "#000000",
+            }}
           />
-          <Space>
+          <Space className="flex justify-between w-full">
             <Button
               type="primary"
               onClick={() => confirm()}
               icon={<SearchOutlined />}
               size="small"
-              style={{ width: 90 }}
+              className="w-20"
+              style={{
+                backgroundColor: "#3B82F6",
+                borderColor: "#3B82F6",
+              }}
             >
               Search
             </Button>
             <Button
               onClick={() => clearFilters()}
               size="small"
-              style={{ width: 90 }}
+              className="w-20"
+              style={{
+                backgroundColor: document.documentElement.classList.contains(
+                  "dark"
+                )
+                  ? "#4B5563"
+                  : "#ffffff",
+                borderColor: document.documentElement.classList.contains("dark")
+                  ? "#6B7280"
+                  : "#d9d9d9",
+                color: document.documentElement.classList.contains("dark")
+                  ? "#F9FAFB"
+                  : "#000000",
+              }}
             >
               Reset
             </Button>
@@ -386,7 +482,13 @@ const UserManagement: React.FC = () => {
         </div>
       ),
       filterIcon: (filtered: boolean) => (
-        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
       ),
       onFilter: (value: any, record: UserInfo) =>
         record.email?.toString().toLowerCase().includes(value.toLowerCase()) ||
@@ -606,21 +708,53 @@ const UserManagement: React.FC = () => {
         }
         bodyStyle={{ paddingBottom: "80px" }}
       >
-        <Table
-          rowSelection={{
-            type: "checkbox",
-            ...rowSelection,
+        <ConfigProvider
+          theme={{
+            algorithm: document.documentElement.classList.contains("dark")
+              ? theme.darkAlgorithm
+              : theme.defaultAlgorithm,
+            token: {
+              colorBgContainer: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "#374151"
+                : "#ffffff",
+              colorBgElevated: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "#374151"
+                : "#ffffff",
+              colorBorder: document.documentElement.classList.contains("dark")
+                ? "#4B5563"
+                : "#d9d9d9",
+              colorText: document.documentElement.classList.contains("dark")
+                ? "#F9FAFB"
+                : "#000000",
+              colorTextSecondary: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "#D1D5DB"
+                : "#666666",
+              colorPrimary: "#3B82F6",
+            },
           }}
-          columns={columns}
-          dataSource={users}
-          rowKey="email"
-          loading={isLoading}
-          scroll={{
-            y: 500, // Fixed height to ensure pagination is visible
-            x: 1200, // Allow horizontal scroll if needed
-          }}
-          className="dark:bg-gray-800 dark:text-white"
-        />
+        >
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={users}
+            rowKey="email"
+            loading={isLoading}
+            scroll={{
+              y: 500, // Fixed height to ensure pagination is visible
+              x: 1200, // Allow horizontal scroll if needed
+            }}
+            className="w-full"
+          />
+        </ConfigProvider>
       </Card>
 
       {/* Edit Membership Modal */}

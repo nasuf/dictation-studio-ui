@@ -95,6 +95,250 @@ body {
   color: #ffffff;
 }
 
+/* Fix dark mode table filter dropdown issues */
+.dark .ant-table-filter-dropdown {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-input {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+  color: #f9fafb !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-input:hover,
+.dark .ant-table-filter-dropdown .ant-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-btn {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+  color: #f9fafb !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-btn:hover {
+  background-color: #6b7280 !important;
+  border-color: #9ca3af !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-btn-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-btn-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Fix dark mode table filter menu (for Plan Name, Role filters) */
+.dark .ant-dropdown-menu {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark .ant-dropdown-menu-item {
+  color: #f9fafb !important;
+  background-color: transparent !important;
+}
+
+.dark .ant-dropdown-menu-item:hover {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .ant-dropdown-menu-item-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark .ant-dropdown-menu-item-selected:hover {
+  background-color: #2563eb !important;
+}
+
+/* Fix dark mode checkbox in filter dropdown */
+.dark .ant-dropdown-menu .ant-checkbox-wrapper {
+  color: #f9fafb !important;
+}
+
+.dark .ant-dropdown-menu .ant-checkbox-inner {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark .ant-dropdown-menu .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark .ant-dropdown-menu .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+  border-color: #3b82f6 !important;
+}
+
+/* Fix dark mode tooltip (for table column sorter) */
+.dark .ant-tooltip {
+  --antd-arrow-background-color: #374151 !important;
+}
+
+.dark .ant-tooltip-inner {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.dark .ant-tooltip-arrow::before {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .ant-tooltip-arrow::after {
+  background-color: #374151 !important;
+}
+
+/* Fix dark mode table column sorter hover */
+.dark .ant-table-column-sorter {
+  color: #9ca3af !important;
+}
+
+.dark .ant-table-column-sorter:hover {
+  color: #3b82f6 !important;
+}
+
+.dark .ant-table-column-sorter-up.active,
+.dark .ant-table-column-sorter-down.active {
+  color: #3b82f6 !important;
+}
+
+/* Fix dark mode table header hover */
+.dark .ant-table-thead > tr > th:hover {
+  background-color: #4b5563 !important;
+}
+
+.dark .ant-table-thead > tr > th:hover .ant-table-column-sorter {
+  color: #3b82f6 !important;
+}
+
+/* Fix dark mode table filter trigger icon */
+.dark .ant-table-filter-trigger {
+  color: #9ca3af !important;
+}
+
+.dark .ant-table-filter-trigger:hover {
+  color: #3b82f6 !important;
+}
+
+.dark .ant-table-filter-trigger.active {
+  color: #3b82f6 !important;
+}
+
+/* Fix dark mode table filter dropdown reset button */
+.dark .ant-table-filter-dropdown-btns {
+  border-top: 1px solid #4b5563 !important;
+  padding: 8px !important;
+}
+
+.dark .ant-table-filter-dropdown-btns .ant-btn-link {
+  color: #9ca3af !important;
+}
+
+.dark .ant-table-filter-dropdown-btns .ant-btn-link:hover {
+  color: #3b82f6 !important;
+}
+
+.dark .ant-table-filter-dropdown-btns .ant-btn-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark .ant-table-filter-dropdown-btns .ant-btn-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Fix dark mode table filter dropdown search input focus */
+.dark .ant-table-filter-dropdown .ant-input-affix-wrapper {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-input-affix-wrapper:hover {
+  border-color: #3b82f6 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-input-affix-wrapper-focused {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Fix dark mode custom filter dropdown container */
+.dark .ant-table-filter-dropdown-container {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 8px !important;
+}
+
+/* Fix dark mode filter dropdown content */
+.dark .ant-table-filter-dropdown-content {
+  background-color: #374151 !important;
+}
+
+/* Fix dark mode space component in filter dropdown */
+.dark .ant-table-filter-dropdown .ant-space {
+  width: 100% !important;
+}
+
+/* Fix dark mode for built-in table filters (Plan Name, Role) */
+.dark .ant-table-filter-dropdown .ant-dropdown-menu {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-dropdown-menu-item {
+  color: #f9fafb !important;
+  background-color: transparent !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #4b5563 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-dropdown-menu-item-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-checkbox-wrapper {
+  color: #f9fafb !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-checkbox-inner {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark
+  .ant-table-filter-dropdown
+  .ant-checkbox-wrapper:hover
+  .ant-checkbox-inner {
+  border-color: #3b82f6 !important;
+}
+
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
