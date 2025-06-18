@@ -7,6 +7,7 @@ export interface UserInfo {
   role: string;
   dictation_config: DictationConfig;
   missed_words: StructuredMissedWords;
+  dictation_progress?: DictationProgress;
   created_at: number;
   updated_at: number;
 }
@@ -30,6 +31,14 @@ export interface DictationConfig {
         prev: "ControlLeft";
       };
   language?: string; // 'en', 'zh', 'ja', 'ko'
+}
+
+export interface DictationProgress {
+  [key: string]: {
+    userInput: { [key: number]: string };
+    currentTime: number;
+    overallCompletion: number;
+  };
 }
 
 export interface ShortcutKeys {

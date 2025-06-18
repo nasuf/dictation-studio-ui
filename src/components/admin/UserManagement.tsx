@@ -526,6 +526,36 @@ const UserManagement: React.FC = () => {
       onFilter: (value: any, record: UserInfo) => record.role === value,
     },
     {
+      title: "Active",
+      key: "hasDictationInput",
+      width: 120,
+      filters: [
+        { text: "Active", value: "yes" },
+        { text: "Inactive", value: "no" },
+      ],
+      onFilter: (value: any, record: UserInfo) => {
+        const hasInput = checkUserHasDictationInput(record);
+        return value === "yes" ? hasInput : !hasInput;
+      },
+      render: (_: any, record: UserInfo) => {
+        const hasInput = checkUserHasDictationInput(record);
+        const tooltipText = hasInput
+          ? "User has completed dictation exercises with meaningful input"
+          : "User has not completed any dictation exercises yet";
+
+        return (
+          <Tooltip title={tooltipText}>
+            <Tag
+              color={hasInput ? "green" : "volcano"}
+              className="font-medium cursor-help"
+            >
+              {hasInput ? "Active" : "Inactive"}
+            </Tag>
+          </Tooltip>
+        );
+      },
+    },
+    {
       title: "Created At",
       dataIndex: "created_at",
       key: "created_at",
@@ -651,6 +681,47 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Check if user has real dictation input (is an active user)
+  const checkUserHasDictationInput = (user: UserInfo): boolean => {
+    if (!user.dictation_progress) {
+      return false;
+    }
+
+    // Check if any channel has meaningful user input
+    for (const channelKey in user.dictation_progress) {
+      const channelProgress = user.dictation_progress[channelKey];
+
+      // Check if user has made any input
+      if (
+        channelProgress?.userInput &&
+        typeof channelProgress.userInput === "object"
+      ) {
+        const inputEntries = Object.entries(channelProgress.userInput);
+
+        // Check if there are any non-empty user inputs
+        for (const [_, inputValue] of inputEntries) {
+          if (
+            inputValue &&
+            typeof inputValue === "string" &&
+            inputValue.trim().length > 0
+          ) {
+            return true;
+          }
+        }
+      }
+
+      // Also check if user has made significant progress (more than 5% completion)
+      if (
+        channelProgress?.overallCompletion &&
+        channelProgress.overallCompletion > 0.05
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
     return <Navigate to="/" replace />;
   }
@@ -661,7 +732,8 @@ const UserManagement: React.FC = () => {
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
-            User Management | Total: {users.length}
+            User Management | Total: {users.length} | Active:{" "}
+            {users.filter((user) => checkUserHasDictationInput(user)).length}
           </div>
         }
         extra={
