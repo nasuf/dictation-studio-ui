@@ -782,65 +782,245 @@ const VideoMain: React.ForwardRefRenderFunction<
     const transcriptWords = splitWords(cleanedTranscript, language);
     const originalTranscriptWords = splitWords(transcript, language);
 
-    const usedIndices = new Set<number>();
+    // Debug logging for development
+    const isDebugMode = process.env.NODE_ENV === "development";
+    if (
+      isDebugMode &&
+      (input.includes("they") || input.includes("up")) &&
+      (transcript.includes("they") || transcript.includes("up"))
+    ) {
+      console.log("🔍 Position-Weighted Matching Debug:");
+      console.log("Input:", input);
+      console.log("Transcript:", transcript);
+      console.log("Input words:", inputWords);
+      console.log("Transcript words:", transcriptWords);
+    }
 
-    const inputResult = inputWords.map((word) => {
+    // Calculate position weight for better matching
+    const calculatePositionWeight = (
+      inputIndex: number,
+      transcriptIndex: number
+    ) => {
+      const inputLength = inputWords.length;
+      const transcriptLength = transcriptWords.length;
+
+      if (inputLength === 0 || transcriptLength === 0) return 0;
+
+      const inputRatio = inputIndex / Math.max(inputLength - 1, 1);
+      const transcriptRatio =
+        transcriptIndex / Math.max(transcriptLength - 1, 1);
+
+      // Position weight: closer positions get higher weight
+      const positionDiff = Math.abs(inputRatio - transcriptRatio);
+      const weight = Math.max(0, 1 - positionDiff);
+
+      if (
+        isDebugMode &&
+        (input.includes("they") || input.includes("up")) &&
+        (transcript.includes("they") || transcript.includes("up"))
+      ) {
+        console.log(
+          `Position weight for input[${inputIndex}] -> transcript[${transcriptIndex}]: ${weight.toFixed(
+            3
+          )}`
+        );
+      }
+
+      return weight;
+    };
+
+    // Find optimal matching using global optimization (Hungarian algorithm approach)
+    const findOptimalMatching = () => {
+      const inputResult: Array<{
+        word: string;
+        color: string;
+        isCorrect: boolean;
+        similarity?: number;
+      }> = [];
+
       if (["zh", "ja", "ko"].includes(language)) {
-        const similarityThreshold = word.length === 1 ? 0.6 : 0.8;
+        // For CJK languages: use similarity-based matching with position weight
+        const usedIndices = new Set<number>();
 
-        let bestMatchIndex = -1;
-        let bestMatchScore = 0;
+        inputWords.forEach((word, inputIndex) => {
+          const similarityThreshold = word.length === 1 ? 0.6 : 0.8;
+          let bestMatchIndex = -1;
+          let bestScore = 0;
 
-        transcriptWords.forEach((transcriptWord, i) => {
-          if (!usedIndices.has(i)) {
-            const similarity = calculateSimilarity(word, transcriptWord);
-            if (
-              similarity > similarityThreshold &&
-              similarity > bestMatchScore
-            ) {
-              bestMatchIndex = i;
-              bestMatchScore = similarity;
+          transcriptWords.forEach((transcriptWord, transcriptIndex) => {
+            if (!usedIndices.has(transcriptIndex)) {
+              const similarity = calculateSimilarity(word, transcriptWord);
+              if (similarity > similarityThreshold) {
+                const positionWeight = calculatePositionWeight(
+                  inputIndex,
+                  transcriptIndex
+                );
+                const combinedScore = similarity * 0.7 + positionWeight * 0.3;
+
+                if (combinedScore > bestScore) {
+                  bestMatchIndex = transcriptIndex;
+                  bestScore = combinedScore;
+                }
+              }
             }
+          });
+
+          if (bestMatchIndex !== -1) {
+            usedIndices.add(bestMatchIndex);
+            inputResult.push({
+              word: originalTranscriptWords[bestMatchIndex],
+              color: "#00827F",
+              isCorrect: true,
+              similarity: bestScore,
+            });
+          } else {
+            inputResult.push({
+              word,
+              color: "#C41E3A",
+              isCorrect: false,
+              similarity: 0,
+            });
           }
         });
 
-        if (bestMatchIndex !== -1) {
-          usedIndices.add(bestMatchIndex);
-          return {
-            word: originalTranscriptWords[bestMatchIndex],
-            color: "#00827F",
-            isCorrect: true,
-            similarity: bestMatchScore,
-          };
-        }
-
-        return {
-          word,
-          color: "#C41E3A",
-          isCorrect: false,
-          similarity: 0,
-        };
+        return { inputResult, usedIndices };
       } else {
-        const index = transcriptWords.findIndex(
-          (w, i) => w === word && !usedIndices.has(i)
-        );
+        // For English and other languages: use global optimization for exact matches
 
-        if (index !== -1) {
-          usedIndices.add(index);
-          return {
-            word: originalTranscriptWords[index],
-            color: "#00827F",
-            isCorrect: true,
-          };
+        // Step 1: Build cost matrix for all possible matches
+        const costMatrix: number[][] = [];
+        const matchCandidates: Array<{
+          inputIndex: number;
+          transcriptIndex: number;
+          word: string;
+        }> = [];
+
+        inputWords.forEach((inputWord, inputIndex) => {
+          const rowCosts: number[] = [];
+          transcriptWords.forEach((transcriptWord, transcriptIndex) => {
+            if (inputWord === transcriptWord) {
+              const positionWeight = calculatePositionWeight(
+                inputIndex,
+                transcriptIndex
+              );
+              // Use negative cost for maximization (Hungarian algorithm minimizes)
+              const cost = -positionWeight;
+              rowCosts.push(cost);
+              matchCandidates.push({
+                inputIndex,
+                transcriptIndex,
+                word: inputWord,
+              });
+            } else {
+              rowCosts.push(1000); // High cost for non-matches
+            }
+          });
+          costMatrix.push(rowCosts);
+        });
+
+        if (
+          isDebugMode &&
+          (input.includes("they") || input.includes("up")) &&
+          (transcript.includes("they") || transcript.includes("up"))
+        ) {
+          console.log("Cost matrix:", costMatrix);
+          console.log("Match candidates:", matchCandidates);
         }
 
-        return {
-          word,
-          color: "#C41E3A",
-          isCorrect: false,
-        };
+        // Step 2: Use greedy approach with global consideration
+        // Sort all possible matches by their position weight (descending)
+        const allMatches: Array<{
+          inputIndex: number;
+          transcriptIndex: number;
+          word: string;
+          score: number;
+        }> = [];
+
+        inputWords.forEach((inputWord, inputIndex) => {
+          transcriptWords.forEach((transcriptWord, transcriptIndex) => {
+            if (inputWord === transcriptWord) {
+              const positionWeight = calculatePositionWeight(
+                inputIndex,
+                transcriptIndex
+              );
+              allMatches.push({
+                inputIndex,
+                transcriptIndex,
+                word: inputWord,
+                score: positionWeight,
+              });
+            }
+          });
+        });
+
+        // Sort by score (highest first)
+        allMatches.sort((a, b) => b.score - a.score);
+
+        if (
+          isDebugMode &&
+          (input.includes("they") || input.includes("up")) &&
+          (transcript.includes("they") || transcript.includes("up"))
+        ) {
+          console.log("All possible matches sorted by score:", allMatches);
+        }
+
+        // Step 3: Greedily assign matches, avoiding conflicts
+        const usedInputIndices = new Set<number>();
+        const usedTranscriptIndices = new Set<number>();
+        const finalMatches: Array<{
+          inputIndex: number;
+          transcriptIndex: number;
+          word: string;
+        }> = [];
+
+        for (const match of allMatches) {
+          if (
+            !usedInputIndices.has(match.inputIndex) &&
+            !usedTranscriptIndices.has(match.transcriptIndex)
+          ) {
+            finalMatches.push(match);
+            usedInputIndices.add(match.inputIndex);
+            usedTranscriptIndices.add(match.transcriptIndex);
+          }
+        }
+
+        if (
+          isDebugMode &&
+          (input.includes("they") || input.includes("up")) &&
+          (transcript.includes("they") || transcript.includes("up"))
+        ) {
+          console.log("Final matches:", finalMatches);
+        }
+
+        // Step 4: Build result arrays
+        const matchMap = new Map<number, number>(); // inputIndex -> transcriptIndex
+        finalMatches.forEach((match) => {
+          matchMap.set(match.inputIndex, match.transcriptIndex);
+        });
+
+        inputWords.forEach((word, inputIndex) => {
+          if (matchMap.has(inputIndex)) {
+            const transcriptIndex = matchMap.get(inputIndex)!;
+            inputResult.push({
+              word: originalTranscriptWords[transcriptIndex],
+              color: "#00827F",
+              isCorrect: true,
+            });
+          } else {
+            inputResult.push({
+              word,
+              color: "#C41E3A",
+              isCorrect: false,
+            });
+          }
+        });
+
+        const usedIndices = new Set(Array.from(matchMap.values()));
+        return { inputResult, usedIndices };
       }
-    });
+    };
+
+    const { inputResult, usedIndices } = findOptimalMatching();
 
     const transcriptResult = originalTranscriptWords.map((word, index) => {
       return {
