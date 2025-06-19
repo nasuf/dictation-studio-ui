@@ -15,6 +15,7 @@ import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { FeedbackMessage, FeedbackUserList } from "@/utils/type";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
+import { formatTimestamp } from "@/utils/util";
 import { UploadOutlined, SendOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
@@ -215,7 +216,7 @@ export default function FeedbackManagement() {
                         }}
                       >
                         <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
-                          {new Date(item.timestamp).toLocaleString()}
+                          {formatTimestamp(item.timestamp, "locale")}
                           {item.senderType === "admin" ? " · Admin" : ""}
                         </div>
                         {item.message && (

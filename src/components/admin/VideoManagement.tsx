@@ -44,7 +44,7 @@ import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
-import { autoMergeTranscriptItems } from "@/utils/util";
+import { autoMergeTranscriptItems, formatTimestamp } from "@/utils/util";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -709,7 +709,7 @@ const VideoManagement: React.FC = () => {
   };
 
   const formatUnixTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
+    return formatTimestamp(timestamp, "locale");
   };
 
   const isEditing = (record: Video | TranscriptItem): boolean => {

@@ -9,6 +9,7 @@ import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { FeedbackMessage } from "@/utils/type";
+import { formatTimestamp } from "@/utils/util";
 
 const { TextArea } = Input;
 
@@ -135,7 +136,7 @@ const Feedback: React.FC = () => {
                     }}
                   >
                     <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
-                      {new Date(item.timestamp).toLocaleString()}
+                      {formatTimestamp(item.timestamp, "locale")}
                       {item.senderType === "admin" ? " · Admin" : ""}
                     </div>
                     {item.message && (

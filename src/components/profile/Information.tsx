@@ -25,10 +25,17 @@ const Information: React.FC = () => {
         const response = await api.getUserDuration();
         setTotalDuration(response.data.totalDuration);
         const durationsArray = Object.entries(response.data.dailyDurations).map(
-          ([date, duration]) => ({
-            date,
-            count: duration as number,
-          })
+          ([dateKey, duration]) => {
+            // Convert UTC timestamp key to local date string for CalendarHeatmap
+            // Backend now returns UTC millisecond timestamps as keys
+            const date = /^\d+$/.test(dateKey)
+              ? new Date(parseInt(dateKey)).toLocaleDateString("en-CA") // YYYY-MM-DD format in local timezone
+              : dateKey; // Legacy format support (should not happen anymore)
+            return {
+              date,
+              count: duration as number,
+            };
+          }
         );
         setDailyDurations(durationsArray);
       } catch (error) {

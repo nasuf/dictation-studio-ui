@@ -17,6 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import { VideoErrorReport } from "@/utils/type";
+import { formatTimestamp } from "@/utils/util";
 
 const UserVideoErrorReports: React.FC = () => {
   const { t } = useTranslation();
@@ -119,9 +120,7 @@ const UserVideoErrorReports: React.FC = () => {
       key: "timestamp",
       width: 140,
       render: (timestamp: number) => (
-        <span className="text-xs">
-          {new Date(timestamp).toLocaleDateString()}
-        </span>
+        <span className="text-xs">{formatTimestamp(timestamp, "date")}</span>
       ),
     },
     {
@@ -321,7 +320,7 @@ const UserVideoErrorReports: React.FC = () => {
                 span={2}
               >
                 <div className="text-xs dark:text-gray-400">
-                  {new Date(selectedReport.timestamp).toLocaleString()}
+                  {formatTimestamp(selectedReport.timestamp, "locale")}
                 </div>
               </Descriptions.Item>
               <Descriptions.Item
@@ -364,7 +363,7 @@ const UserVideoErrorReports: React.FC = () => {
                   span={2}
                 >
                   <div className="text-xs dark:text-gray-400">
-                    {new Date(selectedReport.resolvedAt).toLocaleString()}
+                    {formatTimestamp(selectedReport.resolvedAt, "locale")}
                   </div>
                 </Descriptions.Item>
               )}

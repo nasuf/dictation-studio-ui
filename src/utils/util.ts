@@ -212,14 +212,14 @@ export const autoMergeTranscriptItems = (
 };
 
 /**
- * Format millisecond timestamp to readable date time string
- * @param timestamp - millisecond timestamp
- * @param format - format type ('date' for YYYY-MM-DD, 'datetime' for YYYY-MM-DD HH:mm:ss, 'time' for HH:mm:ss)
- * @returns formatted date time string
+ * Format millisecond timestamp to readable date time string in local timezone
+ * @param timestamp - millisecond timestamp (UTC)
+ * @param format - format type ('date' for YYYY-MM-DD, 'datetime' for YYYY-MM-DD HH:mm:ss, 'time' for HH:mm:ss, 'locale' for localized format)
+ * @returns formatted date time string in local timezone
  */
 export const formatTimestamp = (
   timestamp: number | string | null | undefined,
-  format: "date" | "datetime" | "time" = "datetime"
+  format: "date" | "datetime" | "time" | "locale" = "datetime"
 ): string => {
   if (!timestamp) return "";
 
@@ -231,6 +231,12 @@ export const formatTimestamp = (
       return "";
     }
 
+    // Use locale format for better internationalization
+    if (format === "locale") {
+      return date.toLocaleString();
+    }
+
+    // Get local timezone values
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");

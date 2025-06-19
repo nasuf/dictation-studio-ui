@@ -22,6 +22,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { api } from "@/api/api";
 import { VideoErrorReport } from "@/utils/type";
+import { formatTimestamp } from "@/utils/util";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -184,9 +185,7 @@ const VideoErrorReportManagement: React.FC = () => {
       key: "timestamp",
       width: 140,
       render: (timestamp: number) => (
-        <span className="text-xs">
-          {new Date(timestamp).toLocaleDateString()}
-        </span>
+        <span className="text-xs">{formatTimestamp(timestamp, "date")}</span>
       ),
     },
     {
@@ -390,7 +389,7 @@ const VideoErrorReportManagement: React.FC = () => {
                 span={2}
               >
                 <div className="text-xs dark:text-gray-400">
-                  {new Date(selectedReport.timestamp).toLocaleString()}
+                  {formatTimestamp(selectedReport.timestamp, "locale")}
                 </div>
               </Descriptions.Item>
               <Descriptions.Item

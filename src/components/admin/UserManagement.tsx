@@ -562,7 +562,7 @@ const UserManagement: React.FC = () => {
       key: "created_at",
       render: (created_at: number) => {
         if (created_at) {
-          return new Date(created_at).toLocaleString();
+          return formatTimestamp(created_at, "locale");
         }
         return "";
       },
@@ -575,7 +575,7 @@ const UserManagement: React.FC = () => {
       key: "updated_at",
       render: (updated_at: number) => {
         if (updated_at) {
-          return new Date(updated_at).toLocaleString();
+          return formatTimestamp(updated_at, "locale");
         }
         return "";
       },
@@ -1331,11 +1331,11 @@ const UserManagement: React.FC = () => {
                   <div className="flex flex-col gap-1 text-xs dark:text-gray-300">
                     <div className="flex items-center gap-1">
                       <CalendarOutlined className="dark:text-gray-300" />{" "}
-                      Created: {new Date(code.created_at).toLocaleString()}
+                      Created: {formatTimestamp(code.created_at, "locale")}
                     </div>
                     <div className="flex items-center gap-1">
                       <ClockCircleOutlined className="dark:text-gray-300" />{" "}
-                      Expires: {new Date(code.expires_at).toLocaleString()}
+                      Expires: {formatTimestamp(code.expires_at, "locale")}
                       <span className="ml-2 text-red-500 dark:text-red-400">
                         (in {formatRemainingTime(code.remaining_seconds)})
                       </span>

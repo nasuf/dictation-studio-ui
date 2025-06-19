@@ -163,9 +163,10 @@ const PlanCard: React.FC<PlanProps> = ({
                   :
                 </span>
                 <span className="font-medium text-xs">
-                  {new Date(
-                    currentPlan.nextPaymentTime || currentPlan.expireTime!
-                  ).toLocaleDateString()}
+                  {formatTimestamp(
+                    currentPlan.nextPaymentTime || currentPlan.expireTime!,
+                    "date"
+                  )}
                 </span>
               </div>
             </div>
@@ -1176,14 +1177,14 @@ export const UpgradePlan: React.FC = () => {
                       dataIndex: "createdAt",
                       key: "createdAt",
                       render: (text) =>
-                        text ? new Date(text).toLocaleString() : "-",
+                        text ? formatTimestamp(text, "locale") : "-",
                     },
                     {
                       title: t("paidAt"),
                       dataIndex: "paidAt",
                       key: "paidAt",
                       render: (text) =>
-                        text ? new Date(text).toLocaleString() : "-",
+                        text ? formatTimestamp(text, "locale") : "-",
                     },
                   ]}
                   locale={{

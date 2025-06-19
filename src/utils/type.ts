@@ -14,10 +14,10 @@ export interface UserInfo {
 
 export interface Plan {
   name: string;
-  expireTime?: string;
+  expireTime?: number;
   isRecurring: boolean;
   status: string;
-  nextPaymentTime?: string;
+  nextPaymentTime?: number;
 }
 
 export interface DictationConfig {
