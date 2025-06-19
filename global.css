@@ -332,6 +332,49 @@ body {
   border-color: #3b82f6 !important;
 }
 
+/* More specific selectors for table filter dropdown menu items */
+.dark
+  .ant-dropdown.ant-dropdown-placement-bottomRight
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-item {
+  color: #f9fafb !important;
+  background-color: transparent !important;
+}
+
+.dark
+  .ant-dropdown.ant-dropdown-placement-bottomRight
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-item:hover {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark
+  .ant-dropdown.ant-dropdown-placement-bottomRight
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-item-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Even more specific for checkbox wrapper inside dropdown */
+.dark
+  .ant-dropdown
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-item
+  .ant-checkbox-wrapper {
+  color: #f9fafb !important;
+}
+
+.dark
+  .ant-dropdown
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-item
+  .ant-checkbox-wrapper
+  span {
+  color: #f9fafb !important;
+}
+
 .dark
   .ant-table-filter-dropdown
   .ant-checkbox-wrapper:hover
@@ -537,19 +580,25 @@ body {
 }
 
 .dark .ant-select-dropdown {
-  @apply bg-gray-800 border-gray-700;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
 }
 
 .dark .ant-select-item {
-  @apply text-white;
+  color: #f9fafb !important;
+}
+
+.dark .ant-select-item-option-content {
+  color: #f9fafb !important;
 }
 
 .dark .ant-select-item-option-selected {
-  @apply bg-gray-700;
+  background-color: #3b82f6 !important;
+  color: white !important;
 }
 
 .dark .ant-select-item-option-active {
-  @apply bg-gray-600;
+  background-color: #4b5563 !important;
 }
 
 /* dark mode - antd message */
@@ -1124,4 +1173,58 @@ body {
 
 .dark .ant-input-number-group-addon {
   @apply bg-gray-800 text-gray-400 border-gray-600 !important;
+}
+
+/* Force dark mode text color for all dropdown menu items in table filters */
+.dark .ant-table-filter-dropdown * {
+  color: #f9fafb !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-dropdown-menu-item * {
+  color: #f9fafb !important;
+}
+
+.dark .ant-table-filter-dropdown .ant-checkbox-wrapper * {
+  color: #f9fafb !important;
+}
+
+/* Override any potential inline styles or conflicting CSS */
+html.dark .ant-table-filter-dropdown .ant-dropdown-menu-item {
+  color: #f9fafb !important;
+}
+
+html.dark .ant-table-filter-dropdown .ant-checkbox-wrapper {
+  color: #f9fafb !important;
+}
+
+html.dark .ant-table-filter-dropdown .ant-checkbox-wrapper > span {
+  color: #f9fafb !important;
+}
+
+/* Most specific selector to override everything */
+.dark
+  .ant-dropdown
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-root
+  .ant-dropdown-menu-item {
+  color: #f9fafb !important;
+}
+
+.dark
+  .ant-dropdown
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-root
+  .ant-dropdown-menu-item
+  .ant-checkbox-wrapper {
+  color: #f9fafb !important;
+}
+
+.dark
+  .ant-dropdown
+  .ant-table-filter-dropdown
+  .ant-dropdown-menu-root
+  .ant-dropdown-menu-item
+  .ant-checkbox-wrapper
+  span {
+  color: #f9fafb !important;
 }

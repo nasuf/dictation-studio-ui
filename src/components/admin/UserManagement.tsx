@@ -14,8 +14,6 @@ import {
   Tooltip,
   Input,
   Space,
-  ConfigProvider,
-  theme,
 } from "antd";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -311,17 +309,6 @@ const UserManagement: React.FC = () => {
       }: any) => (
         <div
           className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
-          style={{
-            backgroundColor: document.documentElement.classList.contains("dark")
-              ? "#374151"
-              : "#ffffff",
-            borderColor: document.documentElement.classList.contains("dark")
-              ? "#4B5563"
-              : "#d9d9d9",
-            boxShadow: document.documentElement.classList.contains("dark")
-              ? "0 8px 24px rgba(0, 0, 0, 0.4)"
-              : "0 4px 12px rgba(0, 0, 0, 0.15)",
-          }}
           onKeyDown={(e) => e.stopPropagation()}
         >
           <Input
@@ -331,20 +318,7 @@ const UserManagement: React.FC = () => {
               setSelectedKeys(e.target.value ? [e.target.value] : [])
             }
             onPressEnter={() => confirm()}
-            className="mb-3"
-            style={{
-              backgroundColor: document.documentElement.classList.contains(
-                "dark"
-              )
-                ? "#4B5563"
-                : "#ffffff",
-              borderColor: document.documentElement.classList.contains("dark")
-                ? "#6B7280"
-                : "#d9d9d9",
-              color: document.documentElement.classList.contains("dark")
-                ? "#F9FAFB"
-                : "#000000",
-            }}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
           />
           <Space className="flex justify-between w-full">
             <Button
@@ -352,31 +326,14 @@ const UserManagement: React.FC = () => {
               onClick={() => confirm()}
               icon={<SearchOutlined />}
               size="small"
-              className="w-20"
-              style={{
-                backgroundColor: "#3B82F6",
-                borderColor: "#3B82F6",
-              }}
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
             >
               Search
             </Button>
             <Button
               onClick={() => clearFilters()}
               size="small"
-              className="w-20"
-              style={{
-                backgroundColor: document.documentElement.classList.contains(
-                  "dark"
-                )
-                  ? "#4B5563"
-                  : "#ffffff",
-                borderColor: document.documentElement.classList.contains("dark")
-                  ? "#6B7280"
-                  : "#d9d9d9",
-                color: document.documentElement.classList.contains("dark")
-                  ? "#F9FAFB"
-                  : "#000000",
-              }}
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
             >
               Reset
             </Button>
@@ -410,17 +367,6 @@ const UserManagement: React.FC = () => {
       }: any) => (
         <div
           className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
-          style={{
-            backgroundColor: document.documentElement.classList.contains("dark")
-              ? "#374151"
-              : "#ffffff",
-            borderColor: document.documentElement.classList.contains("dark")
-              ? "#4B5563"
-              : "#d9d9d9",
-            boxShadow: document.documentElement.classList.contains("dark")
-              ? "0 8px 24px rgba(0, 0, 0, 0.4)"
-              : "0 4px 12px rgba(0, 0, 0, 0.15)",
-          }}
           onKeyDown={(e) => e.stopPropagation()}
         >
           <Input
@@ -430,20 +376,7 @@ const UserManagement: React.FC = () => {
               setSelectedKeys(e.target.value ? [e.target.value] : [])
             }
             onPressEnter={() => confirm()}
-            className="mb-3"
-            style={{
-              backgroundColor: document.documentElement.classList.contains(
-                "dark"
-              )
-                ? "#4B5563"
-                : "#ffffff",
-              borderColor: document.documentElement.classList.contains("dark")
-                ? "#6B7280"
-                : "#d9d9d9",
-              color: document.documentElement.classList.contains("dark")
-                ? "#F9FAFB"
-                : "#000000",
-            }}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
           />
           <Space className="flex justify-between w-full">
             <Button
@@ -451,31 +384,14 @@ const UserManagement: React.FC = () => {
               onClick={() => confirm()}
               icon={<SearchOutlined />}
               size="small"
-              className="w-20"
-              style={{
-                backgroundColor: "#3B82F6",
-                borderColor: "#3B82F6",
-              }}
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
             >
               Search
             </Button>
             <Button
               onClick={() => clearFilters()}
               size="small"
-              className="w-20"
-              style={{
-                backgroundColor: document.documentElement.classList.contains(
-                  "dark"
-                )
-                  ? "#4B5563"
-                  : "#ffffff",
-                borderColor: document.documentElement.classList.contains("dark")
-                  ? "#6B7280"
-                  : "#d9d9d9",
-                color: document.documentElement.classList.contains("dark")
-                  ? "#F9FAFB"
-                  : "#000000",
-              }}
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
             >
               Reset
             </Button>
@@ -524,7 +440,8 @@ const UserManagement: React.FC = () => {
         { text: "Admin", value: "admin" },
         { text: "User", value: "user" },
       ],
-      onFilter: (value: any, record: UserInfo) => record.role === value,
+      onFilter: (value: any, record: UserInfo) =>
+        record.role?.toLowerCase() === value,
     },
     {
       title: "Active",
@@ -781,37 +698,7 @@ const UserManagement: React.FC = () => {
         }
         bodyStyle={{ paddingBottom: "80px" }}
       >
-        <ConfigProvider
-          theme={{
-            algorithm: document.documentElement.classList.contains("dark")
-              ? theme.darkAlgorithm
-              : theme.defaultAlgorithm,
-            token: {
-              colorBgContainer: document.documentElement.classList.contains(
-                "dark"
-              )
-                ? "#374151"
-                : "#ffffff",
-              colorBgElevated: document.documentElement.classList.contains(
-                "dark"
-              )
-                ? "#374151"
-                : "#ffffff",
-              colorBorder: document.documentElement.classList.contains("dark")
-                ? "#4B5563"
-                : "#d9d9d9",
-              colorText: document.documentElement.classList.contains("dark")
-                ? "#F9FAFB"
-                : "#000000",
-              colorTextSecondary: document.documentElement.classList.contains(
-                "dark"
-              )
-                ? "#D1D5DB"
-                : "#666666",
-              colorPrimary: "#3B82F6",
-            },
-          }}
-        >
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
           <Table
             rowSelection={{
               type: "checkbox",
@@ -825,9 +712,9 @@ const UserManagement: React.FC = () => {
               y: 500, // Fixed height to ensure pagination is visible
               x: 1200, // Allow horizontal scroll if needed
             }}
-            className="w-full"
+            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
           />
-        </ConfigProvider>
+        </div>
       </Card>
 
       {/* Edit Membership Modal */}
@@ -850,6 +737,7 @@ const UserManagement: React.FC = () => {
               setEditCustomDaysValue(null);
               form.resetFields();
             }}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
           >
             Cancel
           </Button>,
@@ -863,32 +751,12 @@ const UserManagement: React.FC = () => {
               (showEditCustomDaysInput &&
                 (!editCustomDaysValue || editCustomDaysValue <= 0))
             }
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
           >
             Update
           </Button>,
         ]}
-        className="dark:bg-gray-800 dark:text-white"
-        styles={{
-          header: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          body: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          footer: {
-            background: "var(--color-bg-container)",
-            borderTop: "1px solid var(--color-border)",
-          },
-          mask: {
-            backdropFilter: "blur(4px)",
-          },
-          content: {
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-            borderBottom: "none",
-          },
-        }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
         <Form form={form} layout="vertical" className="dark:text-white">
           <Form.Item
@@ -901,7 +769,7 @@ const UserManagement: React.FC = () => {
             <Select
               placeholder="Select membership duration"
               onChange={handleDurationChange}
-              className="dark:bg-gray-700 dark:text-white"
+              className="[&_.ant-select-selector]:bg-white [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:border-gray-300 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selection-item]:dark:text-white"
             >
               <Option value="30days">30 Days</Option>
               <Option value="60days">60 Days</Option>
@@ -930,7 +798,7 @@ const UserManagement: React.FC = () => {
               <InputNumber
                 min={1}
                 placeholder="Enter number of days"
-                className="w-full dark:bg-gray-700 dark:text-white"
+                className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                 onChange={(value) => {
                   setEditCustomDaysValue(value as number);
                   form.setFieldValue("customDays", value);
@@ -969,6 +837,7 @@ const UserManagement: React.FC = () => {
               setIsRoleModalVisible(false);
               roleForm.resetFields();
             }}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
           >
             Cancel
           </Button>,
@@ -977,32 +846,12 @@ const UserManagement: React.FC = () => {
             type="primary"
             loading={isUpdatingRole}
             onClick={handleRoleSubmit}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
           >
             Update
           </Button>,
         ]}
-        className="dark:bg-gray-800 dark:text-white"
-        styles={{
-          header: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          body: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          footer: {
-            background: "var(--color-bg-container)",
-            borderTop: "1px solid var(--color-border)",
-          },
-          mask: {
-            backdropFilter: "blur(4px)",
-          },
-          content: {
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-            borderBottom: "none",
-          },
-        }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
         <Form form={roleForm} layout="vertical" className="dark:text-white">
           <Form.Item
@@ -1012,7 +861,7 @@ const UserManagement: React.FC = () => {
           >
             <Select
               placeholder="Select role"
-              className="dark:bg-gray-700 dark:text-white"
+              className="[&_.ant-select-selector]:bg-white [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:border-gray-300 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selection-item]:dark:text-white"
             >
               <Option value={USER_ROLE.USER}>User</Option>
               <Option value={USER_ROLE.ADMIN}>Admin</Option>
@@ -1053,6 +902,7 @@ const UserManagement: React.FC = () => {
               setShowCustomDaysInput(false);
               setCustomDaysValue(null);
             }}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
           >
             Cancel
           </Button>,
@@ -1066,32 +916,12 @@ const UserManagement: React.FC = () => {
               (showCustomDaysInput &&
                 (!customDaysValue || customDaysValue <= 0))
             }
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
           >
             Generate
           </Button>,
         ]}
-        className="dark:bg-gray-800 dark:text-white"
-        styles={{
-          header: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          body: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          footer: {
-            background: "var(--color-bg-container)",
-            borderTop: "1px solid var(--color-border)",
-          },
-          mask: {
-            backdropFilter: "blur(4px)",
-          },
-          content: {
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-            borderBottom: "none",
-          },
-        }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
         <Form form={codeForm} layout="vertical" className="dark:text-white">
           <Form.Item
@@ -1101,7 +931,7 @@ const UserManagement: React.FC = () => {
           >
             <Select
               placeholder="Select membership duration"
-              className="dark:bg-gray-700 dark:text-white"
+              className="[&_.ant-select-selector]:bg-white [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:border-gray-300 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selection-item]:dark:text-white"
               onChange={(value) => {
                 if (value === "custom") {
                   setShowCustomDaysInput(true);
@@ -1138,7 +968,7 @@ const UserManagement: React.FC = () => {
               <InputNumber
                 min={1}
                 placeholder="Enter number of days"
-                className="w-full dark:bg-gray-700 dark:text-white"
+                className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                 onChange={(value) => {
                   setCustomDaysValue(value as number);
                   codeForm.setFieldsValue({ customDays: value });
@@ -1156,9 +986,11 @@ const UserManagement: React.FC = () => {
               </Text>
               <Button
                 type="text"
-                icon={<CopyOutlined className="dark:text-blue-400" />}
+                icon={
+                  <CopyOutlined className="text-blue-500 dark:text-blue-400" />
+                }
                 onClick={() => copyToClipboard(generatedCode)}
-                className="dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 bg-transparent border-none"
               >
                 Copy
               </Button>
@@ -1169,7 +1001,10 @@ const UserManagement: React.FC = () => {
             >
               <span className="dark:text-white">{generatedCode}</span>
             </Paragraph>
-            <Text type="secondary" className="block mt-2 dark:text-gray-300">
+            <Text
+              type="secondary"
+              className="block mt-2 text-gray-600 dark:text-gray-300"
+            >
               This code will expire in 1 hour. It can be used to activate a
               membership.
             </Text>
@@ -1188,7 +1023,7 @@ const UserManagement: React.FC = () => {
             key="refresh"
             onClick={fetchVerificationCodes}
             loading={isLoadingCodes}
-            className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+            className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Refresh
           </Button>,
@@ -1196,33 +1031,13 @@ const UserManagement: React.FC = () => {
             key="close"
             type="primary"
             onClick={() => setIsCodesModalVisible(false)}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
           >
             Close
           </Button>,
         ]}
         width={700}
-        className="dark:bg-gray-800 dark:text-white"
-        styles={{
-          header: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          body: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          footer: {
-            background: "var(--color-bg-container)",
-            borderTop: "1px solid var(--color-border)",
-          },
-          mask: {
-            backdropFilter: "blur(4px)",
-          },
-          content: {
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-            borderBottom: "none",
-          },
-        }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
         <List
           loading={isLoadingCodes}
@@ -1267,7 +1082,7 @@ const UserManagement: React.FC = () => {
                   <Button
                     icon={<UserAddOutlined />}
                     onClick={() => showAssignCodeModal(code.full_code)}
-                    className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 mr-2"
+                    className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 mr-2"
                   >
                     Assign
                   </Button>
@@ -1276,7 +1091,7 @@ const UserManagement: React.FC = () => {
                   <Button
                     icon={<CopyOutlined />}
                     onClick={() => copyCodeToClipboard(code.full_code)}
-                    className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+                    className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Copy
                   </Button>
@@ -1355,7 +1170,11 @@ const UserManagement: React.FC = () => {
         maskClosable={false}
         onCancel={() => setIsAssignModalVisible(false)}
         footer={[
-          <Button key="cancel" onClick={() => setIsAssignModalVisible(false)}>
+          <Button
+            key="cancel"
+            onClick={() => setIsAssignModalVisible(false)}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+          >
             Cancel
           </Button>,
           <Button
@@ -1363,32 +1182,12 @@ const UserManagement: React.FC = () => {
             type="primary"
             loading={isAssigning}
             onClick={handleAssignCode}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
           >
             Assign
           </Button>,
         ]}
-        className="dark:bg-gray-800 dark:text-white"
-        styles={{
-          header: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          body: {
-            background: "var(--color-bg-container)",
-            color: "var(--color-text)",
-          },
-          footer: {
-            background: "var(--color-bg-container)",
-            borderTop: "1px solid var(--color-border)",
-          },
-          mask: {
-            backdropFilter: "blur(4px)",
-          },
-          content: {
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-            borderBottom: "none",
-          },
-        }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
         <Form form={assignForm} layout="vertical">
           <Form.Item
@@ -1402,7 +1201,7 @@ const UserManagement: React.FC = () => {
               optionFilterProp="label"
               loading={isLoadingUsers}
               options={userOptions}
-              className="dark:bg-gray-700 dark:text-white"
+              className="[&_.ant-select-selector]:bg-white [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:border-gray-300 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selection-item]:dark:text-white"
               filterOption={(input, option) =>
                 (option?.label ?? "")
                   .toLowerCase()
