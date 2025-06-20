@@ -995,6 +995,59 @@ const VideoManagement: React.FC = () => {
       key: "video_id",
       editable: false,
       width: "15%",
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Input
+            placeholder="Search Video ID"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
+          />
+          <Space className="flex justify-between w-full">
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
+      ),
+      onFilter: (value: any, record: Video) =>
+        record.video_id
+          ?.toString()
+          .toLowerCase()
+          .includes(value.toLowerCase()) || false,
     },
     {
       title: "Title",
@@ -1002,6 +1055,57 @@ const VideoManagement: React.FC = () => {
       key: "title",
       editable: true,
       width: "30%",
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Input
+            placeholder="Search Title"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
+          />
+          <Space className="flex justify-between w-full">
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
+      ),
+      onFilter: (value: any, record: Video) =>
+        record.title?.toString().toLowerCase().includes(value.toLowerCase()) ||
+        false,
     },
     {
       title: "Link",
@@ -1022,6 +1126,7 @@ const VideoManagement: React.FC = () => {
       width: "15%",
       editable: false,
       render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
+      sorter: (a: Video, b: Video) => (a.created_at || 0) - (b.created_at || 0),
     },
     {
       title: "Updated At",
@@ -1030,6 +1135,7 @@ const VideoManagement: React.FC = () => {
       width: "15%",
       editable: false,
       render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
+      sorter: (a: Video, b: Video) => (a.updated_at || 0) - (b.updated_at || 0),
     },
     {
       title: "Visibility",

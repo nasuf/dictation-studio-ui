@@ -21,6 +21,7 @@ import {
   SaveOutlined,
   CloseOutlined,
   YoutubeOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
@@ -560,6 +561,57 @@ const ChannelManagement: React.FC = () => {
       dataIndex: "name",
       key: "name",
       editable: true,
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Input
+            placeholder="Search Channel Name"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
+          />
+          <Space className="flex justify-between w-full">
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
+      ),
+      onFilter: (value: any, record: Channel) =>
+        record.name?.toString().toLowerCase().includes(value.toLowerCase()) ||
+        false,
       render: (text: string, record: Channel) => (
         <span
           className={`channel-name ${
@@ -575,6 +627,57 @@ const ChannelManagement: React.FC = () => {
       dataIndex: "id",
       key: "id",
       editable: true,
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div
+          className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Input
+            placeholder="Search Channel ID"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => confirm()}
+            className="mb-3 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100"
+          />
+          <Space className="flex justify-between w-full">
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              className="w-20 bg-blue-500 hover:bg-blue-600 border-blue-500"
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters()}
+              size="small"
+              className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+            >
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined
+          className={`transition-colors duration-200 ${
+            filtered
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+        />
+      ),
+      onFilter: (value: any, record: Channel) =>
+        record.id?.toString().toLowerCase().includes(value.toLowerCase()) ||
+        false,
       render: (text: string, record: Channel) => (
         <span
           className={`channel-id ${
@@ -631,6 +734,11 @@ const ChannelManagement: React.FC = () => {
       key: "videos",
       render: (videos: string[]) =>
         videos ? <span>{videos.length}</span> : <span>0</span>,
+      sorter: (a: Channel, b: Channel) => {
+        const aCount = a.videos ? a.videos.length : 0;
+        const bCount = b.videos ? b.videos.length : 0;
+        return aCount - bCount;
+      },
     },
     {
       title: "Visibility",
