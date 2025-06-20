@@ -89,13 +89,13 @@ const UserManagement: React.FC = () => {
   const [statsData, setStatsData] = useState<any>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<
-    1 | 7 | 30 | 60
+    1 | 3 | 7 | 30 | 60
   >(1);
   const [isExportingReport, setIsExportingReport] = useState(false);
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
   const [selectedExportPeriods, setSelectedExportPeriods] = useState<
-    (1 | 7 | 30 | 60)[]
-  >([7]);
+    (1 | 3 | 7 | 30 | 60)[]
+  >([3]);
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
@@ -638,7 +638,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 获取使用统计数据
-  const fetchUsageStats = async (days: 1 | 7 | 30 | 60) => {
+  const fetchUsageStats = async (days: 1 | 3 | 7 | 30 | 60) => {
     setIsLoadingStats(true);
     try {
       const response = await api.getUserUsageStats(days);
@@ -652,7 +652,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 处理统计周期变化
-  const handleStatsPeriodChange = (period: 1 | 7 | 30 | 60) => {
+  const handleStatsPeriodChange = (period: 1 | 3 | 7 | 30 | 60) => {
     setSelectedStatsPeriod(period);
     fetchUsageStats(period);
   };
@@ -663,7 +663,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 获取多个时间段的数据
-  const fetchMultiplePeriodsData = async (periods: (1 | 7 | 30 | 60)[]) => {
+  const fetchMultiplePeriodsData = async (periods: (1 | 3 | 7 | 30 | 60)[]) => {
     const data: { [key: number]: any } = {};
 
     for (const period of periods) {
@@ -1674,6 +1674,7 @@ const UserManagement: React.FC = () => {
               }
               options={[
                 { label: "Last 1 Day", value: 1 },
+                { label: "Last 3 Days", value: 3 },
                 { label: "Last 7 Days", value: 7 },
                 { label: "Last 30 Days", value: 30 },
                 { label: "Last 60 Days", value: 60 },
@@ -2005,23 +2006,23 @@ const UserManagement: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {[1, 7, 30, 60].map((period) => (
+            {[1, 3, 7, 30, 60].map((period) => (
               <div
                 key={period}
                 className="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() => {
                   const newSelection = selectedExportPeriods.includes(
-                    period as 1 | 7 | 30 | 60
+                    period as 1 | 3 | 7 | 30 | 60
                   )
                     ? selectedExportPeriods.filter((p) => p !== period)
-                    : [...selectedExportPeriods, period as 1 | 7 | 30 | 60];
+                    : [...selectedExportPeriods, period as 1 | 3 | 7 | 30 | 60];
                   setSelectedExportPeriods(newSelection);
                 }}
               >
                 <input
                   type="checkbox"
                   checked={selectedExportPeriods.includes(
-                    period as 1 | 7 | 30 | 60
+                    period as 1 | 3 | 7 | 30 | 60
                   )}
                   onChange={() => {}}
                   className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -2033,6 +2034,8 @@ const UserManagement: React.FC = () => {
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     {period === 1
                       ? "Yesterday's data"
+                      : period === 3
+                      ? "Past 3 days analysis"
                       : period === 7
                       ? "Past week analysis"
                       : period === 30
@@ -2043,6 +2046,8 @@ const UserManagement: React.FC = () => {
                 <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                   {period === 1
                     ? "📅"
+                    : period === 3
+                    ? "🗓️"
                     : period === 7
                     ? "📊"
                     : period === 30
