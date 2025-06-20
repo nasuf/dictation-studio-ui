@@ -1357,7 +1357,7 @@ const UserManagement: React.FC = () => {
                 }
                 className="dark:bg-gray-700 dark:border-gray-600"
               >
-                <div className="h-64">
+                <div className="h-40">
                   <Line
                     data={statsData.dailyActiveUsers || []}
                     xField="date"
@@ -1429,7 +1429,7 @@ const UserManagement: React.FC = () => {
                 }
                 className="dark:bg-gray-700 dark:border-gray-600"
               >
-                <div className="h-64">
+                <div className="h-40">
                   <Line
                     data={(statsData.dailyDuration || []).map((item: any) => ({
                       ...item,
