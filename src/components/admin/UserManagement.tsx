@@ -90,6 +90,20 @@ const UserManagement: React.FC = () => {
     7
   );
 
+  // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
+  const formatDuration = (durationInSeconds: number): string => {
+    const minutes = Math.round(durationInSeconds / 60);
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -1313,7 +1327,7 @@ const UserManagement: React.FC = () => {
           {!isLoadingStats && statsData && (
             <div className="space-y-8">
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="dark:bg-gray-700 dark:border-gray-600">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -1327,8 +1341,7 @@ const UserManagement: React.FC = () => {
                 <Card className="dark:bg-gray-700 dark:border-gray-600">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {Math.round((statsData.summary?.totalDuration || 0) / 60)}{" "}
-                      min
+                      {formatDuration(statsData.summary?.totalDuration || 0)}
                     </div>
                     <div className="text-gray-600 dark:text-gray-300">
                       Total Duration
@@ -1338,13 +1351,20 @@ const UserManagement: React.FC = () => {
                 <Card className="dark:bg-gray-700 dark:border-gray-600">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {Math.round(
-                        (statsData.summary?.avgDailyDuration || 0) / 60
-                      )}{" "}
-                      min
+                      {formatDuration(statsData.summary?.avgDailyDuration || 0)}
                     </div>
                     <div className="text-gray-600 dark:text-gray-300">
                       Avg Daily Duration
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {statsData.summary?.totalNewUsers || 0}
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-300">
+                      New Users
                     </div>
                   </div>
                 </Card>
@@ -1465,6 +1485,78 @@ const UserManagement: React.FC = () => {
                           <div style="padding: 8px; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             <div style="margin-bottom: 4px; font-weight: bold;">${item.title}</div>
                             <div style="color: #10B981;">Duration: ${item.value} min</div>
+                          </div>
+                        `;
+                      },
+                    }}
+                    xAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                    yAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </Card>
+
+              {/* New Users Chart */}
+              <Card
+                title={
+                  <span className="dark:text-white">
+                    Daily New User Registrations
+                  </span>
+                }
+                className="dark:bg-gray-700 dark:border-gray-600"
+              >
+                <div className="h-40">
+                  <Line
+                    data={statsData.dailyNewUsers || []}
+                    xField="date"
+                    yField="newUsers"
+                    smooth={true}
+                    color="#F59E0B"
+                    point={{
+                      size: 4,
+                      shape: "circle",
+                      style: {
+                        fill: "#F59E0B",
+                        stroke: "#F59E0B",
+                        lineWidth: 2,
+                      },
+                    }}
+                    theme={
+                      document.documentElement.classList.contains("dark")
+                        ? "dark"
+                        : "light"
+                    }
+                    tooltip={{
+                      showTitle: true,
+                      title: "Date",
+                      showMarkers: true,
+                      shared: false,
+                      valueFormatter: (_title: any, data: any) => {
+                        if (!data || data.length === 0) return "";
+                        const item = data[0];
+                        return `
+                          <div style="padding: 8px; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="margin-bottom: 4px; font-weight: bold;">${item.title}</div>
+                            <div style="color: #F59E0B;">New Users: ${item.value}</div>
                           </div>
                         `;
                       },
