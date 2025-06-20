@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Table,
   Card,
@@ -31,8 +31,10 @@ import {
   UserAddOutlined,
   SearchOutlined,
   BarChartOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { formatTimestamp } from "../../utils/util";
+import html2canvas from "html2canvas";
 
 const { Option } = Select;
 const { Text, Paragraph } = Typography;
@@ -89,6 +91,12 @@ const UserManagement: React.FC = () => {
   const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<
     1 | 7 | 30 | 60
   >(1);
+  const [isExportingReport, setIsExportingReport] = useState(false);
+  const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+  const [selectedExportPeriods, setSelectedExportPeriods] = useState<
+    (1 | 7 | 30 | 60)[]
+  >([7]);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
   const formatDuration = (durationInSeconds: number): string => {
@@ -647,6 +655,351 @@ const UserManagement: React.FC = () => {
   const handleStatsPeriodChange = (period: 1 | 7 | 30 | 60) => {
     setSelectedStatsPeriod(period);
     fetchUsageStats(period);
+  };
+
+  // 显示导出选择模态框
+  const showExportModal = () => {
+    setIsExportModalVisible(true);
+  };
+
+  // 获取多个时间段的数据
+  const fetchMultiplePeriodsData = async (periods: (1 | 7 | 30 | 60)[]) => {
+    const data: { [key: number]: any } = {};
+
+    for (const period of periods) {
+      try {
+        const response = await api.getUserUsageStats(period);
+        data[period] = response.data;
+      } catch (error) {
+        console.error(`Error fetching data for ${period} days:`, error);
+        message.error(`Failed to fetch data for ${period} days`);
+        return null;
+      }
+    }
+
+    return data;
+  };
+
+  // 导出统计报告
+  const exportStatsReport = async () => {
+    if (selectedExportPeriods.length === 0) {
+      message.error("Please select at least one time period");
+      return;
+    }
+
+    setIsExportingReport(true);
+    try {
+      // 获取所有选中时间段的数据
+      const multiPeriodData = await fetchMultiplePeriodsData(
+        selectedExportPeriods
+      );
+      if (!multiPeriodData) {
+        setIsExportingReport(false);
+        return;
+      }
+
+      // Create a temporary report container
+      const reportContainer = document.createElement("div");
+      reportContainer.style.position = "fixed";
+      reportContainer.style.top = "-9999px";
+      reportContainer.style.left = "-9999px";
+      reportContainer.style.width = "1400px";
+      reportContainer.style.backgroundColor = "white";
+      reportContainer.style.padding = "40px";
+      reportContainer.style.fontFamily = "Arial, sans-serif";
+
+      // Generate current timestamp
+      const now = new Date();
+      const timestamp = now.toLocaleString();
+
+      // Generate periods summary
+      const periodsText = selectedExportPeriods
+        .map((p) => `${p} day${p > 1 ? "s" : ""}`)
+        .join(", ");
+
+      // Create report HTML content
+      reportContainer.innerHTML = `
+        <div style="max-width: 1320px; margin: 0 auto;">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 40px; border-bottom: 3px solid #1890ff; padding-bottom: 20px;">
+            <h1 style="color: #1890ff; margin: 0; font-size: 36px; font-weight: bold;">
+              📊 Dictation Studio - User Statistics Report
+            </h1>
+            <p style="color: #666; margin: 10px 0 0 0; font-size: 18px;">
+              Generated on ${timestamp} | Periods: ${periodsText}
+            </p>
+          </div>
+
+          <!-- Summary Cards by Period -->
+          <div style="margin-bottom: 40px;">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 28px;">📊 Summary Statistics by Period</h2>
+            ${selectedExportPeriods
+              .map((period) => {
+                const data = multiPeriodData[period];
+                return `
+                <div style="margin-bottom: 30px;">
+                  <h3 style="color: #1890ff; margin-bottom: 15px; font-size: 22px;">📅 Last ${period} Day${
+                  period > 1 ? "s" : ""
+                }</h3>
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    <div style="background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%); color: white; padding: 18px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                      <div style="font-size: 28px; font-weight: bold; margin-bottom: 6px;">
+                        ${data.summary?.totalNewUsers || 0}
+                      </div>
+                      <div style="font-size: 13px; opacity: 0.9;">New Users</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white; padding: 18px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                      <div style="font-size: 28px; font-weight: bold; margin-bottom: 6px;">
+                        ${data.summary?.totalActiveUsers || 0}
+                      </div>
+                      <div style="font-size: 13px; opacity: 0.9;">Active Users</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 18px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                      <div style="font-size: 28px; font-weight: bold; margin-bottom: 6px;">
+                        ${formatDuration(data.summary?.totalDuration || 0)}
+                      </div>
+                      <div style="font-size: 13px; opacity: 0.9;">Total Duration</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 18px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                      <div style="font-size: 28px; font-weight: bold; margin-bottom: 6px;">
+                        ${formatDuration(data.summary?.avgDailyDuration || 0)}
+                      </div>
+                      <div style="font-size: 13px; opacity: 0.9;">Avg Daily</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+              })
+              .join("")}
+          </div>
+
+          <!-- Data Tables by Period -->
+          <div style="margin-bottom: 40px;">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 28px;">📈 Daily Breakdown by Period</h2>
+            ${selectedExportPeriods
+              .map((period) => {
+                const data = multiPeriodData[period];
+                return `
+                <div style="margin-bottom: 35px;">
+                  <h3 style="color: #1890ff; margin-bottom: 20px; font-size: 22px;">📅 Last ${period} Day${
+                  period > 1 ? "s" : ""
+                } - Detailed Data</h3>
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    
+                    <!-- New Users Table -->
+                    <div style="background: #fff7ed; padding: 20px; border-radius: 12px; border: 2px solid #fed7aa;">
+                      <h4 style="color: #F59E0B; margin: 0 0 15px 0; font-size: 16px; font-weight: bold;">📅 New User Registrations</h4>
+                      <div style="max-height: 250px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                          <thead>
+                            <tr style="background: #fed7aa;">
+                              <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid #f97316; font-weight: bold;">Date</th>
+                              <th style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f97316; font-weight: bold;">New Users</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${(data.dailyNewUsers || [])
+                              .map(
+                                (item: any) => `
+                              <tr>
+                                <td style="padding: 5px 8px; border-bottom: 1px solid #fed7aa;">${
+                                  item.date
+                                }</td>
+                                <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #fed7aa; font-weight: ${
+                                  item.newUsers > 0 ? "bold" : "normal"
+                                }; color: ${
+                                  item.newUsers > 0 ? "#F59E0B" : "#666"
+                                };">${item.newUsers}</td>
+                              </tr>
+                            `
+                              )
+                              .join("")}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- Active Users Table -->
+                    <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 2px solid #bfdbfe;">
+                      <h4 style="color: #3B82F6; margin: 0 0 15px 0; font-size: 16px; font-weight: bold;">👥 Active Users</h4>
+                      <div style="max-height: 250px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                          <thead>
+                            <tr style="background: #bfdbfe;">
+                              <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid #3b82f6; font-weight: bold;">Date</th>
+                              <th style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #3b82f6; font-weight: bold;">Active Users</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${(data.dailyActiveUsers || [])
+                              .map(
+                                (item: any) => `
+                              <tr>
+                                <td style="padding: 5px 8px; border-bottom: 1px solid #bfdbfe;">${
+                                  item.date
+                                }</td>
+                                <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #bfdbfe; font-weight: ${
+                                  item.activeUsers > 0 ? "bold" : "normal"
+                                }; color: ${
+                                  item.activeUsers > 0 ? "#3B82F6" : "#666"
+                                };">${item.activeUsers}</td>
+                              </tr>
+                            `
+                              )
+                              .join("")}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- Duration Table -->
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 2px solid #bbf7d0;">
+                      <h4 style="color: #10B981; margin: 0 0 15px 0; font-size: 16px; font-weight: bold;">⏱️ Daily Duration</h4>
+                      <div style="max-height: 250px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                          <thead>
+                            <tr style="background: #bbf7d0;">
+                              <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid #10b981; font-weight: bold;">Date</th>
+                              <th style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #10b981; font-weight: bold;">Duration</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${(data.dailyDuration || [])
+                              .map(
+                                (item: any) => `
+                              <tr>
+                                <td style="padding: 5px 8px; border-bottom: 1px solid #bbf7d0;">${
+                                  item.date
+                                }</td>
+                                <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #bbf7d0; font-weight: ${
+                                  item.duration > 0 ? "bold" : "normal"
+                                }; color: ${
+                                  item.duration > 0 ? "#10B981" : "#666"
+                                };">${formatDuration(item.duration)}</td>
+                              </tr>
+                            `
+                              )
+                              .join("")}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+              })
+              .join("")}
+          </div>
+
+          <!-- Key Insights -->
+          <div style="margin-bottom: 40px;">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 28px;">💡 Key Insights & Analysis</h2>
+            ${selectedExportPeriods
+              .map((period) => {
+                const data = multiPeriodData[period];
+                const totalNewUsers = data.summary?.totalNewUsers || 0;
+                const totalActiveUsers = data.summary?.totalActiveUsers || 0;
+                const totalDuration = data.summary?.totalDuration || 0;
+                const avgDaily = (totalNewUsers / period).toFixed(1);
+                const avgEngagement =
+                  totalActiveUsers > 0
+                    ? formatDuration(totalDuration / totalActiveUsers)
+                    : "0m";
+
+                return `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                  <h3 style="margin: 0 0 20px 0; font-size: 20px; text-align: center; opacity: 0.95;">📅 Last ${period} Day${
+                  period > 1 ? "s" : ""
+                } Analysis</h3>
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div style="text-align: center;">
+                      <h4 style="margin: 0 0 10px 0; font-size: 16px; opacity: 0.9;">📊 User Growth</h4>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+                        <strong>${totalNewUsers}</strong> new users registered
+                        <br/>
+                        <span style="opacity: 0.8;">Average: ${avgDaily} users/day</span>
+                      </p>
+                    </div>
+                    <div style="text-align: center;">
+                      <h4 style="margin: 0 0 10px 0; font-size: 16px; opacity: 0.9;">⚡ User Activity</h4>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+                        <strong>${totalActiveUsers}</strong> active users
+                        <br/>
+                        <span style="opacity: 0.8;">${formatDuration(
+                          totalDuration
+                        )} total</span>
+                      </p>
+                    </div>
+                    <div style="text-align: center;">
+                      <h4 style="margin: 0 0 10px 0; font-size: 16px; opacity: 0.9;">🎯 Engagement</h4>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+                        <strong>${avgEngagement}</strong>/user average
+                        <br/>
+                        <span style="opacity: 0.8;">${(
+                          (totalActiveUsers / Math.max(totalNewUsers, 1)) *
+                          100
+                        ).toFixed(0)}% activation rate</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              `;
+              })
+              .join("")}
+          </div>
+
+          <!-- Footer -->
+          <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #666; font-size: 14px;">
+            <p style="margin: 0;">
+              📚 Dictation Studio - Empowering Language Learning Through Technology
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 12px;">
+              Report generated automatically • For internal use only
+            </p>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(reportContainer);
+
+      // Generate canvas from the report container
+      const canvas = await html2canvas(reportContainer, {
+        width: 1400,
+        height: reportContainer.scrollHeight,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+      });
+
+      // Remove the temporary container
+      document.body.removeChild(reportContainer);
+
+      // Create downloadable PNG image
+      const imgData = canvas.toDataURL("image/png", 1.0);
+
+      // Create download link
+      const link = document.createElement("a");
+      link.download = `dictation-studio-stats-report-${periodsText
+        .replace(/\s+/g, "-")
+        .replace(",", "")}-${now.getFullYear()}-${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}.png`;
+      link.href = imgData;
+
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      message.success("Statistics report exported successfully!");
+      setIsExportModalVisible(false);
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      message.error("Failed to export statistics report");
+    } finally {
+      setIsExportingReport(false);
+    }
   };
 
   // Check if user has real dictation input (is an active user)
@@ -1290,6 +1643,16 @@ const UserManagement: React.FC = () => {
         onCancel={() => setIsStatsModalVisible(false)}
         footer={[
           <Button
+            key="export"
+            type="default"
+            icon={<DownloadOutlined />}
+            onClick={showExportModal}
+            disabled={isLoadingStats}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+          >
+            Export Report
+          </Button>,
+          <Button
             key="close"
             type="primary"
             onClick={() => setIsStatsModalVisible(false)}
@@ -1301,7 +1664,7 @@ const UserManagement: React.FC = () => {
         width={900}
         className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
       >
-        <div className="space-y-6">
+        <div className="space-y-6" ref={reportRef}>
           {/* Period Selector */}
           <div className="flex justify-center">
             <Segmented
@@ -1596,6 +1959,119 @@ const UserManagement: React.FC = () => {
           {!isLoadingStats && !statsData && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               No statistics data available
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Export Selection Modal */}
+      <Modal
+        title="Export Statistics Report"
+        open={isExportModalVisible}
+        maskClosable={false}
+        onCancel={() => setIsExportModalVisible(false)}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setIsExportModalVisible(false)}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="export"
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={exportStatsReport}
+            loading={isExportingReport}
+            disabled={selectedExportPeriods.length === 0}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
+          >
+            Export as PNG Image
+          </Button>,
+        ]}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
+      >
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+              📊 Select Time Periods to Include
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Choose one or more time periods to include in your statistics
+              report. The report will contain detailed data for each selected
+              period.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {[1, 7, 30, 60].map((period) => (
+              <div
+                key={period}
+                className="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                onClick={() => {
+                  const newSelection = selectedExportPeriods.includes(
+                    period as 1 | 7 | 30 | 60
+                  )
+                    ? selectedExportPeriods.filter((p) => p !== period)
+                    : [...selectedExportPeriods, period as 1 | 7 | 30 | 60];
+                  setSelectedExportPeriods(newSelection);
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedExportPeriods.includes(
+                    period as 1 | 7 | 30 | 60
+                  )}
+                  onChange={() => {}}
+                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                    Last {period} Day{period > 1 ? "s" : ""}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {period === 1
+                      ? "Yesterday's data"
+                      : period === 7
+                      ? "Past week analysis"
+                      : period === 30
+                      ? "Monthly overview"
+                      : "Quarterly summary"}
+                  </div>
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                  {period === 1
+                    ? "📅"
+                    : period === 7
+                    ? "📊"
+                    : period === 30
+                    ? "📈"
+                    : "📋"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <div className="text-blue-600 dark:text-blue-400 mt-0.5">💡</div>
+              <div className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Tip:</strong> Select multiple periods to create a
+                comprehensive comparison report. Each period will be displayed
+                as a separate section with detailed statistics and insights.
+              </div>
+            </div>
+          </div>
+
+          {selectedExportPeriods.length > 0 && (
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="text-sm text-green-800 dark:text-green-200">
+                <strong>Selected periods:</strong>{" "}
+                {selectedExportPeriods
+                  .map((p) => `${p} day${p > 1 ? "s" : ""}`)
+                  .join(", ")}
+              </div>
             </div>
           )}
         </div>
