@@ -1175,6 +1175,62 @@ body {
   @apply bg-gray-800 text-gray-400 border-gray-600 !important;
 }
 
+/* Dark mode styles for Ant Design Charts */
+.dark .g2-tooltip {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .g2-tooltip-title {
+  color: #f9fafb !important;
+  border-bottom: 1px solid #4b5563 !important;
+}
+
+.dark .g2-tooltip-list-item {
+  color: #f9fafb !important;
+}
+
+.dark .g2-axis-label {
+  fill: #f9fafb !important;
+}
+
+.dark .g2-axis-line {
+  stroke: #4b5563 !important;
+}
+
+.dark .g2-axis-tick {
+  stroke: #4b5563 !important;
+}
+
+.dark .g2-grid-line {
+  stroke: #374151 !important;
+}
+
+/* Dark mode for Segmented component */
+.dark .ant-segmented {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.dark .ant-segmented-item {
+  color: #f9fafb !important;
+  background-color: transparent !important;
+}
+
+.dark .ant-segmented-item:hover {
+  background-color: #4b5563 !important;
+}
+
+.dark .ant-segmented-item-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark .ant-segmented-item-selected:hover {
+  background-color: #2563eb !important;
+}
+
 /* Force dark mode text color for all dropdown menu items in table filters */
 .dark .ant-table-filter-dropdown * {
   color: #f9fafb !important;

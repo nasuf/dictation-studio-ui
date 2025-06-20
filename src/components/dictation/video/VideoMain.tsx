@@ -130,7 +130,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         next: "Enter",
       }
   );
-  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
+  const [lastSavedTotalTime, setLastSavedTotalTime] = useState<number>(0);
   const [isImeComposing, setIsImeComposing] = useState(false);
   const [autoSaveInputCount, setAutoSaveInputCount] = useState(0);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -415,6 +415,9 @@ const VideoMain: React.ForwardRefRenderFunction<
 
     // 恢复进度后清除未保存标记，因为恢复的数据已经是保存过的
     setHasUnsavedChanges(false);
+    // 恢复进度时，Timer从0开始计时
+    setTotalTime(0);
+    setLastSavedTotalTime(0);
   };
 
   const resetProgress = (transcriptData?: TranscriptItem[]) => {
@@ -428,6 +431,9 @@ const VideoMain: React.ForwardRefRenderFunction<
     setOverallCompletion(0);
     setOverallAccuracy(0);
     setIsCompleted(false);
+    // 重置进度时，重置计时器相关状态
+    setTotalTime(0);
+    setLastSavedTotalTime(0);
   };
 
   const scrollToCurrentSentence = useCallback(() => {
@@ -502,9 +508,10 @@ const VideoMain: React.ForwardRefRenderFunction<
   const startTimer = useCallback(() => {
     if (!isTimerRunning) {
       setIsTimerRunning(true);
-      setLastSaveTime(Date.now());
       timerIntervalRef.current = setInterval(() => {
         setTotalTime((prev) => prev + 1);
+        // 更新最后活跃时间
+        lastActivityRef.current = Date.now();
       }, 1000);
     }
   }, [isTimerRunning]);
@@ -1137,11 +1144,15 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [revealedSentences, transcript, updateOverallProgress]);
 
   const getTimeSinceLastSave = () => {
-    return Math.floor((Date.now() - lastSaveTime) / 1000);
+    // 计算自上次保存以来的实际活跃时间（基于totalTime）
+    return totalTime - lastSavedTotalTime;
   };
 
   const resetLastSaveTime = () => {
-    setLastSaveTime(Date.now());
+    // 记录当前的totalTime作为基准
+    setLastSavedTotalTime(totalTime);
+    // 同时更新最后活跃时间
+    lastActivityRef.current = Date.now();
   };
 
   // 自动保存函数（无提示框）
@@ -1200,7 +1211,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     transcript,
     overallCompletion,
     totalTime,
-    lastSaveTime,
+    lastSavedTotalTime,
     hasUnsavedChanges,
   ]);
 
@@ -1248,7 +1259,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     overallCompletion,
     t,
     totalTime,
-    lastSaveTime,
+    lastSavedTotalTime,
   ]);
 
   const removeMissedWord = (word: string) => {
@@ -1265,6 +1276,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(e.target.value);
     resetUserTypingTimer();
+    // 更新最后活跃时间
+    lastActivityRef.current = Date.now();
     if (!isTimerRunning) {
       startTimer();
     }
@@ -1432,6 +1445,9 @@ const VideoMain: React.ForwardRefRenderFunction<
           (!isImeComposing && isInputFocused) ||
           e.code === shortcuts?.next
         ) {
+          // 更新活跃时间
+          lastActivityRef.current = Date.now();
+
           switch (e.code) {
             case shortcuts?.repeat:
               e.preventDefault();
@@ -1588,20 +1604,29 @@ const VideoMain: React.ForwardRefRenderFunction<
           <div className="w-full max-w-xl space-y-4">
             <div className="flex justify-center space-x-4">
               <button
-                onClick={playPreviousSentence}
+                onClick={() => {
+                  lastActivityRef.current = Date.now();
+                  playPreviousSentence();
+                }}
                 disabled={currentSentenceIndex === 0}
                 className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
               >
                 <StepBackwardOutlined className="text-lg" />
               </button>
               <button
-                onClick={playCurrentSentence}
+                onClick={() => {
+                  lastActivityRef.current = Date.now();
+                  playCurrentSentence();
+                }}
                 className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
               >
                 <RedoOutlined className="text-lg" />
               </button>
               <button
-                onClick={playNextSentence}
+                onClick={() => {
+                  lastActivityRef.current = Date.now();
+                  playNextSentence();
+                }}
                 disabled={currentSentenceIndex === transcript.length - 1}
                 className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
               >

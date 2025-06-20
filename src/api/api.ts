@@ -378,4 +378,8 @@ export const api = {
       adminResponse?: string;
     }
   ) => axiosInstance.put(`/user/video-error-reports/${reportId}`, data),
+
+  // User usage statistics API
+  getUserUsageStats: (days: number) =>
+    axiosInstance.get(`/user/usage-stats`, { params: { days } }),
 };

@@ -14,7 +14,10 @@ import {
   Tooltip,
   Input,
   Space,
+  Spin,
+  Segmented,
 } from "antd";
+import { Line } from "@ant-design/charts";
 import { api } from "@/api/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -27,6 +30,7 @@ import {
   CalendarOutlined,
   UserAddOutlined,
   SearchOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { formatTimestamp } from "../../utils/util";
 
@@ -79,6 +83,12 @@ const UserManagement: React.FC = () => {
   const [roleForm] = Form.useForm();
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsModalVisible, setIsStatsModalVisible] = useState(false);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<7 | 30 | 60>(
+    7
+  );
 
   useEffect(() => {
     fetchUsers();
@@ -599,6 +609,32 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // 显示统计数据模态框
+  const showStatsModal = () => {
+    setIsStatsModalVisible(true);
+    fetchUsageStats(selectedStatsPeriod);
+  };
+
+  // 获取使用统计数据
+  const fetchUsageStats = async (days: 7 | 30 | 60) => {
+    setIsLoadingStats(true);
+    try {
+      const response = await api.getUserUsageStats(days);
+      setStatsData(response.data);
+    } catch (error) {
+      console.error("Error fetching usage statistics:", error);
+      message.error("Failed to fetch usage statistics");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  // 处理统计周期变化
+  const handleStatsPeriodChange = (period: 7 | 30 | 60) => {
+    setSelectedStatsPeriod(period);
+    fetchUsageStats(period);
+  };
+
   // Check if user has real dictation input (is an active user)
   const checkUserHasDictationInput = (user: UserInfo): boolean => {
     if (!user.dictation_progress) {
@@ -693,6 +729,14 @@ const UserManagement: React.FC = () => {
               className="dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:border-cyan-600"
             >
               View Active Codes
+            </Button>
+            <Button
+              type="primary"
+              onClick={showStatsModal}
+              icon={<BarChartOutlined />}
+              className="dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:border-emerald-600"
+            >
+              Usage Statistics
             </Button>
           </div>
         }
@@ -1222,6 +1266,244 @@ const UserManagement: React.FC = () => {
             </Text>
           </div>
         </Form>
+      </Modal>
+
+      {/* Usage Statistics Modal */}
+      <Modal
+        title="User Usage Statistics"
+        open={isStatsModalVisible}
+        maskClosable={false}
+        onCancel={() => setIsStatsModalVisible(false)}
+        footer={[
+          <Button
+            key="close"
+            type="primary"
+            onClick={() => setIsStatsModalVisible(false)}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
+          >
+            Close
+          </Button>,
+        ]}
+        width={900}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
+      >
+        <div className="space-y-6">
+          {/* Period Selector */}
+          <div className="flex justify-center">
+            <Segmented
+              value={selectedStatsPeriod}
+              onChange={handleStatsPeriodChange}
+              options={[
+                { label: "Last 7 Days", value: 7 },
+                { label: "Last 30 Days", value: 30 },
+                { label: "Last 60 Days", value: 60 },
+              ]}
+              className="dark:bg-gray-700 [&_.ant-segmented-item]:dark:text-white [&_.ant-segmented-item-selected]:dark:bg-blue-600 [&_.ant-segmented-item-selected]:dark:text-white"
+            />
+          </div>
+
+          {/* Loading Spinner */}
+          {isLoadingStats && (
+            <div className="flex justify-center py-8">
+              <Spin size="large" className="dark:text-white" />
+            </div>
+          )}
+
+          {/* Charts */}
+          {!isLoadingStats && statsData && (
+            <div className="space-y-8">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {statsData.summary?.totalActiveUsers || 0}
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-300">
+                      Total Active Users
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {Math.round((statsData.summary?.totalDuration || 0) / 60)}{" "}
+                      min
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-300">
+                      Total Duration
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {Math.round(
+                        (statsData.summary?.avgDailyDuration || 0) / 60
+                      )}{" "}
+                      min
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-300">
+                      Avg Daily Duration
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Active Users Chart */}
+              <Card
+                title={
+                  <span className="dark:text-white">Daily Active Users</span>
+                }
+                className="dark:bg-gray-700 dark:border-gray-600"
+              >
+                <div className="h-64">
+                  <Line
+                    data={statsData.dailyActiveUsers || []}
+                    xField="date"
+                    yField="activeUsers"
+                    smooth={true}
+                    color="#3B82F6"
+                    point={{
+                      size: 4,
+                      shape: "circle",
+                      style: {
+                        fill: "#3B82F6",
+                        stroke: "#3B82F6",
+                        lineWidth: 2,
+                      },
+                    }}
+                    theme={
+                      document.documentElement.classList.contains("dark")
+                        ? "dark"
+                        : "light"
+                    }
+                    tooltip={{
+                      showTitle: true,
+                      title: "Date",
+                      showMarkers: true,
+                      shared: false,
+                      valueFormatter: (_title: any, data: any) => {
+                        if (!data || data.length === 0) return "";
+                        const item = data[0];
+                        return `
+                          <div style="padding: 8px; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="margin-bottom: 4px; font-weight: bold;">${item.title}</div>
+                            <div style="color: #3B82F6;">Active Users: ${item.value}</div>
+                          </div>
+                        `;
+                      },
+                    }}
+                    xAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                    yAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </Card>
+
+              {/* Total Duration Chart */}
+              <Card
+                title={
+                  <span className="dark:text-white">
+                    Daily Total Duration (Minutes)
+                  </span>
+                }
+                className="dark:bg-gray-700 dark:border-gray-600"
+              >
+                <div className="h-64">
+                  <Line
+                    data={(statsData.dailyDuration || []).map((item: any) => ({
+                      ...item,
+                      duration: Math.round(item.duration / 60),
+                    }))}
+                    xField="date"
+                    yField="duration"
+                    smooth={true}
+                    color="#10B981"
+                    point={{
+                      size: 4,
+                      shape: "circle",
+                      style: {
+                        fill: "#10B981",
+                        stroke: "#10B981",
+                        lineWidth: 2,
+                      },
+                    }}
+                    theme={
+                      document.documentElement.classList.contains("dark")
+                        ? "dark"
+                        : "light"
+                    }
+                    tooltip={{
+                      showTitle: true,
+                      title: "Date",
+                      showMarkers: true,
+                      shared: false,
+                      valueFormatter: (_title: any, data: any) => {
+                        if (!data || data.length === 0) return "";
+                        const item = data[0];
+                        return `
+                          <div style="padding: 8px; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="margin-bottom: 4px; font-weight: bold;">${item.title}</div>
+                            <div style="color: #10B981;">Duration: ${item.value} min</div>
+                          </div>
+                        `;
+                      },
+                    }}
+                    xAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                    yAxis={{
+                      label: {
+                        style: {
+                          fill: document.documentElement.classList.contains(
+                            "dark"
+                          )
+                            ? "#F9FAFB"
+                            : "#374151",
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* No Data Message */}
+          {!isLoadingStats && !statsData && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              No statistics data available
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   );
