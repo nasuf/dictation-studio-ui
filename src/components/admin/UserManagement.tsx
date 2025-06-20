@@ -86,9 +86,9 @@ const UserManagement: React.FC = () => {
   const [isStatsModalVisible, setIsStatsModalVisible] = useState(false);
   const [statsData, setStatsData] = useState<any>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
-  const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<7 | 30 | 60>(
-    7
-  );
+  const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<
+    1 | 7 | 30 | 60
+  >(1);
 
   // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
   const formatDuration = (durationInSeconds: number): string => {
@@ -630,7 +630,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 获取使用统计数据
-  const fetchUsageStats = async (days: 7 | 30 | 60) => {
+  const fetchUsageStats = async (days: 1 | 7 | 30 | 60) => {
     setIsLoadingStats(true);
     try {
       const response = await api.getUserUsageStats(days);
@@ -644,7 +644,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 处理统计周期变化
-  const handleStatsPeriodChange = (period: 7 | 30 | 60) => {
+  const handleStatsPeriodChange = (period: 1 | 7 | 30 | 60) => {
     setSelectedStatsPeriod(period);
     fetchUsageStats(period);
   };
@@ -1306,8 +1306,11 @@ const UserManagement: React.FC = () => {
           <div className="flex justify-center">
             <Segmented
               value={selectedStatsPeriod}
-              onChange={handleStatsPeriodChange}
+              onChange={(value) =>
+                handleStatsPeriodChange(value as 7 | 30 | 60)
+              }
               options={[
+                { label: "Last 1 Day", value: 1 },
                 { label: "Last 7 Days", value: 7 },
                 { label: "Last 30 Days", value: 30 },
                 { label: "Last 60 Days", value: 60 },
