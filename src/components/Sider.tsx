@@ -131,7 +131,7 @@ const AppSider: React.FC<AppSiderProps> = ({
     },
     {
       key: "VideoErrorReportManagement",
-      label: "Video Reports",
+      label: "Video Error Reports",
       path: "/admin/video-error-reports",
       icon: <></>,
     },
