@@ -35,12 +35,9 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { Navigate } from "react-router-dom";
 import getYoutubeId from "get-youtube-id";
 import { Channel, TranscriptItem, Video } from "@/utils/type";
-import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
+import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
@@ -481,12 +478,6 @@ const AddVideosForm: React.FC<{
 };
 
 const VideoManagement: React.FC = () => {
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
-
-  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
-    return <Navigate to="/" replace />;
-  }
-
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);

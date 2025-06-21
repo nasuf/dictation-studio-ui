@@ -19,9 +19,6 @@ import {
 } from "antd";
 import { Line } from "@ant-design/charts";
 import { api } from "@/api/api";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { Navigate } from "react-router-dom";
 import { UserInfo } from "@/utils/type";
 import { USER_ROLE } from "@/utils/const";
 import {
@@ -59,7 +56,6 @@ const UserManagement: React.FC = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCodeModalVisible, setIsCodeModalVisible] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<UserInfo[]>([]);
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [form] = Form.useForm();
   const [codeForm] = Form.useForm();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -1650,10 +1646,6 @@ const UserManagement: React.FC = () => {
 
     return false;
   };
-
-  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <div style={{ padding: "20px" }}>

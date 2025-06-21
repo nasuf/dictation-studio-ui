@@ -24,11 +24,8 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { Navigate } from "react-router-dom";
 import { Channel, ChannelRecommendationItem } from "@/utils/type";
-import { LANGUAGES, USER_ROLE, VISIBILITY_OPTIONS } from "@/utils/const";
+import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 
 const { Option } = Select;
 
@@ -415,7 +412,6 @@ const ChannelManagement: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isAddChannelModalVisible, setIsAddChannelModalVisible] =
     useState(false);
-  const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const [editingKey, setEditingKey] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
     LANGUAGES.All
@@ -427,10 +423,6 @@ const ChannelManagement: React.FC = () => {
     isChannelRecommendationModalVisible,
     setIsChannelRecommendationModalVisible,
   ] = useState(false);
-
-  if (!userInfo || userInfo.role !== USER_ROLE.ADMIN) {
-    return <Navigate to="/" replace />;
-  }
 
   useEffect(() => {
     fetchChannels(selectedLanguage, selectedVisibility);
