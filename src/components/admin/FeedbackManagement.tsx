@@ -16,7 +16,11 @@ import { useTranslation } from "react-i18next";
 import { FeedbackMessage, FeedbackUserList } from "@/utils/type";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import { formatTimestamp } from "@/utils/util";
-import { UploadOutlined, SendOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  SendOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 
 const { TextArea } = Input;
 const { Content, Sider } = Layout;
@@ -188,6 +192,15 @@ export default function FeedbackManagement() {
               className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 mb-4"
               title={selectedUser || t("feedbackHistory")}
               bodyStyle={{ height: "calc(100% - 57px)", padding: 0 }}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={fetchFeedbacks}
+                  icon={<ReloadOutlined />}
+                >
+                  {t("refresh")}
+                </Button>
+              }
             >
               <div className="h-full overflow-auto p-4">
                 <List
