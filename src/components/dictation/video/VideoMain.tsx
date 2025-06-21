@@ -48,6 +48,7 @@ import {
   calculateSimilarity,
   normalizeWord,
   detectLanguage,
+  areWordsEquivalent,
 } from "@/utils/languageUtils";
 
 interface VideoMainProps {
@@ -788,6 +789,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     const inputWords = splitWords(cleanedInput, language);
     const transcriptWords = splitWords(cleanedTranscript, language);
     const originalTranscriptWords = splitWords(transcript, language);
+    const originalInputWords = splitWords(input, language);
 
     // Debug logging for development
     const isDebugMode = process.env.NODE_ENV === "development";
@@ -835,6 +837,18 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       return weight;
     };
+
+    // Create mapping from cleaned transcript indices to original transcript indices
+    const cleanedToOriginalTranscriptMap = new Map<number, number>();
+    let cleanedIndex = 0;
+
+    originalTranscriptWords.forEach((originalWord, originalIndex) => {
+      const cleanedWord = cleanString(originalWord, language);
+      if (cleanedWord.trim() !== "") {
+        cleanedToOriginalTranscriptMap.set(cleanedIndex, originalIndex);
+        cleanedIndex++;
+      }
+    });
 
     // Find optimal matching using global optimization (Hungarian algorithm approach)
     const findOptimalMatching = () => {
@@ -890,7 +904,17 @@ const VideoMain: React.ForwardRefRenderFunction<
           }
         });
 
-        return { inputResult, usedIndices };
+        // For CJK languages, create a simple matchMap based on usedIndices
+        const matchMap = new Map<number, number>();
+        let matchIndex = 0;
+        usedIndices.forEach((transcriptIndex) => {
+          if (matchIndex < inputWords.length) {
+            matchMap.set(matchIndex, transcriptIndex);
+            matchIndex++;
+          }
+        });
+
+        return { inputResult, usedIndices, matchMap };
       } else {
         // For English and other languages: use global optimization for exact matches
 
@@ -905,7 +929,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         inputWords.forEach((inputWord, inputIndex) => {
           const rowCosts: number[] = [];
           transcriptWords.forEach((transcriptWord, transcriptIndex) => {
-            if (inputWord === transcriptWord) {
+            if (areWordsEquivalent(inputWord, transcriptWord, language)) {
               const positionWeight = calculatePositionWeight(
                 inputIndex,
                 transcriptIndex
@@ -945,7 +969,7 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         inputWords.forEach((inputWord, inputIndex) => {
           transcriptWords.forEach((transcriptWord, transcriptIndex) => {
-            if (inputWord === transcriptWord) {
+            if (areWordsEquivalent(inputWord, transcriptWord, language)) {
               const positionWeight = calculatePositionWeight(
                 inputIndex,
                 transcriptIndex
@@ -1007,12 +1031,24 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         inputWords.forEach((word, inputIndex) => {
           if (matchMap.has(inputIndex)) {
-            const transcriptIndex = matchMap.get(inputIndex)!;
-            inputResult.push({
-              word: originalTranscriptWords[transcriptIndex],
-              color: "#00827F",
-              isCorrect: true,
-            });
+            const cleanedTranscriptIndex = matchMap.get(inputIndex)!;
+            // Map cleaned transcript index to original transcript index
+            const originalTranscriptIndex = cleanedToOriginalTranscriptMap.get(
+              cleanedTranscriptIndex
+            );
+            if (originalTranscriptIndex !== undefined) {
+              inputResult.push({
+                word: originalTranscriptWords[originalTranscriptIndex],
+                color: "#00827F",
+                isCorrect: true,
+              });
+            } else {
+              inputResult.push({
+                word,
+                color: "#C41E3A",
+                isCorrect: false,
+              });
+            }
           } else {
             inputResult.push({
               word,
@@ -1023,24 +1059,73 @@ const VideoMain: React.ForwardRefRenderFunction<
         });
 
         const usedIndices = new Set(Array.from(matchMap.values()));
-        return { inputResult, usedIndices };
+        return { inputResult, usedIndices, matchMap: matchMap };
       }
     };
 
-    const { inputResult, usedIndices } = findOptimalMatching();
+    const { inputResult, usedIndices, matchMap } = findOptimalMatching();
+
+    // Map usedIndices (which are cleaned indices) to original indices
+    const usedOriginalIndices = new Set<number>();
+    usedIndices.forEach((cleanedIdx) => {
+      const originalIdx = cleanedToOriginalTranscriptMap.get(cleanedIdx);
+      if (originalIdx !== undefined) {
+        usedOriginalIndices.add(originalIdx);
+      }
+    });
 
     const transcriptResult = originalTranscriptWords.map((word, index) => {
       return {
         word,
-        highlight: usedIndices.has(index) ? "#7CEECE" : "#FFAAA5",
-        isCorrect: usedIndices.has(index),
+        highlight: usedOriginalIndices.has(index) ? "#7CEECE" : "#FFAAA5",
+        isCorrect: usedOriginalIndices.has(index),
       };
     });
+
+    // Create originalInputResult that shows the user's original input with correct coloring
+    const originalInputResult = originalInputWords.map(
+      (originalWord, originalIndex) => {
+        // Find the corresponding cleaned input word index
+        let cleanedInputIndex = -1;
+        let currentCleanedIndex = 0;
+
+        for (let i = 0; i <= originalIndex; i++) {
+          const cleanedWord = cleanString(originalInputWords[i], language);
+          if (cleanedWord.trim() !== "") {
+            if (i === originalIndex) {
+              cleanedInputIndex = currentCleanedIndex;
+              break;
+            }
+            currentCleanedIndex++;
+          }
+        }
+
+        // Check if this cleaned input word was matched correctly
+        let isCorrect = false;
+        if (
+          cleanedInputIndex >= 0 &&
+          matchMap &&
+          matchMap.has(cleanedInputIndex)
+        ) {
+          isCorrect = true;
+        }
+
+        return {
+          word: originalWord,
+          isCorrect: isCorrect,
+        };
+      }
+    );
 
     const correctWords = inputResult.filter((word) => word.isCorrect).length;
     const completionPercentage = (correctWords / transcriptWords.length) * 100;
 
-    return { inputResult, transcriptResult, completionPercentage };
+    return {
+      inputResult,
+      transcriptResult,
+      completionPercentage,
+      originalInputResult,
+    };
   };
 
   const populateMissedWords = () => {
@@ -1714,18 +1799,20 @@ const VideoMain: React.ForwardRefRenderFunction<
                                     compareInputWithTranscript(
                                       item.userInput,
                                       item.transcript
-                                    ).inputResult.map((word, wordIndex) => (
-                                      <span
-                                        key={wordIndex}
-                                        className={
-                                          word.isCorrect
-                                            ? "text-green-600 dark:text-green-400"
-                                            : "text-red-600 dark:text-red-400"
-                                        }
-                                      >
-                                        {word.word}{" "}
-                                      </span>
-                                    ))}
+                                    ).originalInputResult.map(
+                                      (word, wordIndex) => (
+                                        <span
+                                          key={wordIndex}
+                                          className={
+                                            word.isCorrect
+                                              ? "text-green-600 dark:text-green-400"
+                                              : "text-red-600 dark:text-red-400"
+                                          }
+                                        >
+                                          {word.word}{" "}
+                                        </span>
+                                      )
+                                    )}
                                 </p>
                               </>
                             ) : (
