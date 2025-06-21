@@ -103,6 +103,15 @@ const UserManagement: React.FC = () => {
     string[]
   >(["en"]);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [isCoverModalVisible, setIsCoverModalVisible] = useState(false);
+  const [selectedCoverPeriods, setSelectedCoverPeriods] = useState<
+    (1 | 3 | 7 | 30 | 60)[]
+  >([7]);
+  const [selectedCoverLanguages, setSelectedCoverLanguages] = useState<
+    string[]
+  >(["zh"]);
+  const [selectedColorScheme, setSelectedColorScheme] =
+    useState<string>("pink");
 
   // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
   const formatDuration = (durationInSeconds: number): string => {
@@ -668,6 +677,219 @@ const UserManagement: React.FC = () => {
     setIsExportModalVisible(true);
   };
 
+  // 显示封面选择模态框
+  const showCoverModal = () => {
+    setIsCoverModalVisible(true);
+  };
+
+  // 获取色系配置
+  const getColorScheme = (scheme: string) => {
+    const schemes: { [key: string]: any } = {
+      pink: {
+        background:
+          "linear-gradient(135deg, #ec4899 0%, #be185d 50%, #9f1239 100%)",
+        backgroundColor: "#ec4899",
+      },
+      blue: {
+        background:
+          "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e3a8a 100%)",
+        backgroundColor: "#3b82f6",
+      },
+      purple: {
+        background:
+          "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
+        backgroundColor: "#8b5cf6",
+      },
+      green: {
+        background:
+          "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)",
+        backgroundColor: "#10b981",
+      },
+      orange: {
+        background:
+          "linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%)",
+        backgroundColor: "#f97316",
+      },
+    };
+    return schemes[scheme] || schemes.pink;
+  };
+
+  // 获取封面文本内容
+  const getCoverTexts = (language: string, period: 1 | 3 | 7 | 30 | 60) => {
+    const now = new Date();
+
+    const texts: { [key: string]: any } = {
+      zh: {
+        title: "📊 听写报告",
+        subtitle: `${
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "近3日"
+            : period === 7
+            ? "本周"
+            : period === 30
+            ? "本月"
+            : "近60日"
+        }听写数据总览 · ${now.toLocaleDateString("zh-CN", {
+          month: "long",
+          day: "numeric",
+        })}`,
+        activeUsers: "活跃用户",
+        newUsers: "新增用户",
+        totalDuration: "总时长",
+        brandTitle: "🎯 Dictation Studio",
+        brandSlogan: "让外语听力学习更高效 · 数据驱动成长",
+        periodText:
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "近3日"
+            : period === 7
+            ? "本周"
+            : period === 30
+            ? "本月"
+            : "近60日",
+        successMessage: "小红书封面已生成并下载！",
+      },
+      zhTraditional: {
+        title: "📊 聽寫報告",
+        subtitle: `${
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "近3日"
+            : period === 7
+            ? "本週"
+            : period === 30
+            ? "本月"
+            : "近60日"
+        }聽寫數據總覽 · ${now.toLocaleDateString("zh-TW", {
+          month: "long",
+          day: "numeric",
+        })}`,
+        activeUsers: "活躍用戶",
+        newUsers: "新增用戶",
+        totalDuration: "總時長",
+        brandTitle: "🎯 Dictation Studio",
+        brandSlogan: "讓外語聽力學習更高效 · 數據驅動成長",
+        periodText:
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "近3日"
+            : period === 7
+            ? "本週"
+            : period === 30
+            ? "本月"
+            : "近60日",
+        successMessage: "小紅書封面已生成並下載！",
+      },
+      en: {
+        title: "📊 Dictation Report",
+        subtitle: `${
+          period === 1
+            ? "Yesterday"
+            : period === 3
+            ? "Last 3 Days"
+            : period === 7
+            ? "This Week"
+            : period === 30
+            ? "This Month"
+            : "Last 60 Days"
+        } Dictation Overview · ${now.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+        })}`,
+        activeUsers: "Active Users",
+        newUsers: "New Users",
+        totalDuration: "Total Duration",
+        brandTitle: "🎯 Dictation Studio",
+        brandSlogan:
+          "Learn Foreign Languages More Effectively · Data-Driven Growth",
+        periodText:
+          period === 1
+            ? "yesterday"
+            : period === 3
+            ? "3days"
+            : period === 7
+            ? "week"
+            : period === 30
+            ? "month"
+            : "60days",
+        successMessage: "Xiaohongshu cover generated and downloaded!",
+      },
+      ja: {
+        title: "📊 ディクテーションレポート",
+        subtitle: `${
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "過去3日"
+            : period === 7
+            ? "今週"
+            : period === 30
+            ? "今月"
+            : "過去60日"
+        }のディクテーション概要 · ${now.toLocaleDateString("ja-JP", {
+          month: "long",
+          day: "numeric",
+        })}`,
+        activeUsers: "アクティブユーザー",
+        newUsers: "新規ユーザー",
+        totalDuration: "総時間",
+        brandTitle: "🎯 Dictation Studio",
+        brandSlogan: "外国語リスニング学習をより効率的に · データ駆動の成長",
+        periodText:
+          period === 1
+            ? "昨日"
+            : period === 3
+            ? "3日間"
+            : period === 7
+            ? "週間"
+            : period === 30
+            ? "月間"
+            : "60日間",
+        successMessage: "シャオホンシュカバーが生成・ダウンロードされました！",
+      },
+      ko: {
+        title: "📊 받아쓰기 리포트",
+        subtitle: `${
+          period === 1
+            ? "어제"
+            : period === 3
+            ? "최근 3일"
+            : period === 7
+            ? "이번 주"
+            : period === 30
+            ? "이번 달"
+            : "최근 60일"
+        } 받아쓰기 개요 · ${now.toLocaleDateString("ko-KR", {
+          month: "long",
+          day: "numeric",
+        })}`,
+        activeUsers: "활성 사용자",
+        newUsers: "신규 사용자",
+        totalDuration: "총 시간",
+        brandTitle: "🎯 Dictation Studio",
+        brandSlogan: "외국어 청취 학습을 더 효율적으로 · 데이터 기반 성장",
+        periodText:
+          period === 1
+            ? "어제"
+            : period === 3
+            ? "3일"
+            : period === 7
+            ? "주간"
+            : period === 30
+            ? "월간"
+            : "60일",
+        successMessage: "샤오홍슈 커버가 생성되어 다운로드되었습니다!",
+      },
+    };
+
+    return texts[language] || texts.zh;
+  };
+
   // 获取多个时间段的数据
   const fetchMultiplePeriodsData = async (periods: (1 | 3 | 7 | 30 | 60)[]) => {
     const data: { [key: number]: any } = {};
@@ -1067,6 +1289,283 @@ const UserManagement: React.FC = () => {
       link.click();
     } finally {
       document.body.removeChild(reportContainer);
+    }
+  };
+
+  // 导出小红书封面
+  const exportXiaohongshuCover = async () => {
+    if (
+      selectedCoverPeriods.length === 0 ||
+      selectedCoverLanguages.length === 0
+    ) {
+      message.warning(t("pleaseSelectTimePeriodAndLanguage"));
+      return;
+    }
+
+    setIsExportingReport(true);
+    try {
+      // Generate covers for all combinations of periods and languages
+      for (const period of selectedCoverPeriods) {
+        for (const language of selectedCoverLanguages) {
+          await generateSingleCover(period, language, selectedColorScheme);
+        }
+      }
+
+      message.success(t("coverGeneratedSuccessfully"));
+      setIsCoverModalVisible(false);
+    } catch (error) {
+      console.error("Error generating Xiaohongshu covers:", error);
+      message.error(t("failedToGenerateCover"));
+    } finally {
+      setIsExportingReport(false);
+    }
+  };
+
+  const generateSingleCover = async (
+    period: 1 | 3 | 7 | 30 | 60,
+    language: string,
+    colorScheme: string
+  ) => {
+    // 获取选中时间段的数据
+    const response = await api.getUserUsageStats(period);
+    const coverData = response.data;
+
+    // Create a temporary cover container
+    const coverContainer = document.createElement("div");
+    coverContainer.style.position = "fixed";
+    coverContainer.style.top = "-9999px";
+    coverContainer.style.left = "-9999px";
+    coverContainer.style.width = "750px"; // 小红书标准尺寸
+    coverContainer.style.height = "937px"; // 4:5 比例
+    coverContainer.style.backgroundColor = "#fff";
+    coverContainer.style.fontFamily =
+      "'PingFang SC', 'Helvetica Neue', Arial, sans-serif";
+
+    // Generate current date
+    const now = new Date();
+
+    // Calculate key metrics
+    const totalNewUsers = coverData.summary?.totalNewUsers || 0;
+    const totalActiveUsers = coverData.summary?.totalActiveUsers || 0;
+    const totalDuration = coverData.summary?.totalDuration || 0;
+
+    // Get language-specific texts
+    const coverTexts = getCoverTexts(language, period);
+
+    // Get color scheme
+    const colors = getColorScheme(colorScheme);
+
+    // Create cover HTML content with gradient background
+    coverContainer.innerHTML = `
+      <div style="
+        width: 100%; 
+        height: 100%; 
+        background: ${colors.background};
+        position: relative;
+        overflow: hidden;
+      ">
+        <!-- Decorative circles -->
+        <div style="
+          position: absolute;
+          top: -50px;
+          right: -50px;
+          width: 200px;
+          height: 200px;
+          background: rgba(255,255,255,0.1);
+          border-radius: 50%;
+        "></div>
+        <div style="
+          position: absolute;
+          bottom: -100px;
+          left: -100px;
+          width: 300px;
+          height: 300px;
+          background: rgba(255,255,255,0.05);
+          border-radius: 50%;
+        "></div>
+
+        <!-- Main content -->
+        <div style="
+          padding: 60px 50px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          position: relative;
+          z-index: 2;
+        ">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 40px;">
+            <div style="
+              font-size: 48px;
+              font-weight: 900;
+              color: white;
+              margin-bottom: 10px;
+              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            ">
+              ${coverTexts.title}
+            </div>
+            <div style="
+              font-size: 24px;
+              color: rgba(255,255,255,0.9);
+              font-weight: 300;
+            ">
+              ${coverTexts.subtitle}
+            </div>
+          </div>
+
+          <!-- Key metrics -->
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <!-- Main metric -->
+            <div style="
+              text-align: center;
+              margin-bottom: 50px;
+              background: rgba(255,255,255,0.15);
+              backdrop-filter: blur(10px);
+              border-radius: 25px;
+              padding: 40px 30px;
+              border: 1px solid rgba(255,255,255,0.2);
+            ">
+              <div style="
+                font-size: 80px;
+                font-weight: 900;
+                color: #FFD700;
+                margin-bottom: 10px;
+                text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+              ">
+                ${totalActiveUsers}
+              </div>
+              <div style="
+                font-size: 28px;
+                color: white;
+                font-weight: 600;
+                margin-bottom: 8px;
+              ">
+                ${coverTexts.activeUsers}
+              </div>
+            </div>
+
+            <!-- Secondary metrics -->
+            <div style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 30px;
+            ">
+              <div style="
+                background: rgba(255,255,255,0.12);
+                backdrop-filter: blur(8px);
+                border-radius: 20px;
+                padding: 25px 20px;
+                text-align: center;
+                border: 1px solid rgba(255,255,255,0.15);
+              ">
+                <div style="
+                  font-size: 36px;
+                  font-weight: 800;
+                  color: #87CEEB;
+                  margin-bottom: 8px;
+                ">
+                  ${totalNewUsers}
+                </div>
+                <div style="
+                  font-size: 16px;
+                  color: white;
+                  font-weight: 500;
+                ">
+                  ${coverTexts.newUsers}
+                </div>
+              </div>
+              <div style="
+                background: rgba(255,255,255,0.12);
+                backdrop-filter: blur(8px);
+                border-radius: 20px;
+                padding: 25px 20px;
+                text-align: center;
+                border: 1px solid rgba(255,255,255,0.15);
+              ">
+                <div style="
+                  font-size: 36px;
+                  font-weight: 800;
+                  color: #98FB98;
+                  margin-bottom: 8px;
+                ">
+                  ${formatDuration(totalDuration)}
+                </div>
+                <div style="
+                  font-size: 16px;
+                  color: white;
+                  font-weight: 500;
+                ">
+                  ${coverTexts.totalDuration}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="text-align: center;">
+            <div style="
+              background: rgba(255,255,255,0.1);
+              backdrop-filter: blur(8px);
+              border-radius: 15px;
+              padding: 20px;
+              border: 1px solid rgba(255,255,255,0.15);
+            ">
+              <div style="
+                font-size: 20px;
+                color: white;
+                font-weight: 600;
+                margin-bottom: 5px;
+              ">
+                ${coverTexts.brandTitle}
+              </div>
+              <div style="
+                font-size: 14px;
+                color: rgba(255,255,255,0.8);
+              ">
+                ${coverTexts.brandSlogan}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(coverContainer);
+
+    try {
+      const canvas = await html2canvas(coverContainer, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: colors.backgroundColor,
+        width: 750,
+        height: 937,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+
+      // Include both period and language in filename
+      const periodTexts = {
+        1: "1day",
+        3: "3days",
+        7: "7days",
+        30: "30days",
+        60: "60days",
+      };
+
+      link.download = `dictation-studio-xiaohongshu-cover-${
+        periodTexts[period]
+      }-${language}-${now.toISOString().slice(0, 10)}.png`;
+      link.href = imgData;
+      link.click();
+
+      // Small delay between downloads to avoid browser blocking
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } finally {
+      document.body.removeChild(coverContainer);
     }
   };
 
@@ -1761,6 +2260,15 @@ const UserManagement: React.FC = () => {
             Export Report
           </Button>,
           <Button
+            key="exportCover"
+            type="default"
+            onClick={showCoverModal}
+            disabled={isLoadingStats}
+            className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white border-0"
+          >
+            {t("xiaohongshuCover")}
+          </Button>,
+          <Button
             key="close"
             type="primary"
             onClick={() => setIsStatsModalVisible(false)}
@@ -2262,6 +2770,354 @@ const UserManagement: React.FC = () => {
                       .join(", ")}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Cover Selection Modal */}
+      <Modal
+        title={t("generateXiaohongshuCover")}
+        open={isCoverModalVisible}
+        maskClosable={false}
+        onCancel={() => setIsCoverModalVisible(false)}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setIsCoverModalVisible(false)}
+            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
+          >
+            {t("cancel")}
+          </Button>,
+          <Button
+            key="generate"
+            type="primary"
+            onClick={exportXiaohongshuCover}
+            loading={isExportingReport}
+            disabled={
+              selectedCoverPeriods.length === 0 ||
+              selectedCoverLanguages.length === 0
+            }
+            className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 border-0"
+          >
+            {t("generateCover")}
+          </Button>,
+        ]}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
+      >
+        <div className="space-y-6">
+          {/* Time Period Selection */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+              📅 {t("selectTimePeriods")}
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              {t("selectDataTimePeriods")}
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                {
+                  value: 1,
+                  title: t("yesterdayData"),
+                  desc: t("showYesterdayUserActivity"),
+                  icon: "📅",
+                },
+                {
+                  value: 3,
+                  title: t("last3DaysData"),
+                  desc: t("showLast3DaysDataTrend"),
+                  icon: "🗓️",
+                },
+                {
+                  value: 7,
+                  title: t("thisWeekData"),
+                  desc: t("showThisWeekOverallPerformance"),
+                  icon: "📊",
+                },
+                {
+                  value: 30,
+                  title: t("thisMonthData"),
+                  desc: t("showThisMonthCompleteData"),
+                  icon: "📈",
+                },
+                {
+                  value: 60,
+                  title: t("last60DaysData"),
+                  desc: t("showLast60DaysLongTermTrend"),
+                  icon: "📋",
+                },
+              ].map((period) => (
+                <div
+                  key={period.value}
+                  className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedCoverPeriods.includes(
+                      period.value as 1 | 3 | 7 | 30 | 60
+                    )
+                      ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  onClick={() => {
+                    const newSelection = selectedCoverPeriods.includes(
+                      period.value as 1 | 3 | 7 | 30 | 60
+                    )
+                      ? selectedCoverPeriods.filter((p) => p !== period.value)
+                      : [
+                          ...selectedCoverPeriods,
+                          period.value as 1 | 3 | 7 | 30 | 60,
+                        ];
+                    setSelectedCoverPeriods(newSelection);
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCoverPeriods.includes(
+                      period.value as 1 | 3 | 7 | 30 | 60
+                    )}
+                    onChange={() => {}}
+                    className="mr-3 h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {period.title}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {period.desc}
+                    </div>
+                  </div>
+                  <div className="text-2xl">{period.icon}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Language Selection */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+              🌐 {t("selectCoverLanguages")}
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              {t("selectCoverLanguageVersion")}
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                {
+                  code: "zh",
+                  name: t("simplifiedChinese"),
+                  flag: "🇨🇳",
+                  desc: t("suitableForDomesticUsers"),
+                },
+                {
+                  code: "zhTraditional",
+                  name: t("traditionalChinese"),
+                  flag: "🇹🇼",
+                  desc: t("suitableForHongKongTaiwanUsers"),
+                },
+                {
+                  code: "en",
+                  name: "English",
+                  flag: "🇺🇸",
+                  desc: t("suitableForInternationalUsers"),
+                },
+                {
+                  code: "ja",
+                  name: "日本語",
+                  flag: "🇯🇵",
+                  desc: t("suitableForJapaneseUsers"),
+                },
+                {
+                  code: "ko",
+                  name: "한국어",
+                  flag: "🇰🇷",
+                  desc: t("suitableForKoreanUsers"),
+                },
+              ].map((language) => (
+                <div
+                  key={language.code}
+                  className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedCoverLanguages.includes(language.code)
+                      ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  onClick={() => {
+                    const newSelection = selectedCoverLanguages.includes(
+                      language.code
+                    )
+                      ? selectedCoverLanguages.filter(
+                          (l) => l !== language.code
+                        )
+                      : [...selectedCoverLanguages, language.code];
+                    setSelectedCoverLanguages(newSelection);
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCoverLanguages.includes(language.code)}
+                    onChange={() => {}}
+                    className="mr-3 h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {language.name}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {language.desc}
+                    </div>
+                  </div>
+                  <div className="text-2xl">{language.flag}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Color Scheme Selection */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+              🎨 {t("selectColorScheme")}
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              {t("selectCoverColorScheme")}
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                {
+                  code: "pink",
+                  name: t("pinkGradient"),
+                  desc: t("xiaohongshuClassicPinkTheme"),
+                  gradient:
+                    "linear-gradient(135deg, #ec4899 0%, #be185d 50%, #9f1239 100%)",
+                },
+                {
+                  code: "blue",
+                  name: t("blueGradient"),
+                  desc: t("professionalBlueTheme"),
+                  gradient:
+                    "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e3a8a 100%)",
+                },
+                {
+                  code: "purple",
+                  name: t("purpleGradient"),
+                  desc: t("elegantPurpleTheme"),
+                  gradient:
+                    "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
+                },
+                {
+                  code: "green",
+                  name: t("greenGradient"),
+                  desc: t("freshGreenTheme"),
+                  gradient:
+                    "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)",
+                },
+                {
+                  code: "orange",
+                  name: t("orangeGradient"),
+                  desc: t("vibrantOrangeTheme"),
+                  gradient:
+                    "linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%)",
+                },
+              ].map((scheme) => (
+                <div
+                  key={scheme.code}
+                  className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedColorScheme === scheme.code
+                      ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  onClick={() => setSelectedColorScheme(scheme.code)}
+                >
+                  <input
+                    type="radio"
+                    name="colorScheme"
+                    checked={selectedColorScheme === scheme.code}
+                    onChange={() => {}}
+                    className="mr-3 h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {scheme.name}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {scheme.desc}
+                    </div>
+                  </div>
+                  <div
+                    className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                    style={{ background: scheme.gradient }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview */}
+          {(selectedCoverPeriods.length > 0 ||
+            selectedCoverLanguages.length > 0) && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-pink-50 to-red-50 dark:from-pink-900/20 dark:to-red-900/20 border border-pink-200 dark:border-pink-800 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <div className="text-pink-600 dark:text-pink-400 mt-0.5 text-xl">
+                  📱
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-pink-800 dark:text-pink-200 mb-2">
+                    {t("coverPreviewInfo")}
+                  </div>
+                  <div className="text-sm text-pink-700 dark:text-pink-300 space-y-1">
+                    {selectedCoverPeriods.length > 0 && (
+                      <div>
+                        <strong>{t("timePeriod")}:</strong>{" "}
+                        {selectedCoverPeriods
+                          .map((period) => {
+                            const periodNames = {
+                              1: t("yesterdayData"),
+                              3: t("last3DaysData"),
+                              7: t("thisWeekData"),
+                              30: t("thisMonthData"),
+                              60: t("last60DaysData"),
+                            };
+                            return periodNames[period];
+                          })
+                          .join(", ")}
+                      </div>
+                    )}
+                    {selectedCoverLanguages.length > 0 && (
+                      <div>
+                        <strong>{t("selectCoverLanguages")}:</strong>{" "}
+                        {selectedCoverLanguages
+                          .map((code) => {
+                            const langMap: { [key: string]: string } = {
+                              zh: t("simplifiedChinese"),
+                              zhTraditional: t("traditionalChinese"),
+                              en: "English",
+                              ja: "日本語",
+                              ko: "한국어",
+                            };
+                            return langMap[code] || code;
+                          })
+                          .join(", ")}
+                      </div>
+                    )}
+                    <div>
+                      <strong>{t("colorScheme")}:</strong>{" "}
+                      {selectedColorScheme === "pink" && t("pinkGradient")}
+                      {selectedColorScheme === "blue" && t("blueGradient")}
+                      {selectedColorScheme === "purple" && t("purpleGradient")}
+                      {selectedColorScheme === "green" && t("greenGradient")}
+                      {selectedColorScheme === "orange" && t("orangeGradient")}
+                    </div>
+                    <div>
+                      <strong>{t("coverSize")}:</strong>{" "}
+                      {t("xiaohongshuStandardRatio")}
+                    </div>
+                    {selectedCoverPeriods.length > 0 &&
+                      selectedCoverLanguages.length > 0 && (
+                        <div className="mt-2 p-2 bg-pink-100 dark:bg-pink-800/30 rounded">
+                          <strong>Total covers to generate:</strong>{" "}
+                          {selectedCoverPeriods.length *
+                            selectedCoverLanguages.length}
+                        </div>
+                      )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
