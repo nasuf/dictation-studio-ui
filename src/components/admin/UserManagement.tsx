@@ -532,6 +532,7 @@ const UserManagement: React.FC = () => {
       },
       sorter: (a: UserInfo, b: UserInfo) =>
         (a.created_at || 0) - (b.created_at || 0),
+      defaultSortOrder: "descend" as const,
     },
     {
       title: "Updated At",
