@@ -382,4 +382,24 @@ export const api = {
   // User usage statistics API
   getUserUsageStats: (days: number) =>
     axiosInstance.get(`/user/usage-stats`, { params: { days } }),
+
+  // Video refined status APIs
+  markVideoRefined: async (
+    channelId: string,
+    videoId: string,
+    isRefined: boolean
+  ) => {
+    const response = await axiosInstance.post(
+      `/service/${channelId}/${videoId}/mark-refined`,
+      { is_refined: isRefined }
+    );
+    return response.data;
+  },
+
+  getVideoRefinedStatus: async (channelId: string, videoId: string) => {
+    const response = await axiosInstance.get(
+      `/service/${channelId}/${videoId}/mark-refined`
+    );
+    return response.data;
+  },
 };

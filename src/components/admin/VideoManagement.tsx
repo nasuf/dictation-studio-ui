@@ -42,7 +42,12 @@ import {
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
-import { Channel, TranscriptItem, Video } from "@/utils/type";
+import {
+  Channel,
+  TranscriptItem,
+  TranscriptSummaryItem,
+  Video,
+} from "@/utils/type";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
@@ -559,13 +564,7 @@ const VideoManagement: React.FC = () => {
   const [isTranscriptManagementVisible, setIsTranscriptManagementVisible] =
     useState(false);
   const [transcriptSummary, setTranscriptSummary] = useState<
-    Array<{
-      video_id: string;
-      title: string;
-      transcriptCount: number;
-      hasOriginal: boolean;
-      lastUpdated?: number;
-    }>
+    Array<TranscriptSummaryItem>
   >([]);
   const [isLoadingTranscriptSummary, setIsLoadingTranscriptSummary] =
     useState(false);
@@ -622,6 +621,10 @@ const VideoManagement: React.FC = () => {
     processing: 0,
     results: [],
   });
+
+  // Video refined status related state
+  const [isVideoRefined, setIsVideoRefined] = useState<boolean>(false);
+  const [isMarkingRefined, setIsMarkingRefined] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -728,8 +731,13 @@ const VideoManagement: React.FC = () => {
     }
 
     try {
-      const response = await api.getVideoTranscript(channelId, videoId);
-      setCurrentTranscript(response.data.transcript);
+      const [transcriptResponse, refinedStatusResponse] = await Promise.all([
+        api.getVideoTranscript(channelId, videoId),
+        api.getVideoRefinedStatus(channelId, videoId),
+      ]);
+
+      setCurrentTranscript(transcriptResponse.data.transcript);
+      setIsVideoRefined(refinedStatusResponse.is_refined || false);
 
       // Don't call loadFilters here - let useEffect handle it
     } catch (error) {
@@ -1802,7 +1810,7 @@ const VideoManagement: React.FC = () => {
       dataIndex: "title",
       key: "title",
       editable: true,
-      width: "30%",
+      width: "15%",
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -1860,7 +1868,7 @@ const VideoManagement: React.FC = () => {
       dataIndex: "link",
       key: "link",
       editable: false,
-      width: "30%",
+      width: "15%",
       render: (text: string) => (
         <a href={text} target="_blank" rel="noopener noreferrer">
           {text}
@@ -1884,6 +1892,23 @@ const VideoManagement: React.FC = () => {
       editable: false,
       render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
       sorter: (a: Video, b: Video) => (a.updated_at || 0) - (b.updated_at || 0),
+    },
+    {
+      title: "Refined",
+      dataIndex: "is_refined",
+      key: "is_refined",
+      width: "15%",
+      editable: false,
+      render: (refined: boolean) => (refined ? "Yes" : "No"),
+    },
+    {
+      title: "Refined At",
+      dataIndex: "refined_at",
+      key: "refined_at",
+      width: "15%",
+      editable: false,
+      render: (refined_at: number) =>
+        refined_at ? formatUnixTimestamp(refined_at) : "",
     },
     {
       title: "Visibility",
@@ -2309,6 +2334,8 @@ const VideoManagement: React.FC = () => {
         transcriptCount: summary.transcript_count,
         hasOriginal: summary.has_original,
         lastUpdated: summary.last_updated,
+        is_refined: summary.is_refined,
+        refined_at: summary.refined_at,
       }));
 
       setTranscriptSummary(transformedSummary);
@@ -2868,6 +2895,35 @@ const VideoManagement: React.FC = () => {
     });
   };
 
+  // Function to toggle video refined status
+  const toggleVideoRefinedStatus = async () => {
+    if (!selectedChannel || !currentVideoId) {
+      message.error("No video or channel selected");
+      return;
+    }
+
+    setIsMarkingRefined(true);
+    try {
+      const newRefinedStatus = !isVideoRefined;
+
+      await api.markVideoRefined(
+        selectedChannel,
+        currentVideoId,
+        newRefinedStatus
+      );
+
+      setIsVideoRefined(newRefinedStatus);
+
+      const statusText = newRefinedStatus ? "Refined" : "Unrefined";
+      message.success(`Video marked as ${statusText}`);
+    } catch (error) {
+      console.error("Error marking video as refined:", error);
+      message.error("Failed to mark video as refined");
+    } finally {
+      setIsMarkingRefined(false);
+    }
+  };
+
   // Helper function to create FormData for a batch of videos
   const createBatchFormData = (
     videoBatch: any[],
@@ -3242,6 +3298,7 @@ const VideoManagement: React.FC = () => {
           setSelectedText("");
           setCurrentPlayingIndex(null);
           setTimeRecords({});
+          setIsVideoRefined(false);
           if (playbackController) {
             playbackController.stop();
           }
@@ -3454,6 +3511,19 @@ const VideoManagement: React.FC = () => {
                   Apply Filters ({filters.length})
                 </Button>
                 <Button
+                  onClick={toggleVideoRefinedStatus}
+                  loading={isMarkingRefined}
+                  type={isVideoRefined ? "default" : "primary"}
+                  size="small"
+                  style={{
+                    backgroundColor: isVideoRefined ? "#52c41a" : undefined,
+                    borderColor: isVideoRefined ? "#52c41a" : undefined,
+                    color: isVideoRefined ? "white" : undefined,
+                  }}
+                >
+                  {isVideoRefined ? "Refined ✓" : "Mark as Refined"}
+                </Button>
+                <Button
                   loading={isUpdatingTranscript}
                   onClick={updateFullTranscript}
                   type="primary"
@@ -3594,22 +3664,22 @@ const VideoManagement: React.FC = () => {
           dataSource={transcriptSummary}
           loading={isLoadingTranscriptSummary}
           rowKey="video_id"
-          size="small"
+          size="middle"
           scroll={{ y: 400 }}
           columns={[
             {
               title: "Video ID",
               dataIndex: "video_id",
               key: "video_id",
-              width: "18%",
+              width: "15%",
               ellipsis: true,
             },
             {
               title: "Title",
               dataIndex: "title",
               key: "title",
-              width: "32%",
-              ellipsis: true,
+              width: "15%",
+              ellipsis: false,
             },
             {
               title: "Transcript Items",
@@ -3632,6 +3702,26 @@ const VideoManagement: React.FC = () => {
                   {hasOriginal ? "Yes" : "No"}
                 </Tag>
               ),
+            },
+            {
+              title: "Refined",
+              dataIndex: "is_refined",
+              key: "is_refined",
+              width: "15%",
+              align: "center",
+              render: (isRefined: boolean) => (
+                <Tag color={isRefined ? "green" : "red"}>
+                  {isRefined ? "Yes" : "No"}
+                </Tag>
+              ),
+            },
+            {
+              title: "Refined At",
+              dataIndex: "refined_at",
+              key: "refined_at",
+              width: "15%",
+              render: (refined_at: number) =>
+                refined_at ? formatUnixTimestamp(refined_at) : "",
             },
             {
               title: "Last Updated",

@@ -64,6 +64,8 @@ export interface Video {
   visibility: string;
   created_at: number;
   updated_at: number;
+  is_refined: boolean;
+  refined_at?: number;
 }
 
 export interface ProgressData {
@@ -206,4 +208,14 @@ export interface PaymentOption {
   icon?: React.ReactNode;
   currency?: string;
   disabled?: boolean;
+}
+
+export interface TranscriptSummaryItem {
+  video_id: string;
+  title: string;
+  transcriptCount: number;
+  hasOriginal: boolean;
+  lastUpdated?: number;
+  is_refined: boolean;
+  refined_at?: number;
 }
