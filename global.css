@@ -1307,3 +1307,240 @@ html.dark .ant-table-filter-dropdown .ant-checkbox-wrapper > span {
   span {
   color: #f9fafb !important;
 }
+
+/* Video Management - Transcript Modal Styles */
+.transcript-modal .ant-modal-content {
+  height: 98vh !important;
+  max-height: 98vh !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.transcript-modal .ant-modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Video Management - Transcript Table Styles */
+.transcript-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transcript-table .ant-table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transcript-table .ant-spin-nested-loading,
+.transcript-table .ant-spin-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transcript-table .ant-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transcript-table .ant-table-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.transcript-table .ant-table-pagination {
+  @apply flex-shrink-0 border-t border-gray-200 bg-white px-4 py-2;
+  margin: 0 !important;
+  position: relative;
+  z-index: 10;
+}
+
+.dark .transcript-table .ant-table-pagination {
+  @apply border-t border-gray-600 bg-gray-700;
+}
+
+/* Video Management - Table Body Cells */
+.transcript-table .ant-table-tbody > tr > td {
+  @apply border-b border-gray-200;
+}
+
+.dark .transcript-table .ant-table-tbody > tr > td {
+  @apply border-b border-gray-600 bg-gray-700 text-gray-200 !important;
+}
+
+.dark .transcript-table .ant-table-tbody > tr:hover > td {
+  @apply bg-gray-600 !important;
+}
+
+.dark .transcript-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  @apply bg-gray-600 !important;
+}
+
+/* Video Management - Table Header */
+.transcript-table .ant-table-thead > tr > th {
+  @apply sticky top-0 z-10 bg-white border-b border-gray-200;
+}
+
+.dark .transcript-table .ant-table-thead > tr > th {
+  @apply bg-gray-800 border-b border-gray-600 text-gray-400 !important;
+}
+
+/* Video Management - Pagination */
+.transcript-table .ant-pagination {
+  @apply px-4 py-2 m-0 border-t border-gray-200 bg-white;
+}
+
+.dark .transcript-table .ant-pagination {
+  @apply border-t border-gray-600 bg-gray-700;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-item {
+  @apply bg-gray-700 border-gray-600;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-item a {
+  @apply text-white/85;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-item-active {
+  @apply bg-blue-500 border-blue-500;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-item-active a {
+  @apply text-white;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-prev,
+.dark .transcript-table .ant-pagination .ant-pagination-next {
+  @apply text-white/85;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-prev:hover,
+.dark .transcript-table .ant-pagination .ant-pagination-next:hover {
+  @apply text-blue-400;
+}
+
+.dark .transcript-table .ant-pagination .ant-pagination-options {
+  @apply text-white/85;
+}
+
+.dark
+  .transcript-table
+  .ant-pagination
+  .ant-pagination-options
+  .ant-select-selector {
+  @apply bg-gray-800 border-gray-600 text-white/85;
+}
+
+/* Video Management - Modal Layout */
+.transcript-modal .ant-modal-body > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.transcript-modal .ant-modal-body > div > div:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.transcript-modal .ant-modal-body > div > div:last-child > form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Ensure pagination stays at bottom */
+.transcript-table .ant-table-pagination {
+  flex-shrink: 0;
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid #d9d9d9;
+  background: white;
+  min-height: 48px;
+}
+
+.dark .transcript-table .ant-table-pagination {
+  border-top: 1px solid #434343;
+  background: #262626 !important;
+  padding: 12px 16px !important;
+  min-height: 48px;
+}
+
+/* Ensure table body has proper spacing from pagination */
+.transcript-table .ant-table-body {
+  padding-bottom: 16px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Prevent table content from overlapping pagination */
+.transcript-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.dark .transcript-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: 1px solid #434343 !important;
+}
+
+/* Video Management - Enhanced Undo Button Styles */
+.transcript-table .ant-btn-dangerous {
+  transition: all 0.3s ease;
+}
+
+.transcript-table .ant-btn-dangerous:hover {
+  background-color: #ff7875 !important;
+  border-color: #ff7875 !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.3);
+}
+
+/* Dark mode undo button styles */
+.dark .transcript-table .ant-btn-dangerous {
+  background-color: #2a1215 !important;
+  border-color: #58181c !important;
+  color: #ff7875 !important;
+}
+
+.dark .transcript-table .ant-btn-dangerous:hover {
+  background-color: #ff4d4f !important;
+  border-color: #ff4d4f !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.4);
+}
+
+/* Undo button icon spacing */
+.transcript-table .ant-btn-dangerous .anticon {
+  margin-right: 4px;
+}
+
+/* Focus states for accessibility */
+.transcript-table .ant-btn-dangerous:focus {
+  outline: 2px solid rgba(255, 77, 79, 0.5);
+  outline-offset: 2px;
+}
+
+.dark .transcript-table .ant-btn-dangerous:focus {
+  outline: 2px solid rgba(255, 120, 117, 0.5);
+  outline-offset: 2px;
+}

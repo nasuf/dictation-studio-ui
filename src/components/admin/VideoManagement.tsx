@@ -13,6 +13,7 @@ import {
   Progress,
   Typography,
   Tag,
+  Tooltip,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -33,6 +34,11 @@ import {
   FilterOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  PlayCircleOutlined,
+  PauseCircleOutlined,
+  StopOutlined,
+  FieldTimeOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
@@ -42,6 +48,12 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
 import { autoMergeTranscriptItems, formatTimestamp } from "@/utils/util";
+import YouTube, { YouTubePlayer } from "react-youtube";
+import {
+  VideoPlaybackController,
+  VideoPlaybackState,
+  TranscriptSegment,
+} from "@/utils/videoPlaybackUtils";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -503,6 +515,33 @@ const VideoManagement: React.FC = () => {
   const [srtFiles, setSrtFiles] = useState<{ [key: string]: File }>({});
   const [isUpdatingTranscript, setIsUpdatingTranscript] = useState(false);
   const [isBatchMerging, setIsBatchMerging] = useState(false);
+  // YouTube Player related states
+  const [youtubePlayer, setYoutubePlayer] = useState<YouTubePlayer | null>(
+    null
+  );
+  const [playbackController, setPlaybackController] =
+    useState<VideoPlaybackController | null>(null);
+  const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(
+    null
+  );
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [currentVideoLink, setCurrentVideoLink] = useState<string>("");
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+
+  const [timeRecords, setTimeRecords] = useState<{
+    [key: string]: {
+      start?: number;
+      end?: number;
+      userRecordedStart?: boolean;
+      userRecordedEnd?: boolean;
+      autoUpdatedStart?: boolean;
+      autoUpdatedEnd?: boolean;
+      segmentIndex?: number; // Add segment index for better tracking
+      originalStart?: number; // Store original times for easier restoration
+      originalEnd?: number;
+    };
+  }>({});
+
   const [batchProgress, setBatchProgress] = useState({
     isVisible: false,
     total: 0,
@@ -530,6 +569,7 @@ const VideoManagement: React.FC = () => {
   >([]);
   const [isLoadingTranscriptSummary, setIsLoadingTranscriptSummary] =
     useState(false);
+
   const [isBatchRestoring, setIsBatchRestoring] = useState(false);
   const [isBatchUpdatingVisibility, setIsBatchUpdatingVisibility] =
     useState(false);
@@ -680,6 +720,13 @@ const VideoManagement: React.FC = () => {
     setIsModalVisible(true);
     setCurrentVideoId(videoId);
     setSelectedChannel(channelId);
+
+    // Find the video to get its link
+    const video = videos.find((v) => v.video_id === videoId);
+    if (video) {
+      setCurrentVideoLink(video.link);
+    }
+
     try {
       const response = await api.getVideoTranscript(channelId, videoId);
       setCurrentTranscript(response.data.transcript);
@@ -692,6 +739,550 @@ const VideoManagement: React.FC = () => {
       setIsTranscriptLoading(false);
     }
   };
+
+  // YouTube Player Functions
+  const onYouTubeReady = (event: { target: YouTubePlayer }) => {
+    const player = event.target;
+    setYoutubePlayer(player);
+    setIsPlayerReady(true);
+
+    // Initialize playback controller
+    const controller = new VideoPlaybackController(player, {
+      playbackSpeed: playbackSpeed,
+      onStateChange: (state: VideoPlaybackState) => {
+        console.log("Playback state changed:", state);
+      },
+    });
+    setPlaybackController(controller);
+
+    // Set initial playback speed
+    try {
+      player.setPlaybackRate(playbackSpeed);
+    } catch (e) {
+      console.log("Error setting playback rate:", e);
+    }
+
+    // Disable captions
+    try {
+      const tracks = player.getOption("captions", "tracklist") || [];
+      if (tracks.length > 0) {
+        player.unloadModule("captions");
+      }
+      player.setOption("captions", "track", {});
+    } catch (e) {
+      console.log("Error disabling captions:", e);
+    }
+  };
+
+  const playTranscriptSegment = useCallback(
+    async (segment: TranscriptItem, index: number) => {
+      if (!playbackController || !youtubePlayer) {
+        message.warning("Player not ready");
+        return;
+      }
+
+      try {
+        console.log("playTranscriptSegment called with:", { segment, index });
+        setCurrentPlayingIndex(index);
+
+        // Validate segment parameter
+        if (!segment || typeof segment !== "object") {
+          throw new Error(
+            `Invalid segment parameter: ${JSON.stringify(segment)}`
+          );
+        }
+
+        if (
+          typeof segment.start !== "number" ||
+          typeof segment.end !== "number"
+        ) {
+          throw new Error(
+            `Invalid segment times: start=${segment.start}, end=${segment.end}`
+          );
+        }
+
+        const transcriptSegment: TranscriptSegment = {
+          start: segment.start,
+          end: segment.end,
+          transcript: segment.transcript,
+        };
+
+        console.log(
+          "Calling playbackController.playSegment with:",
+          transcriptSegment
+        );
+        await playbackController.playSegment(transcriptSegment, () => {
+          setCurrentPlayingIndex(null);
+        });
+      } catch (error) {
+        console.error("Error playing segment:", error);
+        message.error("Failed to play segment");
+        setCurrentPlayingIndex(null);
+      }
+    },
+    [playbackController, youtubePlayer]
+  );
+
+  const stopPlayback = useCallback(() => {
+    if (playbackController) {
+      playbackController.stop();
+      setCurrentPlayingIndex(null);
+    }
+  }, [playbackController]);
+
+  const handlePlaybackSpeedChange = useCallback(
+    (speed: number) => {
+      setPlaybackSpeed(speed);
+      if (playbackController) {
+        playbackController.setPlaybackSpeed(speed);
+      }
+      if (youtubePlayer) {
+        youtubePlayer.setPlaybackRate(speed);
+      }
+    },
+    [playbackController, youtubePlayer]
+  );
+
+  // Time Recording Functions
+  const startTimeRecording = useCallback(
+    (segmentKey: string) => {
+      if (!youtubePlayer) {
+        message.warning("Player not ready");
+        return;
+      }
+
+      const currentTime = youtubePlayer.getCurrentTime();
+
+      // Find the current segment index
+      const currentIndex = currentTranscript.findIndex(
+        (segment) => `${segment.start}-${segment.end}` === segmentKey
+      );
+
+      if (currentIndex !== -1) {
+        const newTranscript = [...currentTranscript];
+
+        // Update current segment's start time
+        newTranscript[currentIndex] = {
+          ...newTranscript[currentIndex],
+          start: currentTime,
+        };
+
+        // Auto-update previous segment's end time
+        if (currentIndex > 0) {
+          newTranscript[currentIndex - 1] = {
+            ...newTranscript[currentIndex - 1],
+            end: currentTime,
+          };
+        }
+
+        setCurrentTranscript(newTranscript);
+
+        // Save to history for undo functionality
+        setTranscriptHistory([...transcriptHistory, currentTranscript]);
+
+        // Update timeRecords with new key
+        // Use the actual end time from the updated transcript (might have been recorded earlier)
+        const actualEndTime = newTranscript[currentIndex].end;
+        const newSegmentKey = `${currentTime}-${actualEndTime}`;
+        const originalStartTime = currentTranscript[currentIndex].start; // Store original time
+
+        setTimeRecords((prev) => {
+          const newRecords = { ...prev };
+          // Remove old key if it exists
+          if (prev[segmentKey]) {
+            delete newRecords[segmentKey];
+          }
+          // Add new key with recorded time, preserving any existing end time record
+          newRecords[newSegmentKey] = {
+            ...prev[segmentKey],
+            start: currentTime,
+            userRecordedStart: true, // Mark as user-recorded
+            originalStart: originalStartTime, // Store original time for undo
+            segmentIndex: currentIndex,
+          };
+
+          // Also create a record for the previous segment if it was auto-updated
+          if (currentIndex > 0) {
+            const prevSegment = newTranscript[currentIndex - 1];
+            const prevSegmentKey = `${prevSegment.start}-${currentTime}`;
+            const originalPrevEndTime = currentTranscript[currentIndex - 1].end; // Store original time
+
+            // Only create if it doesn't already exist
+            if (!newRecords[prevSegmentKey]) {
+              newRecords[prevSegmentKey] = {
+                end: currentTime,
+                autoUpdatedEnd: true, // Mark as auto-updated
+                originalEnd: originalPrevEndTime, // Store original time for undo
+                segmentIndex: currentIndex - 1,
+              };
+            } else {
+              // Update existing record
+              newRecords[prevSegmentKey] = {
+                ...newRecords[prevSegmentKey],
+                end: currentTime,
+                autoUpdatedEnd: true, // Mark as auto-updated
+                originalEnd: originalPrevEndTime, // Store original time for undo
+                segmentIndex: currentIndex - 1,
+              };
+            }
+          }
+
+          return newRecords;
+        });
+      } else {
+        // Still keep the record for visual feedback if segment not found
+        setTimeRecords((prev) => ({
+          ...prev,
+          [segmentKey]: {
+            ...prev[segmentKey],
+            start: currentTime,
+          },
+        }));
+      }
+
+      message.success(
+        `Start time recorded and applied: ${formatTime(currentTime)}`
+      );
+    },
+    [youtubePlayer, currentTranscript, transcriptHistory]
+  );
+
+  const endTimeRecording = useCallback(
+    (segmentKey: string) => {
+      if (!youtubePlayer) {
+        message.warning("Player not ready");
+        return;
+      }
+
+      const currentTime = youtubePlayer.getCurrentTime();
+
+      // Find the current segment index
+      const currentIndex = currentTranscript.findIndex(
+        (segment) => `${segment.start}-${segment.end}` === segmentKey
+      );
+
+      if (currentIndex !== -1) {
+        const newTranscript = [...currentTranscript];
+
+        // Update current segment's end time
+        newTranscript[currentIndex] = {
+          ...newTranscript[currentIndex],
+          end: currentTime,
+        };
+
+        // Auto-update next segment's start time
+        if (currentIndex < newTranscript.length - 1) {
+          newTranscript[currentIndex + 1] = {
+            ...newTranscript[currentIndex + 1],
+            start: currentTime,
+          };
+        }
+
+        setCurrentTranscript(newTranscript);
+
+        // Save to history for undo functionality
+        setTranscriptHistory([...transcriptHistory, currentTranscript]);
+
+        // Update timeRecords with new key
+        // Use the actual start time from the updated transcript (might have been recorded earlier)
+        const actualStartTime = newTranscript[currentIndex].start;
+        const newSegmentKey = `${actualStartTime}-${currentTime}`;
+        const originalEndTime = currentTranscript[currentIndex].end; // Store original time
+
+        setTimeRecords((prev) => {
+          const newRecords = { ...prev };
+          // Remove old key if it exists
+          if (prev[segmentKey]) {
+            delete newRecords[segmentKey];
+          }
+          // Add new key with recorded time, preserving any existing start time record
+          newRecords[newSegmentKey] = {
+            ...prev[segmentKey],
+            end: currentTime,
+            userRecordedEnd: true, // Mark as user-recorded
+            originalEnd: originalEndTime, // Store original time for undo
+            segmentIndex: currentIndex,
+          };
+
+          // Also create a record for the next segment if it was auto-updated
+          if (currentIndex < newTranscript.length - 1) {
+            const nextSegment = newTranscript[currentIndex + 1];
+            const nextSegmentKey = `${currentTime}-${nextSegment.end}`;
+            const originalNextStartTime =
+              currentTranscript[currentIndex + 1].start; // Store original time
+
+            // Only create if it doesn't already exist
+            if (!newRecords[nextSegmentKey]) {
+              newRecords[nextSegmentKey] = {
+                start: currentTime,
+                autoUpdatedStart: true, // Mark as auto-updated
+                originalStart: originalNextStartTime, // Store original time for undo
+                segmentIndex: currentIndex + 1,
+              };
+            } else {
+              // Update existing record
+              newRecords[nextSegmentKey] = {
+                ...newRecords[nextSegmentKey],
+                start: currentTime,
+                autoUpdatedStart: true, // Mark as auto-updated
+                originalStart: originalNextStartTime, // Store original time for undo
+                segmentIndex: currentIndex + 1,
+              };
+            }
+          }
+
+          return newRecords;
+        });
+      } else {
+        // Still keep the record for visual feedback if segment not found
+        setTimeRecords((prev) => ({
+          ...prev,
+          [segmentKey]: {
+            ...prev[segmentKey],
+            end: currentTime,
+          },
+        }));
+      }
+
+      message.success(
+        `End time recorded and applied: ${formatTime(currentTime)}`
+      );
+    },
+    [youtubePlayer, currentTranscript, transcriptHistory]
+  );
+
+  const undoTimeRecording = useCallback(
+    (segmentKey: string, type: "start" | "end") => {
+      // Find the time record for this segment
+      const timeRecord = timeRecords[segmentKey];
+      if (!timeRecord) {
+        message.error("Time record not found");
+        return;
+      }
+
+      // Find the segment index by looking for the segment that has the recorded time
+      let currentIndex = -1;
+      if (type === "start" && timeRecord.start !== undefined) {
+        if (timeRecord.userRecordedStart || timeRecord.autoUpdatedStart) {
+          currentIndex = currentTranscript.findIndex(
+            (segment) => segment.start === timeRecord.start
+          );
+        }
+      } else if (type === "end" && timeRecord.end !== undefined) {
+        if (timeRecord.userRecordedEnd || timeRecord.autoUpdatedEnd) {
+          currentIndex = currentTranscript.findIndex(
+            (segment) => segment.end === timeRecord.end
+          );
+        }
+      }
+
+      if (currentIndex === -1) {
+        message.error("Segment not found in current transcript");
+        return;
+      }
+
+      // Save current state to history before making changes
+      setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+      const newTranscript = [...currentTranscript];
+
+      // Handle different undo scenarios
+      if (type === "start") {
+        if (timeRecord.userRecordedStart) {
+          // User recorded start - restore original and remove auto-updated end from previous segment
+          if (timeRecord.originalStart !== undefined) {
+            newTranscript[currentIndex].start = timeRecord.originalStart;
+          }
+
+          // If there was an auto-updated end in the previous segment, restore it too
+          if (currentIndex > 0) {
+            // Find the previous segment's time record that has auto-updated end
+            Object.values(timeRecords).forEach((record) => {
+              if (
+                record.autoUpdatedEnd &&
+                record.end === timeRecord.start &&
+                record.originalEnd !== undefined
+              ) {
+                newTranscript[currentIndex - 1].end = record.originalEnd;
+              }
+            });
+          }
+        } else if (timeRecord.autoUpdatedStart) {
+          // Auto-updated start - restore original and remove user recorded end from previous segment
+          if (timeRecord.originalStart !== undefined) {
+            newTranscript[currentIndex].start = timeRecord.originalStart;
+          }
+
+          // Find and restore the previous segment's user recorded end time
+          if (currentIndex > 0) {
+            // Find the previous segment's time record that has user recorded end
+            Object.values(timeRecords).forEach((record) => {
+              if (
+                record.userRecordedEnd &&
+                record.end === timeRecord.start &&
+                record.originalEnd !== undefined
+              ) {
+                newTranscript[currentIndex - 1].end = record.originalEnd;
+              }
+            });
+          }
+        }
+      } else if (type === "end") {
+        if (timeRecord.userRecordedEnd) {
+          // User recorded end - restore original and remove auto-updated start from next segment
+          if (timeRecord.originalEnd !== undefined) {
+            newTranscript[currentIndex].end = timeRecord.originalEnd;
+          }
+
+          // If there was an auto-updated start in the next segment, restore it too
+          if (currentIndex < newTranscript.length - 1) {
+            // Find the next segment's time record that has auto-updated start
+            Object.values(timeRecords).forEach((record) => {
+              if (
+                record.autoUpdatedStart &&
+                record.start === timeRecord.end &&
+                record.originalStart !== undefined
+              ) {
+                newTranscript[currentIndex + 1].start = record.originalStart;
+              }
+            });
+          }
+        } else if (timeRecord.autoUpdatedEnd) {
+          // Auto-updated end - restore original and remove user recorded start from next segment
+          if (timeRecord.originalEnd !== undefined) {
+            newTranscript[currentIndex].end = timeRecord.originalEnd;
+          }
+
+          // Find and restore the next segment's user recorded start time
+          if (currentIndex < newTranscript.length - 1) {
+            // Find the next segment's time record that has user recorded start
+            Object.values(timeRecords).forEach((record) => {
+              if (
+                record.userRecordedStart &&
+                record.start === timeRecord.end &&
+                record.originalStart !== undefined
+              ) {
+                newTranscript[currentIndex + 1].start = record.originalStart;
+              }
+            });
+          }
+        }
+      }
+
+      setCurrentTranscript(newTranscript);
+
+      // Update timeRecords - handle the key change after transcript restoration
+      setTimeRecords((prev) => {
+        const newRecords = { ...prev };
+
+        if (type === "start") {
+          // After restoring start time, the segmentKey changes
+          const restoredStart =
+            timeRecord.originalStart !== undefined
+              ? timeRecord.originalStart
+              : newTranscript[currentIndex].start;
+          const currentEnd = newTranscript[currentIndex].end;
+          const newKey = `${restoredStart}-${currentEnd}`;
+
+          // If segmentKey is different from newKey, we need to migrate the record
+          if (segmentKey !== newKey && newRecords[segmentKey]) {
+            const currentRecord = { ...newRecords[segmentKey] };
+            delete newRecords[segmentKey];
+
+            // Remove start-related fields from the record
+            delete currentRecord.userRecordedStart;
+            delete currentRecord.autoUpdatedStart;
+            delete currentRecord.originalStart;
+            delete currentRecord.start;
+
+            // If there are remaining fields (like end data), create new record
+            const remainingKeys = Object.keys(currentRecord).filter(
+              (key) => !["segmentIndex"].includes(key)
+            );
+            if (remainingKeys.length > 0) {
+              newRecords[newKey] = currentRecord;
+            }
+          } else if (newRecords[segmentKey]) {
+            // Same key, just remove start-related fields
+            delete newRecords[segmentKey].userRecordedStart;
+            delete newRecords[segmentKey].autoUpdatedStart;
+            delete newRecords[segmentKey].originalStart;
+            delete newRecords[segmentKey].start;
+
+            // Check if record is now empty
+            const remainingKeys = Object.keys(newRecords[segmentKey]).filter(
+              (key) => !["segmentIndex"].includes(key)
+            );
+            if (remainingKeys.length === 0) {
+              delete newRecords[segmentKey];
+            }
+          }
+        } else if (type === "end") {
+          // After restoring end time, the segmentKey changes
+          const currentStart = newTranscript[currentIndex].start;
+          const restoredEnd =
+            timeRecord.originalEnd !== undefined
+              ? timeRecord.originalEnd
+              : newTranscript[currentIndex].end;
+          const newKey = `${currentStart}-${restoredEnd}`;
+
+          // If segmentKey is different from newKey, we need to migrate the record
+          if (segmentKey !== newKey && newRecords[segmentKey]) {
+            const currentRecord = { ...newRecords[segmentKey] };
+            delete newRecords[segmentKey];
+
+            // Remove end-related fields from the record
+            delete currentRecord.userRecordedEnd;
+            delete currentRecord.autoUpdatedEnd;
+            delete currentRecord.originalEnd;
+            delete currentRecord.end;
+
+            // If there are remaining fields (like start data), create new record
+            const remainingKeys = Object.keys(currentRecord).filter(
+              (key) => !["segmentIndex"].includes(key)
+            );
+            if (remainingKeys.length > 0) {
+              newRecords[newKey] = currentRecord;
+            }
+          } else if (newRecords[segmentKey]) {
+            // Same key, just remove end-related fields
+            delete newRecords[segmentKey].userRecordedEnd;
+            delete newRecords[segmentKey].autoUpdatedEnd;
+            delete newRecords[segmentKey].originalEnd;
+            delete newRecords[segmentKey].end;
+
+            // Check if record is now empty
+            const remainingKeys = Object.keys(newRecords[segmentKey]).filter(
+              (key) => !["segmentIndex"].includes(key)
+            );
+            if (remainingKeys.length === 0) {
+              delete newRecords[segmentKey];
+            }
+          }
+        }
+
+        return newRecords;
+      });
+
+      message.success(
+        `${type === "start" ? "Start" : "End"} time recording undone`
+      );
+    },
+    [currentTranscript, transcriptHistory, timeRecords]
+  );
+
+  const getCurrentVideoTime = useCallback(() => {
+    if (!youtubePlayer) return 0;
+    return youtubePlayer.getCurrentTime();
+  }, [youtubePlayer]);
+
+  const seekToTime = useCallback(
+    (time: number) => {
+      if (!youtubePlayer) return;
+      youtubePlayer.seekTo(time, true);
+    },
+    [youtubePlayer]
+  );
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -898,27 +1489,190 @@ const VideoManagement: React.FC = () => {
       title: "Start Time",
       dataIndex: "start",
       key: "start",
-      render: (text: number) => formatTime(text),
-      width: "15%",
+      render: (text: number, record: TranscriptItem) => {
+        const segmentKey = `${record.start}-${record.end}`;
+        const timeRecord = timeRecords[segmentKey];
+        const recordedStart = timeRecord?.start;
+
+        return (
+          <div>
+            <div style={{ marginBottom: 4 }}>
+              {recordedStart !== undefined ? (
+                <span style={{ color: "#52c41a", fontWeight: "bold" }}>
+                  {formatTime(recordedStart)}
+                </span>
+              ) : (
+                formatTime(text)
+              )}
+            </div>
+            <Space size="small">
+              <Tooltip title="Record start time at current player position">
+                <Button
+                  size="small"
+                  icon={<FieldTimeOutlined />}
+                  onClick={() => startTimeRecording(segmentKey)}
+                  disabled={!isPlayerReady}
+                  type={recordedStart !== undefined ? "primary" : "default"}
+                />
+              </Tooltip>
+              {recordedStart !== undefined && (
+                <Tooltip title="Undo start time recording">
+                  <Button
+                    size="small"
+                    icon={<RollbackOutlined />}
+                    onClick={() => undoTimeRecording(segmentKey, "start")}
+                    type="default"
+                    danger
+                    style={{
+                      backgroundColor: "#fff2f0",
+                      borderColor: "#ffccc7",
+                      color: "#ff4d4f",
+                    }}
+                  />
+                </Tooltip>
+              )}
+              <Tooltip title="Seek to this time">
+                <Button
+                  size="small"
+                  onClick={() =>
+                    seekToTime(
+                      recordedStart !== undefined ? recordedStart : text
+                    )
+                  }
+                  disabled={!isPlayerReady}
+                >
+                  Go
+                </Button>
+              </Tooltip>
+            </Space>
+          </div>
+        );
+      },
+      width: "16%",
     },
     {
       title: "End Time",
       dataIndex: "end",
       key: "end",
-      render: (text: number) => formatTime(text),
-      width: "15%",
+      render: (text: number, record: TranscriptItem) => {
+        const segmentKey = `${record.start}-${record.end}`;
+        const timeRecord = timeRecords[segmentKey];
+        const recordedEnd = timeRecord?.end;
+
+        return (
+          <div>
+            <div style={{ marginBottom: 4 }}>
+              {recordedEnd !== undefined ? (
+                <span style={{ color: "#52c41a", fontWeight: "bold" }}>
+                  {formatTime(recordedEnd)}
+                </span>
+              ) : (
+                formatTime(text)
+              )}
+            </div>
+            <Space size="small">
+              <Tooltip title="Record end time at current player position">
+                <Button
+                  size="small"
+                  icon={<FieldTimeOutlined />}
+                  onClick={() => endTimeRecording(segmentKey)}
+                  disabled={!isPlayerReady}
+                  type={recordedEnd !== undefined ? "primary" : "default"}
+                />
+              </Tooltip>
+              {recordedEnd !== undefined && (
+                <Tooltip title="Undo end time recording">
+                  <Button
+                    size="small"
+                    icon={<RollbackOutlined />}
+                    onClick={() => undoTimeRecording(segmentKey, "end")}
+                    type="default"
+                    danger
+                    style={{
+                      backgroundColor: "#fff2f0",
+                      borderColor: "#ffccc7",
+                      color: "#ff4d4f",
+                    }}
+                  />
+                </Tooltip>
+              )}
+              <Tooltip title="Seek to this time">
+                <Button
+                  size="small"
+                  onClick={() =>
+                    seekToTime(recordedEnd !== undefined ? recordedEnd : text)
+                  }
+                  disabled={!isPlayerReady}
+                >
+                  Go
+                </Button>
+              </Tooltip>
+            </Space>
+          </div>
+        );
+      },
+      width: "16%",
     },
     {
       title: "Transcript",
       dataIndex: "transcript",
       key: "transcript",
       editable: true,
+      width: "56%",
+      render: (text: string, record: TranscriptItem, index: number) => {
+        const editable = isEditing(record);
+        if (editable) {
+          return text;
+        }
+
+        return (
+          <div>
+            <div style={{ marginBottom: 8 }}>{text}</div>
+            <Space size="small">
+              <Tooltip title="Play this segment">
+                <Button
+                  size="small"
+                  icon={
+                    currentPlayingIndex === index ? (
+                      <PauseCircleOutlined />
+                    ) : (
+                      <PlayCircleOutlined />
+                    )
+                  }
+                  onClick={() => {
+                    if (currentPlayingIndex === index) {
+                      stopPlayback();
+                    } else {
+                      playTranscriptSegment(record, index);
+                    }
+                  }}
+                  disabled={!isPlayerReady}
+                  type={currentPlayingIndex === index ? "primary" : "default"}
+                >
+                  {currentPlayingIndex === index ? "Playing" : "Play"}
+                </Button>
+              </Tooltip>
+              {currentPlayingIndex === index && (
+                <Button
+                  size="small"
+                  icon={<StopOutlined />}
+                  onClick={stopPlayback}
+                  danger
+                >
+                  Stop
+                </Button>
+              )}
+            </Space>
+          </div>
+        );
+      },
     },
     {
       title: "Action",
       dataIndex: "operation",
       render: (_: any, record: TranscriptItem) => {
         const editable = isEditing(record);
+
         return editable ? (
           <span>
             <Button
@@ -933,16 +1687,19 @@ const VideoManagement: React.FC = () => {
             </Button>
           </span>
         ) : (
-          <Button
-            disabled={editingKey !== ""}
-            onClick={() => edit(record)}
-            icon={<EditOutlined />}
-          >
-            Edit
-          </Button>
+          <Space direction="vertical" size="small">
+            <Button
+              disabled={editingKey !== ""}
+              onClick={() => edit(record)}
+              icon={<EditOutlined />}
+              size="small"
+            >
+              Edit
+            </Button>
+          </Space>
         );
       },
-      width: "15%",
+      width: "12%",
     },
   ];
 
@@ -2481,25 +3238,168 @@ const VideoManagement: React.FC = () => {
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
-          // Clear filter states when modal closes
+          // Clear filter states and player states when modal closes
           setSelectedText("");
+          setCurrentPlayingIndex(null);
+          setTimeRecords({});
+          if (playbackController) {
+            playbackController.stop();
+          }
         }}
         zIndex={1100}
-        footer={
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* First Row: Transcript & Merge Operations */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Space>
+        footer={null}
+        width="95vw"
+        style={{
+          top: 10,
+          maxHeight: "98vh",
+        }}
+        bodyStyle={{
+          height: "calc(98vh - 100px)",
+          padding: 0,
+          overflow: "hidden",
+        }}
+        className="transcript-modal"
+      >
+        <div className="h-full flex flex-col">
+          {/* Top Section: Player + Controls */}
+          <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-600">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left Column: YouTube Player */}
+              {currentVideoLink && (
+                <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                  <div className="mb-2 flex justify-between items-center">
+                    <Typography.Text
+                      strong
+                      className="text-gray-900 dark:text-white text-sm"
+                    >
+                      Video Player
+                    </Typography.Text>
+                    <Space size="small">
+                      <Typography.Text className="text-gray-700 dark:text-gray-300 text-xs">
+                        Speed:
+                      </Typography.Text>
+                      <Select
+                        value={playbackSpeed}
+                        onChange={handlePlaybackSpeedChange}
+                        size="small"
+                        style={{ width: 70 }}
+                      >
+                        <Option value={0.25}>0.25x</Option>
+                        <Option value={0.5}>0.5x</Option>
+                        <Option value={0.75}>0.75x</Option>
+                        <Option value={1}>1x</Option>
+                        <Option value={1.25}>1.25x</Option>
+                        <Option value={1.5}>1.5x</Option>
+                        <Option value={2}>2x</Option>
+                      </Select>
+                      {youtubePlayer && (
+                        <Typography.Text className="text-xs text-gray-600 dark:text-gray-400">
+                          {formatTime(getCurrentVideoTime())}
+                        </Typography.Text>
+                      )}
+                    </Space>
+                  </div>
+                  <div className="relative w-full h-[180px] overflow-hidden rounded-lg">
+                    <YouTube
+                      videoId={extractVideoId(currentVideoLink)}
+                      onReady={onYouTubeReady}
+                      opts={{
+                        width: "100%",
+                        height: "180",
+                        playerVars: {
+                          autoplay: 0,
+                          controls: 1,
+                          disablekb: 0,
+                          fs: 1,
+                          iv_load_policy: 3,
+                          modestbranding: 1,
+                          rel: 0,
+                          showinfo: 0,
+                          cc_load_policy: 0,
+                        },
+                      }}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Right Column: Filters and Controls */}
+              <div className="space-y-3">
+                {/* Quick Guide */}
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded">
+                  <Typography.Text
+                    strong
+                    className="text-blue-800 dark:text-blue-200 text-sm"
+                  >
+                    Quick Guide:
+                  </Typography.Text>
+                  <Typography.Text className="ml-2 text-xs text-blue-700 dark:text-blue-300">
+                    ⏰ Record times • Go = Seek • Play = Preview • Green =
+                    Recorded • Apply = Save changes • 🔄 = Undo recording
+                  </Typography.Text>
+                </div>
+
+                {/* Filter Status */}
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <div className="mb-2">
+                    <Typography.Text
+                      strong
+                      className="text-gray-900 dark:text-white text-sm"
+                    >
+                      Selected Text:
+                    </Typography.Text>
+                    <Typography.Text
+                      code
+                      className="ml-2 bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs"
+                    >
+                      {selectedText || "None"}
+                    </Typography.Text>
+                  </div>
+
+                  <div className="mb-2">
+                    <Typography.Text
+                      strong
+                      className="text-gray-900 dark:text-white text-sm"
+                    >
+                      Filters:
+                    </Typography.Text>
+                    <Typography.Text className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                      ({filters.length} filters)
+                    </Typography.Text>
+                  </div>
+
+                  <div className="max-h-16 overflow-y-auto">
+                    {filters.length > 0 ? (
+                      filters.map((filter, index) => (
+                        <Tag
+                          key={index}
+                          closable
+                          onClose={() => removeFilter(filter)}
+                          color="blue"
+                          className="mb-1 mr-1 text-xs"
+                        >
+                          {filter}
+                        </Tag>
+                      ))
+                    ) : (
+                      <Typography.Text className="text-xs text-gray-500 dark:text-gray-400">
+                        No filters found
+                      </Typography.Text>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-4 flex flex-wrap gap-2 justify-between items-center">
+              {/* Left Side: Transcript Operations */}
+              <Space wrap>
                 <Button
                   onClick={loadOriginalTranscript}
                   icon={<CloudDownloadOutlined />}
-                  size="middle"
+                  size="small"
                 >
                   Restore
                 </Button>
@@ -2507,14 +3407,14 @@ const VideoManagement: React.FC = () => {
                   onClick={undoMerge}
                   disabled={transcriptHistory.length === 0}
                   icon={<UndoOutlined />}
-                  size="middle"
+                  size="small"
                 >
                   Undo
                 </Button>
                 <Button
                   onClick={autoMergeTranscripts}
                   icon={<MergeCellsOutlined />}
-                  size="middle"
+                  size="small"
                 >
                   Auto Merge
                 </Button>
@@ -2522,26 +3422,18 @@ const VideoManagement: React.FC = () => {
                   onClick={mergeTranscripts}
                   disabled={selectedRows.length < 2}
                   icon={<MergeCellsOutlined />}
-                  size="middle"
+                  size="small"
                 >
                   Merge Selected
                 </Button>
               </Space>
-            </div>
 
-            {/* Second Row: Filter Operations & Update */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Space>
+              {/* Right Side: Filter Operations & Update */}
+              <Space wrap>
                 <Button
                   onClick={addToFilters}
                   disabled={!selectedText}
-                  size="middle"
+                  size="small"
                 >
                   Add to Filter
                 </Button>
@@ -2549,7 +3441,7 @@ const VideoManagement: React.FC = () => {
                   onClick={saveFilters}
                   loading={isSavingFilters}
                   disabled={filters.length === 0}
-                  size="middle"
+                  size="small"
                 >
                   Save Filters ({filters.length})
                 </Button>
@@ -2557,84 +3449,29 @@ const VideoManagement: React.FC = () => {
                   onClick={applyAllFilters}
                   loading={isApplyingFilters}
                   disabled={filters.length === 0}
-                  size="middle"
+                  size="small"
                 >
                   Apply Filters ({filters.length})
                 </Button>
+                <Button
+                  loading={isUpdatingTranscript}
+                  onClick={updateFullTranscript}
+                  type="primary"
+                  size="small"
+                >
+                  Update
+                </Button>
               </Space>
-
-              <Button
-                loading={isUpdatingTranscript}
-                onClick={updateFullTranscript}
-                type="primary"
-                size="middle"
-              >
-                Update
-              </Button>
             </div>
           </div>
-        }
-        width={1000}
-        style={{
-          maxWidth: "95vw",
-        }}
-      >
-        {isTranscriptLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div>
-            {/* Filter Status Section */}
-            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
-              <div className="mb-2">
-                <Typography.Text
-                  strong
-                  className="text-gray-900 dark:text-white"
-                >
-                  Selected Text:
-                </Typography.Text>
-                <Typography.Text
-                  code
-                  className="ml-2 bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200"
-                >
-                  {selectedText || "None"}
-                </Typography.Text>
-              </div>
 
-              <div>
-                <Typography.Text
-                  strong
-                  className="text-gray-900 dark:text-white"
-                >
-                  Filters:
-                </Typography.Text>
-                <Typography.Text className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                  ({filters.length} filters)
-                </Typography.Text>
-                <div className="mt-2">
-                  {filters.length > 0 ? (
-                    filters.map((filter, index) => (
-                      <Tag
-                        key={index}
-                        closable
-                        onClose={() => removeFilter(filter)}
-                        color="blue"
-                        className="mb-1 bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-800 dark:text-blue-200"
-                      >
-                        {filter}
-                      </Tag>
-                    ))
-                  ) : (
-                    <Typography.Text className="text-sm text-gray-500 dark:text-gray-400">
-                      No filters found
-                    </Typography.Text>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <Form form={form} component={false}>
+          {/* Bottom Section: Transcript Table */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Form
+              form={form}
+              component={false}
+              className="flex-1 flex flex-col"
+            >
               <Table
                 components={{
                   body: {
@@ -2645,15 +3482,17 @@ const VideoManagement: React.FC = () => {
                 columns={mergedTranscriptColumns}
                 dataSource={currentTranscript}
                 rowKey={(record) => record.start.toString()}
-                pagination={{ pageSize: 10 }}
-                scroll={{ y: 400 }}
+                scroll={{ y: "calc(98vh - 480px)" }}
                 onRow={() => ({
                   onMouseUp: handleTextSelection,
                 })}
+                size="small"
+                className="transcript-table"
+                loading={isTranscriptLoading}
               />
             </Form>
           </div>
-        )}
+        </div>
       </Modal>
 
       {/* Transcript Management Modal */}

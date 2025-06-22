@@ -50,6 +50,12 @@ import {
   detectLanguage,
   areWordsEquivalent,
 } from "@/utils/languageUtils";
+import {
+  VideoPlaybackController,
+  VideoPlaybackState,
+  TranscriptSegment,
+  YOUTUBE_PLAYER_STATE,
+} from "@/utils/videoPlaybackUtils";
 
 interface VideoMainProps {
   onComplete: () => void;
@@ -97,14 +103,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [isCompleted, setIsCompleted] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [missedWords, setMissedWords] = useState<string[]>([]);
-  const [currentInterval, setCurrentInterval] = useState<NodeJS.Timeout | null>(
-    null
-  );
-  const [playbackState, setPlaybackState] = useState({
-    isPlaying: false,
-    targetEndTime: 0,
-    actualStartTime: 0,
-  });
+  const [playbackController, setPlaybackController] =
+    useState<VideoPlaybackController | null>(null);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -474,6 +474,16 @@ const VideoMain: React.ForwardRefRenderFunction<
     playerRef.current = event.target;
     playerRef.current.setPlaybackRate(playbackSpeed);
 
+    // Initialize playback controller
+    const controller = new VideoPlaybackController(playerRef.current, {
+      playbackSpeed: playbackSpeed,
+      onStateChange: (state: VideoPlaybackState) => {
+        // Handle state changes if needed
+        console.log("Playback state changed:", state);
+      },
+    });
+    setPlaybackController(controller);
+
     // 强制关闭字幕
     try {
       // 方法1: 通过API禁用字幕轨道
@@ -489,12 +499,12 @@ const VideoMain: React.ForwardRefRenderFunction<
     }
   };
 
-  const clearIntervalIfExists = useCallback(() => {
-    if (currentInterval) {
-      clearInterval(currentInterval);
-      setCurrentInterval(null);
+  // Update playback controller when speed changes
+  useEffect(() => {
+    if (playbackController) {
+      playbackController.setPlaybackSpeed(playbackSpeed);
     }
-  }, [currentInterval]);
+  }, [playbackSpeed, playbackController]);
 
   const stopTimer = useCallback(() => {
     if (isTimerRunning) {
@@ -518,154 +528,35 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [isTimerRunning]);
 
   const stopCurrentSentence = useCallback(() => {
-    if (playerRef.current) {
-      playerRef.current.pauseVideo();
+    if (playbackController) {
+      playbackController.stop();
     }
-    clearIntervalIfExists();
-
-    // 清理播放状态
-    setPlaybackState({
-      isPlaying: false,
-      targetEndTime: 0,
-      actualStartTime: 0,
-    });
-  }, [clearIntervalIfExists]);
+  }, [playbackController]);
 
   const playSentence = useCallback(
-    (sentence: TranscriptItem, onComplete?: () => void) => {
-      clearIntervalIfExists();
-      playerRef.current.pauseVideo();
-      playerRef.current.seekTo(sentence.start, true);
+    async (sentence: TranscriptItem, onComplete?: () => void) => {
+      if (!playbackController) return;
 
-      const playPromise = new Promise<void>((resolve, reject) => {
-        let timeoutId: NodeJS.Timeout;
-        let resolved = false;
+      const segment: TranscriptSegment = {
+        start: sentence.start,
+        end: sentence.end,
+        transcript: sentence.transcript,
+      };
 
-        const onStateChange = (event: { data: number }) => {
-          if (event.data === YouTube.PlayerState.PLAYING && !resolved) {
-            resolved = true;
-            clearTimeout(timeoutId);
-            playerRef.current?.removeEventListener(
-              "onStateChange",
-              onStateChange
-            );
-            resolve();
-          }
-        };
-
-        // 添加超时处理，防止播放器无响应
-        timeoutId = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            playerRef.current?.removeEventListener(
-              "onStateChange",
-              onStateChange
-            );
-            reject(new Error("Video playback timeout"));
-          }
-        }, 5000); // 5秒超时
-
-        playerRef.current?.addEventListener("onStateChange", onStateChange);
-        playerRef.current?.playVideo();
-      });
-
-      playPromise
-        .then(() => {
-          // 记录实际开始播放的时间和位置
-          const actualStartTime =
-            playerRef.current?.getCurrentTime() || sentence.start;
-          const actualDuration = (sentence.end - actualStartTime) * 1000;
-          const adjustedDuration = actualDuration / playbackSpeed;
-          const startTime = Date.now();
-          let hasEnded = false;
-
-          // 更新播放状态
-          setPlaybackState({
-            isPlaying: true,
-            targetEndTime: sentence.end,
-            actualStartTime: actualStartTime,
-          });
-
-          const checkInterval = setInterval(() => {
-            if (playerRef.current && !hasEnded) {
-              const currentTime = playerRef.current.getCurrentTime();
-              const elapsedTime = Date.now() - startTime;
-              const playerState = playerRef.current.getPlayerState();
-
-              // 播放精度监控（可选，用于调试）
-              const expectedTime =
-                actualStartTime + (elapsedTime / 1000) * playbackSpeed;
-              const timeDrift = Math.abs(currentTime - expectedTime);
-              if (timeDrift > 0.2) {
-                console.warn(
-                  `Playback drift detected: ${timeDrift.toFixed(
-                    3
-                  )}s at ${currentTime.toFixed(
-                    3
-                  )}s, target: ${playbackState.targetEndTime.toFixed(3)}s`
-                );
-              }
-
-              // 多重检查条件，提高精度
-              const timeBasedStop = currentTime >= sentence.end - 0.05; // 减少提前量到0.05秒
-              const durationBasedStop = elapsedTime >= adjustedDuration;
-              const bufferOverrun = currentTime > sentence.end + 0.3; // 防止播放过头
-              const playerPaused =
-                playerState === YouTube.PlayerState.PAUSED ||
-                playerState === YouTube.PlayerState.ENDED;
-
-              if (
-                timeBasedStop ||
-                durationBasedStop ||
-                bufferOverrun ||
-                playerPaused
-              ) {
-                if (!playerPaused) {
-                  playerRef.current.pauseVideo();
-                }
-                clearInterval(checkInterval);
-                setCurrentInterval(null);
-                hasEnded = true;
-
-                // 清理播放状态
-                setPlaybackState({
-                  isPlaying: false,
-                  targetEndTime: 0,
-                  actualStartTime: 0,
-                });
-
-                // 延迟执行回调，确保播放完全停止
-                if (onComplete) {
-                  setTimeout(onComplete, 50);
-                }
-              }
-            }
-          }, 25); // 提高检查频率到25ms
-
-          setCurrentInterval(checkInterval);
-        })
-        .catch((error) => {
-          console.error("Playback failed:", error);
-
-          // 清理播放状态
-          setPlaybackState({
-            isPlaying: false,
-            targetEndTime: 0,
-            actualStartTime: 0,
-          });
-
-          // 播放失败时也要执行回调
-          if (onComplete) {
-            setTimeout(onComplete, 100);
-          }
-        });
+      try {
+        await playbackController.playSegment(segment, onComplete);
+      } catch (error) {
+        console.error("Playback failed:", error);
+        if (onComplete) {
+          setTimeout(onComplete, 100);
+        }
+      }
     },
-    [clearIntervalIfExists, playbackSpeed]
+    [playbackController]
   );
 
   const playCurrentSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
-    clearIntervalIfExists();
+    if (!playbackController || transcript.length === 0) return;
     const currentSentence = transcript[currentSentenceIndex];
     if (autoRepeat > 0) {
       repeatSentence(currentSentence);
@@ -673,11 +564,16 @@ const VideoMain: React.ForwardRefRenderFunction<
       playSentence(currentSentence);
     }
     lastActivityRef.current = Date.now();
-  }, [clearIntervalIfExists, currentSentenceIndex, playSentence, transcript]);
+  }, [
+    playbackController,
+    currentSentenceIndex,
+    playSentence,
+    transcript,
+    autoRepeat,
+  ]);
 
   const playNextSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
-    clearIntervalIfExists();
+    if (!playbackController || transcript.length === 0) return;
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     if (nextIndex === 0) {
       setIsCompleted(true);
@@ -692,13 +588,19 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
       lastActivityRef.current = Date.now();
     }
-  }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
+  }, [
+    transcript,
+    currentSentenceIndex,
+    playbackController,
+    playSentence,
+    autoRepeat,
+    onComplete,
+  ]);
 
   const playPreviousSentence = useCallback(() => {
-    if (!playerRef.current || transcript.length === 0) return;
+    if (!playbackController || transcript.length === 0) return;
     if (currentSentenceIndex === 0) return;
 
-    clearIntervalIfExists();
     const prevIndex = currentSentenceIndex - 1;
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
@@ -708,7 +610,13 @@ const VideoMain: React.ForwardRefRenderFunction<
       playSentence(prevSentence);
     }
     lastActivityRef.current = Date.now();
-  }, [transcript, currentSentenceIndex, clearIntervalIfExists, playSentence]);
+  }, [
+    transcript,
+    currentSentenceIndex,
+    playbackController,
+    playSentence,
+    autoRepeat,
+  ]);
 
   const repeatSentence = useCallback(
     (transcriptItem: TranscriptItem) => {
@@ -1074,11 +982,24 @@ const VideoMain: React.ForwardRefRenderFunction<
       }
     });
 
+    // Helper function to check if a word is pure punctuation
+    const isPunctuation = (word: string): boolean => {
+      // Remove all punctuation and check if anything remains
+      const withoutPunctuation = word.replace(/[^\w\s]/g, "");
+      return withoutPunctuation.trim() === "";
+    };
+
     const transcriptResult = originalTranscriptWords.map((word, index) => {
+      // Pure punctuation should be marked as correct by default
+      // since dictation doesn't require users to input punctuation
+      const isMatched = usedOriginalIndices.has(index);
+      const isPurePunctuation = isPunctuation(word);
+      const isCorrect = isMatched || isPurePunctuation;
+
       return {
         word,
-        highlight: usedOriginalIndices.has(index) ? "#7CEECE" : "#FFAAA5",
-        isCorrect: usedOriginalIndices.has(index),
+        highlight: isCorrect ? "#7CEECE" : "#FFAAA5",
+        isCorrect: isCorrect,
       };
     });
 
@@ -1107,6 +1028,13 @@ const VideoMain: React.ForwardRefRenderFunction<
           matchMap &&
           matchMap.has(cleanedInputIndex)
         ) {
+          isCorrect = true;
+        }
+
+        // For user input, pure punctuation should also be marked as correct
+        // since it's valid for users to include punctuation in their input
+        const isPurePunctuation = isPunctuation(originalWord);
+        if (isPurePunctuation) {
           isCorrect = true;
         }
 
@@ -1378,8 +1306,8 @@ const VideoMain: React.ForwardRefRenderFunction<
       if (playerRef.current) {
         const playerState = playerRef.current.getPlayerState();
         if (
-          playerState === YouTube.PlayerState.PAUSED ||
-          playerState === YouTube.PlayerState.ENDED
+          playerState === YOUTUBE_PLAYER_STATE.PAUSED ||
+          playerState === YOUTUBE_PLAYER_STATE.ENDED
         ) {
           stopTimer();
         }
@@ -1389,18 +1317,18 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const onVideoStateChange = useCallback(
     (event: { data: number }) => {
-      if (event.data === YouTube.PlayerState.PLAYING) {
+      if (event.data === YOUTUBE_PLAYER_STATE.PLAYING) {
         if (!isTimerRunning) {
           startTimer();
         }
       } else if (
-        event.data === YouTube.PlayerState.PAUSED ||
-        event.data === YouTube.PlayerState.ENDED
+        event.data === YOUTUBE_PLAYER_STATE.PAUSED ||
+        event.data === YOUTUBE_PLAYER_STATE.ENDED
       ) {
         resetUserTypingTimer();
       }
     },
-    [isTimerRunning, isUserTyping, startTimer, stopTimer]
+    [isTimerRunning, startTimer, resetUserTypingTimer]
   );
 
   // 30秒自动保存定时器
@@ -1481,8 +1409,11 @@ const VideoMain: React.ForwardRefRenderFunction<
       if (playerRef.current) {
         playerRef.current.setPlaybackRate(newSpeed);
       }
+      if (playbackController) {
+        playbackController.setPlaybackSpeed(newSpeed);
+      }
     },
-    [playerRef, playbackSpeed]
+    [playerRef, playbackController]
   );
 
   const handleAutoRepeatChange = useCallback(
