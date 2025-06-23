@@ -25,8 +25,8 @@ export interface VideoPlayer {
   playVideo(): void;
   pauseVideo(): void;
   setPlaybackRate(rate: number): void;
-  addEventListener(event: string, listener: (event: any) => void): void;
-  removeEventListener(event: string, listener: (event: any) => void): void;
+  addEventListener(event: string, listener: (event: Event) => void): void;
+  removeEventListener(event: string, listener: (event: Event) => void): void;
 }
 
 export interface PlaybackControlConfig {
@@ -62,203 +62,184 @@ export const playTranscriptSegment = (
   segment: TranscriptSegment,
   config: PlaybackControlConfig
 ): Promise<void> => {
-  // Add parameter validation for debugging
+  // Parameter validation
   if (!segment || typeof segment !== "object") {
-    const error = new Error(
-      `Invalid segment parameter: ${JSON.stringify(segment)}`
+    return Promise.reject(
+      new Error(`Invalid segment: ${JSON.stringify(segment)}`)
     );
-    console.error("playTranscriptSegment error:", error);
-    return Promise.reject(error);
   }
 
   if (typeof segment.start !== "number" || typeof segment.end !== "number") {
-    const error = new Error(
-      `Invalid segment times: start=${segment.start}, end=${segment.end}`
+    return Promise.reject(
+      new Error(`Invalid times: start=${segment.start}, end=${segment.end}`)
     );
-    console.error("playTranscriptSegment error:", error);
-    return Promise.reject(error);
   }
 
   const {
     playbackSpeed = 1,
     timeAccuracy = 0.05,
-    checkInterval = 25,
-    playbackTimeout = 5000,
+    checkInterval = 20,
     bufferTolerance = 0.3,
     onComplete,
     onError,
     onStateChange,
   } = config;
 
+  // Set playback speed
+  player.setPlaybackRate(playbackSpeed);
+
   return new Promise<void>((resolve, reject) => {
-    // First pause and seek to start position
-    player.pauseVideo();
-    player.seekTo(segment.start, true);
+    let monitoringInterval: NodeJS.Timeout | null = null;
+    let hasEnded = false;
 
-    const playPromise = new Promise<void>((playResolve, playReject) => {
-      let timeoutId: NodeJS.Timeout;
-      let resolved = false;
+    const cleanup = () => {
+      if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+        monitoringInterval = null;
+      }
+    };
 
-      // Check if player is ready and start playback
-      const startPlayback = () => {
-        try {
-          player.playVideo();
+    const startMonitoring = () => {
+      const actualStartTime = player.getCurrentTime();
 
-          // Wait a moment for playback to actually start
-          const checkPlaybackStarted = () => {
-            const playerState = player.getPlayerState();
-            if (playerState === YOUTUBE_PLAYER_STATE.PLAYING && !resolved) {
-              resolved = true;
-              clearTimeout(timeoutId);
-              playResolve();
-            } else if (playerState === YOUTUBE_PLAYER_STATE.BUFFERING) {
-              // Still buffering, check again shortly
-              setTimeout(checkPlaybackStarted, 100);
-            } else if (!resolved) {
-              // Try to start playback again
-              setTimeout(() => {
-                if (!resolved) {
-                  player.playVideo();
-                  setTimeout(checkPlaybackStarted, 100);
-                }
-              }, 200);
-            }
-          };
-
-          // Start checking playback status
-          setTimeout(checkPlaybackStarted, 100);
-        } catch (error) {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeoutId);
-            playReject(error);
-          }
-        }
-      };
-
-      // Add timeout handling to prevent player unresponsiveness
-      timeoutId = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          playReject(new Error("Video playback timeout"));
-        }
-      }, playbackTimeout);
-
-      startPlayback();
-    });
-
-    playPromise
-      .then(() => {
-        // Record actual start time and calculate duration
-        const actualStartTime = player.getCurrentTime() || segment.start;
-        const actualDuration = (segment.end - actualStartTime) * 1000;
-        const adjustedDuration = actualDuration / playbackSpeed;
-        const startTime = Date.now();
-        let hasEnded = false;
-
-        // Update playback state
-        const currentState: VideoPlaybackState = {
+      // Update state
+      if (onStateChange) {
+        onStateChange({
           isPlaying: true,
           targetEndTime: segment.end,
           actualStartTime: actualStartTime,
-        };
+        });
+      }
 
-        if (onStateChange) {
-          onStateChange(currentState);
+      monitoringInterval = setInterval(() => {
+        if (hasEnded) {
+          cleanup();
+          return;
         }
 
-        const checkInterval_id = setInterval(() => {
-          if (!hasEnded) {
-            const currentTime = player.getCurrentTime();
-            const elapsedTime = Date.now() - startTime;
-            const playerState = player.getPlayerState();
+        const currentTime = player.getCurrentTime();
+        const playerState = player.getPlayerState();
 
-            // Playback precision monitoring (optional, for debugging)
-            const expectedTime =
-              actualStartTime + (elapsedTime / 1000) * playbackSpeed;
-            const timeDrift = Math.abs(currentTime - expectedTime);
+        // Check if we should stop
+        const shouldStop =
+          currentTime >= segment.end - timeAccuracy ||
+          currentTime > segment.end + bufferTolerance ||
+          playerState === YOUTUBE_PLAYER_STATE.PAUSED ||
+          playerState === YOUTUBE_PLAYER_STATE.ENDED;
 
-            if (timeDrift > 0.2) {
-              console.warn(
-                `Playback drift detected: ${timeDrift.toFixed(
-                  3
-                )}s at ${currentTime.toFixed(
-                  3
-                )}s, target: ${segment.end.toFixed(3)}s`
-              );
-            }
+        if (shouldStop) {
+          hasEnded = true;
+          cleanup();
 
-            // Multiple check conditions for improved accuracy
-            const timeBasedStop = currentTime >= segment.end - timeAccuracy;
-            const durationBasedStop = elapsedTime >= adjustedDuration;
-            const bufferOverrun = currentTime > segment.end + bufferTolerance;
-            const playerPaused =
-              playerState === YOUTUBE_PLAYER_STATE.PAUSED ||
-              playerState === YOUTUBE_PLAYER_STATE.ENDED;
-
-            if (
-              timeBasedStop ||
-              durationBasedStop ||
-              bufferOverrun ||
-              playerPaused
-            ) {
-              if (!playerPaused) {
-                player.pauseVideo();
-              }
-              clearInterval(checkInterval_id);
-              hasEnded = true;
-
-              // Update final state
-              const finalState: VideoPlaybackState = {
-                isPlaying: false,
-                targetEndTime: 0,
-                actualStartTime: 0,
-              };
-
-              if (onStateChange) {
-                onStateChange(finalState);
-              }
-
-              // Delay callback execution to ensure playback fully stops
-              setTimeout(() => {
-                if (onComplete) {
-                  onComplete();
-                }
-                resolve();
-              }, 50);
-            }
+          if (
+            playerState !== YOUTUBE_PLAYER_STATE.PAUSED &&
+            playerState !== YOUTUBE_PLAYER_STATE.ENDED
+          ) {
+            player.pauseVideo();
           }
-        }, checkInterval);
 
-        // Store interval ID for cleanup (if needed externally)
-        // Note: checkInterval_id is a number, so we don't store segment info on it
-      })
-      .catch((error) => {
-        console.error("Playback failed:", error);
+          // Update final state
+          if (onStateChange) {
+            onStateChange({
+              isPlaying: false,
+              targetEndTime: 0,
+              actualStartTime: 0,
+            });
+          }
 
-        // Update error state
-        const errorState: VideoPlaybackState = {
-          isPlaying: false,
-          targetEndTime: 0,
-          actualStartTime: 0,
-        };
-
-        if (onStateChange) {
-          onStateChange(errorState);
+          setTimeout(() => {
+            if (onComplete) onComplete();
+            resolve();
+          }, 50);
         }
+      }, checkInterval);
+    };
 
-        if (onError) {
-          onError(error);
-        }
+    // Enhanced playback sequence with better error handling
+    const attemptPlayback = (attemptNumber = 1, maxAttempts = 3) => {
+      try {
+        // Always pause first to ensure clean state
+        player.pauseVideo();
 
-        // Execute callback even on failure
         setTimeout(() => {
-          if (onComplete) {
-            onComplete();
-          }
-          reject(error);
+          player.seekTo(segment.start, true);
+
+          setTimeout(() => {
+            player.playVideo();
+
+            // Check playback status with multiple retries
+            const checkPlaybackStatus = (checkAttempt = 1, maxChecks = 10) => {
+              const state = player.getPlayerState();
+
+              if (
+                state === YOUTUBE_PLAYER_STATE.PLAYING ||
+                state === YOUTUBE_PLAYER_STATE.BUFFERING
+              ) {
+                startMonitoring();
+              } else if (
+                state === YOUTUBE_PLAYER_STATE.UNSTARTED &&
+                checkAttempt < maxChecks
+              ) {
+                // Still unstarted, wait and check again
+                setTimeout(() => {
+                  checkPlaybackStatus(checkAttempt + 1, maxChecks);
+                }, 200);
+              } else if (
+                state === YOUTUBE_PLAYER_STATE.PAUSED &&
+                checkAttempt < maxChecks
+              ) {
+                // Paused, try to play again
+                player.playVideo();
+                setTimeout(() => {
+                  checkPlaybackStatus(checkAttempt + 1, maxChecks);
+                }, 200);
+              } else if (attemptNumber < maxAttempts) {
+                // This attempt failed, try again
+                setTimeout(() => {
+                  attemptPlayback(attemptNumber + 1, maxAttempts);
+                }, 500);
+              } else {
+                // All attempts failed
+                cleanup();
+                let errorMessage = `Playback failed after ${maxAttempts} attempts. Final state: ${getVideoPlayerStateDescription(
+                  state
+                )}`;
+
+                // Provide helpful error message for common issues
+                if (state === YOUTUBE_PLAYER_STATE.UNSTARTED) {
+                  errorMessage +=
+                    ". This might be due to browser autoplay restrictions. Please try clicking on the video player first.";
+                }
+
+                const error = new Error(errorMessage);
+                if (onError) onError(error);
+                reject(error);
+              }
+            };
+
+            // Start checking after a short delay
+            setTimeout(() => {
+              checkPlaybackStatus();
+            }, 300);
+          }, 150);
         }, 100);
-      });
+      } catch (error) {
+        if (attemptNumber < maxAttempts) {
+          setTimeout(() => {
+            attemptPlayback(attemptNumber + 1, maxAttempts);
+          }, 500);
+        } else {
+          cleanup();
+          const errorObj =
+            error instanceof Error ? error : new Error(String(error));
+          if (onError) onError(errorObj);
+          reject(errorObj);
+        }
+      }
+    };
+
+    // Start the playback attempts
+    attemptPlayback();
   });
 };
 
@@ -351,9 +332,9 @@ export class VideoPlaybackController {
     this.config = {
       playbackSpeed: 1,
       timeAccuracy: 0.05,
-      checkInterval: 25,
-      playbackTimeout: 5000,
-      bufferTolerance: 0.3,
+      checkInterval: 15, // Reduced for better precision
+      playbackTimeout: 8000, // Increased for first-time loading
+      bufferTolerance: 0.2, // Reduced for more precise stopping
       ...config,
     };
   }
