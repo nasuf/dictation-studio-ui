@@ -1716,14 +1716,6 @@ const UserManagement: React.FC = () => {
           }
         }
       }
-
-      // Also check if user has made significant progress (more than 5% completion)
-      if (
-        channelProgress?.overallCompletion &&
-        channelProgress.overallCompletion > 0.05
-      ) {
-        return true;
-      }
     }
 
     return false;
