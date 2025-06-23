@@ -140,6 +140,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [quotaInfo, setQuotaInfo] = useState<QuotaResponse | null>(null);
   const [isCheckingQuota, setIsCheckingQuota] = useState(true);
   const [hasRegisteredVideo, setHasRegisteredVideo] = useState(false);
+  const [showTextareaScrollbar, setShowTextareaScrollbar] = useState(false);
   const navigate = useNavigate();
 
   // 更新播放器选项
@@ -1286,8 +1287,26 @@ const VideoMain: React.ForwardRefRenderFunction<
     resetProgress,
   }));
 
-  const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInput(e.target.value);
+  const handleUserInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setUserInput(newValue);
+
+    // Check if content exceeds 3 lines to show/hide scrollbar
+    const textarea = e.target;
+
+    const lineHeight = 1.6; // em
+    const fontSize = 16; // px
+    const padding = 32; // py-4 = 1rem * 2 = 32px (consistent padding)
+    const maxHeightFor3Lines = lineHeight * fontSize * 3 + padding;
+
+    // Reset height to auto to get accurate scrollHeight
+    textarea.style.height = "auto";
+    const scrollHeight = textarea.scrollHeight;
+
+    // Determine if scrollbar should be shown (only when content exceeds 3 lines)
+    const needsScrollbar = scrollHeight > maxHeightFor3Lines;
+    setShowTextareaScrollbar(needsScrollbar);
+
     resetUserTypingTimer();
     // 更新最后活跃时间
     lastActivityRef.current = Date.now();
@@ -1562,219 +1581,258 @@ const VideoMain: React.ForwardRefRenderFunction<
   }, [isLoadingTranscript]);
 
   return (
-    <div className="flex justify-center items-start h-full w-full p-5">
-      <div className="flex justify-between w-full max-w-7xl h-full">
-        <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto hide-scrollbar">
-          <div className="w-full max-w-xl mb-4">
-            {/* Group quota info into a single line display */}
-            {quotaInfo &&
-              quotaInfo.limit !== -1 &&
-              (!userInfo?.plan || !userInfo?.plan?.name) && (
-                <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
-                  <p className="text-md text-blue-700 dark:text-blue-300">
-                    {t("freeUserQuotaHeader", {
-                      used: quotaInfo.used,
-                      limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
-                    })}
-                    <span className="mx-1">•</span>
-                    <span className="text-sm text-blue-600 dark:text-blue-200">
-                      {t("freeUserQuotaRenewal", {
-                        endDate: quotaInfo.endDate,
+    <>
+      <style>
+        {`
+          .dictation-textarea {
+            line-height: 1.6;
+            min-height: calc(1.6em * 2 + 2rem); /* 2 lines + padding for consistent height */
+            max-height: calc(1.6em * 3 + 2rem); /* 3 lines + padding */
+          }
+          .dictation-textarea::-webkit-scrollbar {
+            width: 6px;
+          }
+          .dictation-textarea::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .dictation-textarea::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+          }
+          .dictation-textarea::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.7);
+          }
+          .dictation-textarea::placeholder {
+            text-align: center;
+            opacity: 0.6;
+          }
+          .dictation-textarea.hide-scrollbar {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .dictation-textarea.hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <div className="flex justify-center items-start h-full w-full p-5">
+        <div className="flex justify-between w-full max-w-7xl h-full">
+          <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto hide-scrollbar">
+            <div className="w-full max-w-xl mb-4">
+              {/* Group quota info into a single line display */}
+              {quotaInfo &&
+                quotaInfo.limit !== -1 &&
+                (!userInfo?.plan || !userInfo?.plan?.name) && (
+                  <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
+                    <p className="text-md text-blue-700 dark:text-blue-300">
+                      {t("freeUserQuotaHeader", {
+                        used: quotaInfo.used,
+                        limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
                       })}
-                    </span>
-                  </p>
-                </div>
+                      <span className="mx-1">•</span>
+                      <span className="text-sm text-blue-600 dark:text-blue-200">
+                        {t("freeUserQuotaRenewal", {
+                          endDate: quotaInfo.endDate,
+                        })}
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+              {videoTitle && (
+                <h1 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200 line-clamp-2">
+                  {videoTitle}
+                </h1>
               )}
 
-            {videoTitle && (
-              <h1 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200 line-clamp-2">
-                {videoTitle}
-              </h1>
-            )}
-
-            <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full z-10" />
-              <YouTube
-                videoId={videoId}
-                opts={youtubeOpts}
-                onReady={onVideoReady}
-                onStateChange={onVideoStateChange}
-                className="absolute top-0 left-0 w-full h-full"
-              />
-              <Popover
-                content={settingsContent}
-                trigger="click"
-                placement="bottomLeft"
-                overlayClassName="custom-popover"
-                onOpenChange={handlePopoverVisibleChange}
-              >
-                <Button
-                  icon={
-                    isSavingDictationConfig ? <Spin /> : <SettingOutlined />
-                  }
-                  className="absolute top-2 left-2 z-20 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300"
+              <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full z-10" />
+                <YouTube
+                  videoId={videoId}
+                  opts={youtubeOpts}
+                  onReady={onVideoReady}
+                  onStateChange={onVideoStateChange}
+                  className="absolute top-0 left-0 w-full h-full"
                 />
-              </Popover>
+                <Popover
+                  content={settingsContent}
+                  trigger="click"
+                  placement="bottomLeft"
+                  overlayClassName="custom-popover"
+                  onOpenChange={handlePopoverVisibleChange}
+                >
+                  <Button
+                    icon={
+                      isSavingDictationConfig ? <Spin /> : <SettingOutlined />
+                    }
+                    className="absolute top-2 left-2 z-20 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300"
+                  />
+                </Popover>
+              </div>
             </div>
-          </div>
-          <div className="w-full max-w-xl space-y-4">
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => {
-                  lastActivityRef.current = Date.now();
-                  playPreviousSentence();
-                }}
-                disabled={currentSentenceIndex === 0}
-                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
-              >
-                <StepBackwardOutlined className="text-lg" />
-              </button>
-              <button
-                onClick={() => {
-                  lastActivityRef.current = Date.now();
-                  playCurrentSentence();
-                }}
-                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
-              >
-                <RedoOutlined className="text-lg" />
-              </button>
-              <button
-                onClick={() => {
-                  lastActivityRef.current = Date.now();
-                  playNextSentence();
-                }}
-                disabled={currentSentenceIndex === transcript.length - 1}
-                className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
-              >
-                <StepForwardOutlined className="text-lg" />
-              </button>
-            </div>
-            <input
-              value={userInput}
-              onChange={handleUserInput}
-              onCompositionStart={handleCompositionStart}
-              onCompositionEnd={handleCompositionEnd}
-              placeholder={t("inputPlaceHolder")}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-0 dark:focus:outline-none dark:focus:border-gray-800 transition duration-300 ease-in-out"
-            />
-            <div
-              className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
+            <div className="w-full max-w-xl space-y-4">
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => {
+                    lastActivityRef.current = Date.now();
+                    playPreviousSentence();
+                  }}
+                  disabled={currentSentenceIndex === 0}
+                  className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+                >
+                  <StepBackwardOutlined className="text-lg" />
+                </button>
+                <button
+                  onClick={() => {
+                    lastActivityRef.current = Date.now();
+                    playCurrentSentence();
+                  }}
+                  className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+                >
+                  <RedoOutlined className="text-lg" />
+                </button>
+                <button
+                  onClick={() => {
+                    lastActivityRef.current = Date.now();
+                    playNextSentence();
+                  }}
+                  disabled={currentSentenceIndex === transcript.length - 1}
+                  className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:disabled:bg-gray-800 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
+                >
+                  <StepForwardOutlined className="text-lg" />
+                </button>
+              </div>
+              <textarea
+                value={userInput}
+                onChange={handleUserInput}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
+                placeholder={t("inputPlaceHolder")}
+                className={`dictation-textarea w-full text-base leading-relaxed text-center px-4 py-4 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-0 dark:focus:outline-none dark:focus:border-gray-800 transition-all duration-300 ease-in-out resize-none whitespace-pre-wrap break-words overflow-auto ${
+                  showTextareaScrollbar ? "" : "hide-scrollbar"
+                }`}
+              />
+              <div
+                className="bg-gradient-to-r from-blue-300 to-gray-100 border-blue-500 text-blue-700 p-4
               dark:bg-gradient-to-r dark:from-orange-900 dark:to-gray-800 dark:border-blue-400 dark:text-orange-300 rounded-md"
-            >
-              <p className="font-bold">
-                {t("videoDictationKeyboardInstructions")}
-              </p>
+              >
+                <p className="font-bold">
+                  {t("videoDictationKeyboardInstructions")}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 flex flex-col h-full max-w-2xl">
-          {isLoadingTranscript || isCheckingQuota ? (
-            <div className="flex items-center justify-center h-full">
-              <Spin size="large" />
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-grow mr-4">
-                  <DualProgressBar
-                    completionPercentage={overallCompletion}
-                    accuracyPercentage={overallAccuracy}
-                    isCompleted={isCompleted}
+          <div className="flex-1 flex flex-col h-full max-w-2xl">
+            {isLoadingTranscript || isCheckingQuota ? (
+              <div className="flex items-center justify-center h-full">
+                <Spin size="large" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex-grow mr-4">
+                    <DualProgressBar
+                      completionPercentage={overallCompletion}
+                      accuracyPercentage={overallAccuracy}
+                      isCompleted={isCompleted}
+                    />
+                  </div>
+                  <Timer
+                    time={totalTime}
+                    isRunning={isTimerRunning && isUserTyping}
                   />
                 </div>
-                <Timer
-                  time={totalTime}
-                  isRunning={isTimerRunning && isUserTyping}
-                />
-              </div>
-              <div className="flex-grow mt-4 flex flex-col subtitle-container overflow-hidden">
-                <div
-                  ref={subtitlesRef}
-                  className="flex-grow overflow-y-auto hide-scrollbar"
-                >
-                  <div className="p-4 pb-20">
-                    {transcript.map((item, index) => (
-                      <div
-                        key={index}
-                        className={`subtitle-item ${
-                          revealedSentences.includes(index) ? "revealed" : ""
-                        } ${
-                          !revealedSentences.includes(index) ? "blurred" : ""
-                        } ${index === currentSentenceIndex ? "current" : ""}`}
-                      >
-                        <div className="flex justify-between items-start p-2">
-                          <div className="flex-1 mr-4">
-                            {revealedSentences.includes(index) ? (
-                              <>
-                                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                                  {compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).transcriptResult.map((word, wordIndex) => (
-                                    <span
-                                      key={wordIndex}
-                                      className={`${
-                                        word.isCorrect
-                                          ? "bg-green-200 dark:bg-green-700"
-                                          : "bg-red-200 dark:bg-red-700"
-                                      } px-1 py-0.5 rounded`}
-                                    >
-                                      {word.word}{" "}
-                                    </span>
-                                  ))}
-                                </p>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                                  <Tag color="blue">{t("yourInput")}</Tag>{" "}
-                                  {item.userInput &&
-                                    compareInputWithTranscript(
-                                      item.userInput,
+                <div className="flex-grow mt-4 flex flex-col subtitle-container overflow-hidden">
+                  <div
+                    ref={subtitlesRef}
+                    className="flex-grow overflow-y-auto hide-scrollbar"
+                  >
+                    <div className="p-4 pb-20">
+                      {transcript.map((item, index) => (
+                        <div
+                          key={index}
+                          className={`subtitle-item ${
+                            revealedSentences.includes(index) ? "revealed" : ""
+                          } ${
+                            !revealedSentences.includes(index) ? "blurred" : ""
+                          } ${index === currentSentenceIndex ? "current" : ""}`}
+                        >
+                          <div className="flex justify-between items-start p-2">
+                            <div className="flex-1 mr-4">
+                              {revealedSentences.includes(index) ? (
+                                <>
+                                  <p className="text-gray-800 dark:text-gray-200 mb-2">
+                                    {compareInputWithTranscript(
+                                      item.userInput || "",
                                       item.transcript
-                                    ).originalInputResult.map(
+                                    ).transcriptResult.map(
                                       (word, wordIndex) => (
                                         <span
                                           key={wordIndex}
-                                          className={
+                                          className={`${
                                             word.isCorrect
-                                              ? "text-green-600 dark:text-green-400"
-                                              : "text-red-600 dark:text-red-400"
-                                          }
+                                              ? "bg-green-200 dark:bg-green-700"
+                                              : "bg-red-200 dark:bg-red-700"
+                                          } px-1 py-0.5 rounded`}
                                         >
                                           {word.word}{" "}
                                         </span>
                                       )
                                     )}
+                                  </p>
+                                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                                    <Tag color="blue">{t("yourInput")}</Tag>{" "}
+                                    {item.userInput &&
+                                      compareInputWithTranscript(
+                                        item.userInput,
+                                        item.transcript
+                                      ).originalInputResult.map(
+                                        (word, wordIndex) => (
+                                          <span
+                                            key={wordIndex}
+                                            className={
+                                              word.isCorrect
+                                                ? "text-green-600 dark:text-green-400"
+                                                : "text-red-600 dark:text-red-400"
+                                            }
+                                          >
+                                            {word.word}{" "}
+                                          </span>
+                                        )
+                                      )}
+                                  </p>
+                                </>
+                              ) : (
+                                <p className="text-gray-800 dark:text-gray-200">
+                                  {item.transcript}
                                 </p>
-                              </>
-                            ) : (
-                              <p className="text-gray-800 dark:text-gray-200">
-                                {item.transcript}
-                              </p>
+                              )}
+                            </div>
+                            {revealedSentences.includes(index) && (
+                              <div className="flex-shrink-0">
+                                <ProgressCircle
+                                  percentage={
+                                    compareInputWithTranscript(
+                                      item.userInput || "",
+                                      item.transcript
+                                    ).completionPercentage
+                                  }
+                                />
+                              </div>
                             )}
                           </div>
-                          {revealedSentences.includes(index) && (
-                            <div className="flex-shrink-0">
-                              <ProgressCircle
-                                percentage={
-                                  compareInputWithTranscript(
-                                    item.userInput || "",
-                                    item.transcript
-                                  ).completionPercentage
-                                }
-                              />
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
