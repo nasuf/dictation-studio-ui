@@ -1306,7 +1306,7 @@ const VideoManagement: React.FC = () => {
     if ("video_id" in record) {
       return record.video_id === editingKey;
     } else {
-      return record.start.toString() === editingKey;
+      return `${record.start}-${record.end}` === editingKey;
     }
   };
 
@@ -1316,7 +1316,7 @@ const VideoManagement: React.FC = () => {
       setEditingKey(record.video_id);
     } else {
       form.setFieldsValue({ transcript: record.transcript });
-      setEditingKey(record.start.toString());
+      setEditingKey(`${record.start}-${record.end}`);
     }
   };
 
@@ -1377,7 +1377,9 @@ const VideoManagement: React.FC = () => {
     try {
       const row = await form.validateFields();
       const newData = [...currentTranscript];
-      const index = newData.findIndex((item) => key === item.start.toString());
+      const index = newData.findIndex(
+        (item) => key === `${item.start}-${item.end}`
+      );
       if (index > -1) {
         const item = newData[index];
         const updatedItem = {
@@ -1391,6 +1393,121 @@ const VideoManagement: React.FC = () => {
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  // Add new row below the current row
+  const addNewRowBelow = (record: TranscriptItem) => {
+    // Save current state to history for undo functionality
+    setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+    const newData = [...currentTranscript];
+    const currentIndex = newData.findIndex(
+      (item) => item.start === record.start
+    );
+
+    if (currentIndex > -1) {
+      // Calculate new row times
+      const currentRow = newData[currentIndex];
+      const nextRow = newData[currentIndex + 1];
+
+      // Calculate reasonable times for the new row
+      let newStartTime: number;
+      let newEndTime: number;
+
+      if (nextRow) {
+        // If there's a next row, split the time gap
+        const timeDiff = nextRow.start - currentRow.end;
+        if (timeDiff > 1) {
+          // If there's more than 1 second gap, use the midpoint
+          newStartTime = currentRow.end;
+          newEndTime = currentRow.end + timeDiff / 2;
+
+          // Update the next row's start time to be after our new row
+          nextRow.start = newEndTime;
+        } else {
+          // If gap is small, just add a small duration
+          newStartTime = currentRow.end;
+          newEndTime = currentRow.end + 0.5;
+
+          // Shift the next row slightly
+          nextRow.start = newEndTime;
+        }
+      } else {
+        // If no next row, add a reasonable duration (3 seconds)
+        newStartTime = currentRow.end;
+        newEndTime = currentRow.end + 3;
+      }
+
+      // Create new transcript item
+      const newRow: TranscriptItem = {
+        start: newStartTime,
+        end: newEndTime,
+        transcript: "", // Empty transcript for user to fill
+      };
+
+      // Insert new row after current row
+      newData.splice(currentIndex + 1, 0, newRow);
+
+      // Update the current transcript
+      setCurrentTranscript(newData);
+
+      message.success(
+        `New row added below current row (${formatTime(
+          newStartTime
+        )} - ${formatTime(newEndTime)})`
+      );
+    }
+  };
+
+  // Delete current row
+  const deleteCurrentRow = (record: TranscriptItem) => {
+    if (currentTranscript.length <= 1) {
+      message.warning("Cannot delete the last remaining row");
+      return;
+    }
+
+    Modal.confirm({
+      title: "Delete Row",
+      content:
+        "Are you sure you want to delete this transcript row? This action cannot be undone.",
+      onOk: () => {
+        // Save current state to history for undo functionality
+        setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+        const newData = [...currentTranscript];
+        const currentIndex = newData.findIndex(
+          (item) => item.start === record.start
+        );
+
+        if (currentIndex > -1) {
+          // Remove the row
+          newData.splice(currentIndex, 1);
+
+          // Update the current transcript
+          setCurrentTranscript(newData);
+
+          // Clear any editing state if this row was being edited
+          if (editingKey === `${record.start}-${record.end}`) {
+            setEditingKey("");
+          }
+
+          // Clear any selection if this row was selected
+          setSelectedRows(
+            selectedRows.filter((row) => row.start !== record.start)
+          );
+          setSelectedRowKeys(
+            selectedRowKeys.filter(
+              (key) => key !== `${record.start}-${record.end}`
+            )
+          );
+
+          message.success("Row deleted successfully");
+        }
+      },
+      onCancel() {
+        // Do nothing if user cancels
+      },
+    });
   };
 
   const mergeTranscripts = () => {
@@ -1684,7 +1801,7 @@ const VideoManagement: React.FC = () => {
         return editable ? (
           <span>
             <Button
-              onClick={() => saveTranscript(record.start.toString())}
+              onClick={() => saveTranscript(`${record.start}-${record.end}`)}
               style={{ marginRight: 8 }}
               type="link"
             >
@@ -1703,6 +1820,24 @@ const VideoManagement: React.FC = () => {
               size="small"
             >
               Edit
+            </Button>
+            <Button
+              disabled={editingKey !== ""}
+              onClick={() => addNewRowBelow(record)}
+              icon={<PlusOutlined />}
+              size="small"
+              type="dashed"
+            >
+              Add Row Below
+            </Button>
+            <Button
+              disabled={editingKey !== "" || currentTranscript.length <= 1}
+              onClick={() => deleteCurrentRow(record)}
+              icon={<MinusCircleOutlined />}
+              size="small"
+              danger
+            >
+              Delete Row
             </Button>
           </Space>
         );
@@ -3553,7 +3688,7 @@ const VideoManagement: React.FC = () => {
                 rowSelection={rowSelection}
                 columns={mergedTranscriptColumns}
                 dataSource={currentTranscript}
-                rowKey={(record) => record.start.toString()}
+                rowKey={(record) => `${record.start}-${record.end}`}
                 scroll={{ y: "calc(98vh - 480px)" }}
                 onRow={() => ({
                   onMouseUp: handleTextSelection,
