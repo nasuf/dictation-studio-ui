@@ -1899,7 +1899,9 @@ const VideoManagement: React.FC = () => {
       key: "is_refined",
       width: "15%",
       editable: false,
-      render: (refined: boolean) => (refined ? "Yes" : "No"),
+      render: (refined: boolean) => (
+        <Tag color={refined ? "green" : "red"}>{refined ? "Yes" : "No"}</Tag>
+      ),
     },
     {
       title: "Refined At",
