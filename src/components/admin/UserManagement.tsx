@@ -517,6 +517,19 @@ const UserManagement: React.FC = () => {
       },
     },
     {
+      title: "Last Active Date",
+      key: "lastActiveDate",
+      render: (_: any, record: UserInfo) => {
+        return getLastMeaningfulDictationInputDate(record);
+      },
+      sorter: (a: UserInfo, b: UserInfo) => {
+        const aTimestamp = getLastMeaningfulDictationInputTimestamp(a);
+        const bTimestamp = getLastMeaningfulDictationInputTimestamp(b);
+        return aTimestamp - bTimestamp;
+      },
+      defaultSortOrder: "descend" as const,
+    },
+    {
       title: "Created At",
       dataIndex: "created_at",
       key: "created_at",
@@ -1645,6 +1658,33 @@ const UserManagement: React.FC = () => {
     }
 
     return false;
+  };
+
+  // get last meaningful dictation input timestamp
+  const getLastMeaningfulDictationInputTimestamp = (user: UserInfo): number => {
+    if (!checkUserHasDictationInput(user)) {
+      return 0;
+    }
+
+    // get the latest currentTime from all dictation progress entries
+    const latestCurrentTime = Object.values(
+      user.dictation_progress || {}
+    ).reduce((latest, progress) => {
+      return progress.currentTime > latest ? progress.currentTime : latest;
+    }, 0);
+
+    return latestCurrentTime;
+  };
+
+  // get last meaningful dictation input date
+  const getLastMeaningfulDictationInputDate = (user: UserInfo): string => {
+    const timestamp = getLastMeaningfulDictationInputTimestamp(user);
+
+    if (timestamp === 0) {
+      return "";
+    }
+
+    return formatTimestamp(timestamp, "locale");
   };
 
   return (
