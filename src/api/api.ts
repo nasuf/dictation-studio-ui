@@ -104,6 +104,8 @@ export const api = {
     axiosInstance.get(`/user/progress/channel?channelId=${channelId}`),
 
   getAllUsers: () => axiosInstance.get("/user/all"),
+  getUserProgressByEmail: (userEmail: string) =>
+    axiosInstance.get("/user/all-progress", { params: { userEmail } }),
   updateTranscript: async (
     channelId: string,
     videoId: string,

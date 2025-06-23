@@ -16,10 +16,12 @@ import {
   Space,
   Spin,
   Segmented,
+  Empty,
+  Progress,
 } from "antd";
 import { Line } from "@ant-design/charts";
 import { api } from "@/api/api";
-import { UserInfo } from "@/utils/type";
+import { UserInfo, ProgressData } from "@/utils/type";
 import { USER_ROLE } from "@/utils/const";
 import {
   CopyOutlined,
@@ -29,6 +31,7 @@ import {
   SearchOutlined,
   BarChartOutlined,
   DownloadOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { formatTimestamp } from "../../utils/util";
 import html2canvas from "html2canvas";
@@ -108,6 +111,14 @@ const UserManagement: React.FC = () => {
   >(["zh"]);
   const [selectedColorScheme, setSelectedColorScheme] =
     useState<string>("pink");
+
+  // User progress modal states
+  const [isProgressModalVisible, setIsProgressModalVisible] = useState(false);
+  const [selectedUserProgress, setSelectedUserProgress] = useState<
+    ProgressData[]
+  >([]);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string>("");
+  const [isLoadingUserProgress, setIsLoadingUserProgress] = useState(false);
 
   // Format duration: if >= 60 minutes, show hours and minutes; otherwise just minutes
   const formatDuration = (durationInSeconds: number): string => {
@@ -541,7 +552,6 @@ const UserManagement: React.FC = () => {
       },
       sorter: (a: UserInfo, b: UserInfo) =>
         (a.created_at || 0) - (b.created_at || 0),
-      defaultSortOrder: "descend" as const,
     },
     {
       title: "Updated At",
@@ -555,6 +565,37 @@ const UserManagement: React.FC = () => {
       },
       sorter: (a: UserInfo, b: UserInfo) =>
         (a.updated_at || 0) - (b.updated_at || 0),
+    },
+    {
+      title: "Progress",
+      key: "progress",
+      width: 120,
+      render: (_: any, record: UserInfo) => {
+        const hasProgress = checkUserHasDictationInput(record);
+        return (
+          <Tooltip
+            title={
+              hasProgress
+                ? "View user's dictation progress"
+                : "User has no progress data"
+            }
+          >
+            <Button
+              type="primary"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => showUserProgressModal(record.email)}
+              disabled={!hasProgress || isLoadingUserProgress}
+              loading={
+                isLoadingUserProgress && selectedUserEmail === record.email
+              }
+              className="bg-blue-500 hover:bg-blue-600 border-blue-500 disabled:bg-gray-400"
+            >
+              View
+            </Button>
+          </Tooltip>
+        );
+      },
     },
   ];
 
@@ -653,6 +694,34 @@ const UserManagement: React.FC = () => {
       // Error handling is already in fetchUsers
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  // Show user progress modal and fetch data
+  const showUserProgressModal = (userEmail: string) => {
+    // Immediately show modal with loading state
+    setSelectedUserEmail(userEmail);
+    setSelectedUserProgress([]);
+    setIsProgressModalVisible(true);
+    setIsLoadingUserProgress(true);
+
+    // Then fetch the data
+    fetchUserProgressData(userEmail);
+  };
+
+  // Fetch user progress data
+  const fetchUserProgressData = async (userEmail: string) => {
+    try {
+      const response = await api.getUserProgressByEmail(userEmail);
+      const progressData = response.data.progress || [];
+      setSelectedUserProgress(progressData);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+      message.error("Failed to fetch user progress");
+      // If error occurs, close the modal
+      setIsProgressModalVisible(false);
+    } finally {
+      setIsLoadingUserProgress(false);
     }
   };
 
@@ -3155,6 +3224,118 @@ const UserManagement: React.FC = () => {
             </div>
           )}
         </div>
+      </Modal>
+
+      {/* User Progress Modal */}
+      <Modal
+        title={`User Progress - ${selectedUserEmail}`}
+        open={isProgressModalVisible}
+        maskClosable={false}
+        onCancel={() => {
+          setIsProgressModalVisible(false);
+          setSelectedUserProgress([]);
+          setSelectedUserEmail("");
+        }}
+        footer={[
+          <Button
+            key="close"
+            type="primary"
+            onClick={() => {
+              setIsProgressModalVisible(false);
+              setSelectedUserProgress([]);
+              setSelectedUserEmail("");
+            }}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
+          >
+            Close
+          </Button>,
+        ]}
+        width={800}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600 [&_*::-webkit-scrollbar]:w-2 [&_*::-webkit-scrollbar-track]:bg-gray-200 [&_*::-webkit-scrollbar-track]:dark:bg-gray-700 [&_*::-webkit-scrollbar-thumb]:bg-gray-400 [&_*::-webkit-scrollbar-thumb]:dark:bg-gray-600 [&_*::-webkit-scrollbar-thumb]:rounded-full [&_*::-webkit-scrollbar-thumb:hover]:bg-gray-500 [&_*::-webkit-scrollbar-thumb:hover]:dark:bg-gray-500"
+      >
+        {isLoadingUserProgress ? (
+          <div className="flex justify-center items-center h-64">
+            <Spin size="large" className="dark:text-white" />
+          </div>
+        ) : selectedUserProgress.length === 0 ? (
+          <div className="flex items-center justify-center h-64">
+            <Empty
+              description={
+                <span className="text-gray-500 dark:text-gray-400">
+                  No progress data available for this user
+                </span>
+              }
+            />
+          </div>
+        ) : (
+          <div
+            className="max-h-96 overflow-y-auto"
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: document.documentElement.classList.contains(
+                "dark"
+              )
+                ? "rgb(75, 85, 99) rgb(55, 65, 81)"
+                : "rgb(156, 163, 175) rgb(229, 231, 235)",
+            }}
+          >
+            {/* Group videos by channel */}
+            {Array.from(
+              new Set(selectedUserProgress.map((item) => item.channelId))
+            ).map((channelId) => {
+              const channelVideos = selectedUserProgress.filter(
+                (video) => video.channelId === channelId
+              );
+              const channelName = channelVideos[0]?.channelName || channelId;
+
+              return (
+                <div key={channelId} className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 pb-2 border-b border-gray-200 dark:border-gray-600">
+                    📺 {channelName}
+                  </h3>
+                  <div className="space-y-3">
+                    {channelVideos.map((video) => (
+                      <div
+                        key={video.videoId}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                      >
+                        <div className="flex-1 min-w-0 pr-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-2">
+                            {video.videoTitle}
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-1">
+                              <Progress
+                                percent={video.overallCompletion}
+                                size="small"
+                                status="active"
+                                strokeColor="#1890ff"
+                                trailColor={
+                                  document.documentElement.classList.contains(
+                                    "dark"
+                                  )
+                                    ? "rgba(255, 255, 255, 0.1)"
+                                    : "rgba(0, 0, 0, 0.06)"
+                                }
+                                className="[&_.ant-progress-text]:!text-gray-900 dark:[&_.ant-progress-text]:!text-gray-100 [&_.ant-progress-bg]:!bg-gray-200 dark:[&_.ant-progress-bg]:!bg-gray-600"
+                                showInfo={true}
+                                format={(percent) => (
+                                  <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                                    {percent}%
+                                  </span>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Modal>
     </div>
   );
