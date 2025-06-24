@@ -118,7 +118,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       {userInfo?.role === USER_ROLE.ADMIN && (
         <Menu.Item
           key="admin"
-          onClick={() => navigate("/admin/channel")}
+          onClick={() => navigate("/admin/user")}
           className="header-menu-item"
         >
           {t("adminPanel")}

@@ -106,6 +106,12 @@ const AppSider: React.FC<AppSiderProps> = ({
 
   const adminSiderItems: MenuItem[] = [
     {
+      key: "UserManagement",
+      label: "User",
+      path: "/admin/user",
+      icon: <></>,
+    },
+    {
       key: "ChannelManagement",
       label: "Channel",
       path: "/admin/channel",
@@ -115,12 +121,6 @@ const AppSider: React.FC<AppSiderProps> = ({
       key: "VideoManagement",
       label: "Video",
       path: "/admin/video",
-      icon: <></>,
-    },
-    {
-      key: "UserManagement",
-      label: "User",
-      path: "/admin/user",
       icon: <></>,
     },
     {
