@@ -3304,7 +3304,11 @@ const VideoManagement: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <Card title={`Video Management | Total: ${videos.length}`}>
+      <Card
+        title={`Video Management | Total: ${videos.length} | Refined: ${
+          videos.filter((video) => video.is_refined).length
+        }`}
+      >
         <Space style={{ marginBottom: 16 }}>
           <span style={{ marginRight: 8 }}>Language:</span>
           <Select
