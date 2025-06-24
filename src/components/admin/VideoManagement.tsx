@@ -2037,6 +2037,11 @@ const VideoManagement: React.FC = () => {
       render: (refined: boolean) => (
         <Tag color={refined ? "green" : "red"}>{refined ? "Yes" : "No"}</Tag>
       ),
+      filters: [
+        { text: "Yes", value: true },
+        { text: "No", value: false },
+      ],
+      onFilter: (value: any, record: Video) => record.is_refined === value,
     },
     {
       title: "Refined At",
