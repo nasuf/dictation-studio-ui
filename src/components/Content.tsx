@@ -55,7 +55,7 @@ const AppContent: React.FC = () => {
   const [currentVideoTitle, setCurrentVideoTitle] = useState("");
   const [currentChannelName, setCurrentChannelName] = useState("");
   const videoMainRef = useRef<VideoMainRef>(null);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const isDictationStarted = useSelector(
     (state: RootState) => state.user.isDictationStarted
   );
@@ -127,20 +127,6 @@ const AppContent: React.FC = () => {
       setFilteredChannels(filtered);
     }
   };
-
-  useEffect(() => {
-    // Set initial language to user interface language or default to All
-    const uiLanguage = i18n.language;
-    if (uiLanguage === "zh-CN" || uiLanguage === "zh-TW") {
-      dispatch(setSelectedLanguage(LANGUAGES.Chinese));
-    } else if (uiLanguage === "ja") {
-      dispatch(setSelectedLanguage(LANGUAGES.Japanese));
-    } else if (uiLanguage === "ko") {
-      dispatch(setSelectedLanguage(LANGUAGES.Korean));
-    } else {
-      dispatch(setSelectedLanguage(LANGUAGES.All));
-    }
-  }, [i18n.language, dispatch]);
 
   useEffect(() => {
     // If on channels page, load channel data

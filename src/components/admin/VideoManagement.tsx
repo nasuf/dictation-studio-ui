@@ -2107,6 +2107,7 @@ const VideoManagement: React.FC = () => {
               Edit
             </Button>
             <Button
+              hidden={true}
               danger
               onClick={() =>
                 handleDeleteVideo(selectedChannel!, record.video_id)
