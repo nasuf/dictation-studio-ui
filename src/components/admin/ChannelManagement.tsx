@@ -413,20 +413,14 @@ const ChannelManagement: React.FC = () => {
   const [isAddChannelModalVisible, setIsAddChannelModalVisible] =
     useState(false);
   const [editingKey, setEditingKey] = useState<string>("");
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    LANGUAGES.All
-  );
-  const [selectedVisibility, setSelectedVisibility] = useState<string>(
-    VISIBILITY_OPTIONS.All
-  );
   const [
     isChannelRecommendationModalVisible,
     setIsChannelRecommendationModalVisible,
   ] = useState(false);
 
   useEffect(() => {
-    fetchChannels(selectedLanguage, selectedVisibility);
-  }, [selectedLanguage, selectedVisibility]);
+    fetchChannels();
+  }, []);
 
   const fetchChannels = async (
     language: string = LANGUAGES.All,
@@ -529,7 +523,7 @@ const ChannelManagement: React.FC = () => {
     try {
       await api.updateChannelVisibility(channelId, visibility);
       message.success("Channel visibility updated successfully");
-      fetchChannels(selectedLanguage, selectedVisibility); // Refresh the channel list
+      fetchChannels(); // Refresh the channel list
     } catch (error) {
       console.error("Error updating channel visibility:", error);
       message.error("Failed to update channel visibility");
@@ -540,7 +534,7 @@ const ChannelManagement: React.FC = () => {
     try {
       await api.updateChannelLanguage(channelId, language);
       message.success("Channel language updated successfully");
-      fetchChannels(selectedLanguage, selectedVisibility); // Refresh the channel list
+      fetchChannels(); // Refresh the channel list
     } catch (error) {
       console.error("Error updating channel language:", error);
       message.error("Failed to update channel language");
@@ -752,6 +746,13 @@ const ChannelManagement: React.FC = () => {
             ))}
         </Select>
       ),
+      filters: Object.entries(VISIBILITY_OPTIONS)
+        .filter(([_, value]) => value !== "all")
+        .map(([key, value]) => ({
+          text: key,
+          value: value,
+        })),
+      onFilter: (value: any, record: Channel) => record.visibility === value,
     },
     {
       title: "Language",
@@ -773,6 +774,13 @@ const ChannelManagement: React.FC = () => {
             ))}
         </Select>
       ),
+      filters: Object.entries(LANGUAGES)
+        .filter(([_, value]) => value !== "all")
+        .map(([key, value]) => ({
+          text: key,
+          value: value,
+        })),
+      onFilter: (value: any, record: Channel) => record.language === value,
     },
     {
       title: "Actions",
@@ -826,14 +834,6 @@ const ChannelManagement: React.FC = () => {
     };
   });
 
-  const handleLanguageChange = (value: string) => {
-    setSelectedLanguage(value);
-  };
-
-  const handleVisibilityChange = (value: string) => {
-    setSelectedVisibility(value);
-  };
-
   return (
     <div style={{ padding: "20px" }}>
       <Card
@@ -844,32 +844,6 @@ const ChannelManagement: React.FC = () => {
         }
       >
         <Space style={{ marginBottom: 16 }}>
-          <span style={{ marginRight: 10, marginLeft: 10 }}>Languages:</span>
-          <Select
-            style={{ width: 200 }}
-            placeholder="Select Language"
-            onChange={handleLanguageChange}
-            value={selectedLanguage}
-          >
-            {Object.entries(LANGUAGES).map(([key, value]) => (
-              <Option key={value} value={value}>
-                {key}
-              </Option>
-            ))}
-          </Select>
-          <span style={{ marginRight: 10, marginLeft: 10 }}>Visibility:</span>
-          <Select
-            style={{ width: 200 }}
-            placeholder="Select Visibility"
-            onChange={handleVisibilityChange}
-            value={selectedVisibility}
-          >
-            {Object.entries(VISIBILITY_OPTIONS).map(([key, value]) => (
-              <Option key={value} value={value}>
-                {key}
-              </Option>
-            ))}
-          </Select>
           <Button
             type="primary"
             onClick={() => setIsAddChannelModalVisible(true)}
@@ -880,7 +854,7 @@ const ChannelManagement: React.FC = () => {
           </Button>
           <Button
             type="primary"
-            onClick={() => fetchChannels(selectedLanguage, selectedVisibility)}
+            onClick={() => fetchChannels()}
             className="refresh-button"
             style={{ marginLeft: 10 }}
           >
