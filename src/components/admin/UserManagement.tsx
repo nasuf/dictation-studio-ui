@@ -1808,7 +1808,6 @@ const UserManagement: React.FC = () => {
             </Button>
           </div>
         }
-        bodyStyle={{ paddingBottom: "80px" }}
       >
         <div className="bg-white dark:bg-gray-800 rounded-lg">
           <Table

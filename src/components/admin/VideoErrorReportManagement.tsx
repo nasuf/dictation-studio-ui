@@ -41,7 +41,6 @@ const VideoErrorReportManagement: React.FC = () => {
     "pending" | "resolved" | "rejected"
   >("resolved");
   const [submitting, setSubmitting] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchReports();
@@ -116,10 +115,6 @@ const VideoErrorReportManagement: React.FC = () => {
     };
     return types[errorType] || errorType;
   };
-
-  const filteredReports = reports.filter(
-    (report) => statusFilter === "all" || report.status === statusFilter
-  );
 
   const columns = [
     {
@@ -222,36 +217,26 @@ const VideoErrorReportManagement: React.FC = () => {
       <Card
         title={
           <div className="text-xl font-semibold dark:text-white">
-            {t("videoErrorReportManagement")} | Total: {filteredReports.length}
+            {t("videoErrorReportManagement")} | Total: {reports.length}
+          </div>
+        }
+        extra={
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              type="primary"
+              icon={<ReloadOutlined />}
+              onClick={fetchReports}
+              loading={loading}
+              style={{ marginLeft: 10 }}
+            >
+              {t("refresh")}
+            </Button>
           </div>
         }
       >
-        <Space style={{ marginBottom: 16 }}>
-          <span style={{ marginRight: 10 }}>{t("status")}:</span>
-          <Select
-            style={{ width: 150 }}
-            value={statusFilter}
-            onChange={setStatusFilter}
-          >
-            <Option value="all">{t("allStatus")}</Option>
-            <Option value="pending">{t("pending")}</Option>
-            <Option value="resolved">{t("resolved")}</Option>
-            <Option value="rejected">{t("rejected")}</Option>
-          </Select>
-          <Button
-            type="primary"
-            icon={<ReloadOutlined />}
-            onClick={fetchReports}
-            loading={loading}
-            style={{ marginLeft: 10 }}
-          >
-            {t("refresh")}
-          </Button>
-        </Space>
-
         <Table
           columns={columns}
-          dataSource={filteredReports}
+          dataSource={reports}
           rowKey="id"
           loading={loading}
           scroll={{ x: 1200, y: 500 }}

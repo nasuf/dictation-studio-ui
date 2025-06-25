@@ -842,33 +842,35 @@ const ChannelManagement: React.FC = () => {
             Channel Management | Total: {channels.length}
           </div>
         }
+        extra={
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              type="primary"
+              onClick={() => setIsAddChannelModalVisible(true)}
+              className="add-channel-button"
+              style={{ marginLeft: 10 }}
+            >
+              Add Channel
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => fetchChannels()}
+              className="refresh-button"
+              style={{ marginLeft: 10 }}
+            >
+              Refresh
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => setIsChannelRecommendationModalVisible(true)}
+              className="add-channel-button"
+              style={{ marginLeft: 10 }}
+            >
+              Channel Recommendation
+            </Button>
+          </div>
+        }
       >
-        <Space style={{ marginBottom: 16 }}>
-          <Button
-            type="primary"
-            onClick={() => setIsAddChannelModalVisible(true)}
-            className="add-channel-button"
-            style={{ marginLeft: 10 }}
-          >
-            Add Channel
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => fetchChannels()}
-            className="refresh-button"
-            style={{ marginLeft: 10 }}
-          >
-            Refresh
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => setIsChannelRecommendationModalVisible(true)}
-            className="add-channel-button"
-            style={{ marginLeft: 10 }}
-          >
-            Channel Recommendation
-          </Button>
-        </Space>
         <Form form={form} component={false}>
           <Table
             components={{
