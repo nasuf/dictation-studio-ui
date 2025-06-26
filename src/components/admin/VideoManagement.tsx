@@ -2158,6 +2158,13 @@ const VideoManagement: React.FC = () => {
       dataIndex: "visibility",
       key: "visibility",
       width: "15%",
+      filters: Object.entries(VISIBILITY_OPTIONS)
+        .filter(([_, value]) => value !== "all")
+        .map(([key, value]) => ({
+          text: key,
+          value: value,
+        })),
+      onFilter: (value: any, record: Video) => record.visibility === value,
       render: (visibility: string, record: Video) => (
         <Select
           value={visibility}
