@@ -19,7 +19,6 @@ import {
   PlusOutlined,
   EditOutlined,
   SaveOutlined,
-  CloseOutlined,
   YoutubeOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
@@ -96,7 +95,7 @@ const AddChannelForm: React.FC<{
                 >
                   <Select placeholder="Channel Visibility">
                     <Option value="public">Public</Option>
-                    <Option value="hidden">Hidden</Option>
+                    <Option value="private">Private</Option>
                   </Select>
                 </Form.Item>
                 <MinusCircleOutlined onClick={() => remove(name)} />
@@ -355,7 +354,7 @@ const ManageChannelRecommendations: React.FC = () => {
           >
             <Select>
               <Option value="public">Public</Option>
-              <Option value="hidden">Hidden</Option>
+              <Option value="private">Private</Option>
             </Select>
           </Form.Item>
 
@@ -408,15 +407,20 @@ const ManageChannelRecommendations: React.FC = () => {
 
 const ChannelManagement: React.FC = () => {
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isAddChannelModalVisible, setIsAddChannelModalVisible] =
     useState(false);
-  const [editingKey, setEditingKey] = useState<string>("");
   const [
     isChannelRecommendationModalVisible,
     setIsChannelRecommendationModalVisible,
   ] = useState(false);
+
+  const [isEditChannelModalVisible, setIsEditChannelModalVisible] =
+    useState(false);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [isUpdatingChannel, setIsUpdatingChannel] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -465,54 +469,57 @@ const ChannelManagement: React.FC = () => {
     }
   };
 
-  const isEditing = (record: Channel) => record.id === editingKey;
-
   const edit = (record: Channel) => {
-    form.setFieldsValue({ ...record });
-    setEditingKey(record.id);
+    setEditingChannel(record);
+    editForm.setFieldsValue({ ...record });
+    setIsEditChannelModalVisible(true);
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setIsEditChannelModalVisible(false);
+    setEditingChannel(null);
+    editForm.resetFields();
   };
 
-  const save = async (key: string) => {
+  const save = async (values: Partial<Channel>) => {
+    if (!editingChannel) return;
+
     try {
-      const currentValues = await form.validateFields();
-      const newData = [...channels];
-      const index = newData.findIndex((item) => key === item.id);
+      setIsUpdatingChannel(true);
 
-      if (index > -1) {
-        const originalChannel = channels[index];
-
-        const updatedFields: Partial<Channel> = {};
-        (Object.keys(currentValues) as Array<keyof Channel>).forEach(
-          (field) => {
-            if (currentValues[field] !== originalChannel[field]) {
-              updatedFields[field] = currentValues[field];
-            }
-          }
-        );
-
-        if (Object.keys(updatedFields).length === 0) {
-          setEditingKey("");
-          return;
+      const updatedFields: Partial<Channel> = {};
+      (Object.keys(values) as Array<keyof Channel>).forEach((field) => {
+        if (values[field] !== editingChannel[field]) {
+          (updatedFields as any)[field] = values[field];
         }
+      });
 
-        await api.updateChannel(key, updatedFields);
+      if (Object.keys(updatedFields).length === 0) {
+        message.info("No changes detected");
+        cancel();
+        return;
+      }
 
+      await api.updateChannel(editingChannel.id, updatedFields);
+
+      const newData = [...channels];
+      const index = newData.findIndex((item) => editingChannel.id === item.id);
+      if (index > -1) {
         const updatedItem = {
-          ...originalChannel,
+          ...editingChannel,
           ...updatedFields,
         };
         newData.splice(index, 1, updatedItem);
         setChannels(newData);
-        setEditingKey("");
         message.success("Channel updated successfully");
       }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
+
+      cancel();
+    } catch (error) {
+      console.error("Error updating channel:", error);
       message.error("Failed to update channel");
+    } finally {
+      setIsUpdatingChannel(false);
     }
   };
 
@@ -546,7 +553,6 @@ const ChannelManagement: React.FC = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      editable: true,
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -600,8 +606,10 @@ const ChannelManagement: React.FC = () => {
         false,
       render: (text: string, record: Channel) => (
         <span
-          className={`channel-name ${
-            record.visibility === "hidden" ? "channel-hidden" : ""
+          className={`font-medium ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-900 dark:text-gray-100"
           }`}
         >
           {text}
@@ -612,7 +620,6 @@ const ChannelManagement: React.FC = () => {
       title: "ID",
       dataIndex: "id",
       key: "id",
-      editable: true,
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -666,8 +673,10 @@ const ChannelManagement: React.FC = () => {
         false,
       render: (text: string, record: Channel) => (
         <span
-          className={`channel-id ${
-            record.visibility === "hidden" ? "channel-hidden" : ""
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
           }`}
         >
           {text}
@@ -678,38 +687,34 @@ const ChannelManagement: React.FC = () => {
       title: "Link",
       dataIndex: "link",
       key: "link",
-      editable: true,
       render: (text: string, record: Channel) => (
-        <span
-          className={`channel-link ${
-            record.visibility === "hidden" ? "channel-hidden" : ""
+        <a
+          href={text}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`hover:underline ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
           }`}
         >
-          <a href={text} target="_blank" rel="noopener noreferrer">
-            {text}
-          </a>
-        </span>
+          {text}
+        </a>
       ),
     },
     {
       title: "Image",
       dataIndex: "image_url",
       key: "image",
-      editable: true,
       render: (text: string, record: Channel) => (
         <Image
           src={text}
           alt="Channel image"
           width={50}
           height={50}
-          className={`channel-image ${
-            record.visibility === "hidden" ? "channel-hidden" : ""
+          className={`rounded-lg object-cover ${
+            record.visibility === "private" ? "opacity-50 grayscale" : ""
           }`}
-          style={{
-            objectFit: "cover",
-            opacity: record.visibility ? 1 : 0.5,
-            filter: record.visibility ? "none" : "grayscale(100%)",
-          }}
           fallback="data:image/png;base64,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"
         />
       ),
@@ -718,8 +723,11 @@ const ChannelManagement: React.FC = () => {
       title: "Videos Count",
       dataIndex: "videos",
       key: "videos",
-      render: (videos: string[]) =>
-        videos ? <span>{videos.length}</span> : <span>0</span>,
+      render: (videos: string[]) => (
+        <Tag color="blue" className="font-medium">
+          {videos ? videos.length : 0} videos
+        </Tag>
+      ),
       sorter: (a: Channel, b: Channel) => {
         const aCount = a.videos ? a.videos.length : 0;
         const bCount = b.videos ? b.videos.length : 0;
@@ -785,58 +793,23 @@ const ChannelManagement: React.FC = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: Channel) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Button
-              onClick={() => save(record.id)}
-              style={{ marginRight: 8 }}
-              icon={<SaveOutlined />}
-              className="edit-action-button"
-            >
-              Save
-            </Button>
-            <Button
-              onClick={cancel}
-              icon={<CloseOutlined />}
-              className="edit-action-button"
-            >
-              Cancel
-            </Button>
-          </span>
-        ) : (
-          <Button
-            onClick={() => edit(record)}
-            icon={<EditOutlined />}
-            className="edit-action-button"
-          >
-            Edit
-          </Button>
-        );
-      },
+      render: (_: any, record: Channel) => (
+        <Button
+          onClick={() => edit(record)}
+          icon={<EditOutlined />}
+          size="small"
+          className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600"
+        >
+          Edit
+        </Button>
+      ),
     },
   ];
 
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: Channel) => ({
-        record,
-        inputType: col.dataIndex === "image_url" ? "text" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
-
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="p-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <Card
+        className="dark:bg-gray-800 dark:text-white shadow-lg border-0 dark:border-gray-700"
         title={
           <div className="text-xl font-semibold dark:text-white">
             Channel Management | Total: {channels.length}
@@ -847,100 +820,223 @@ const ChannelManagement: React.FC = () => {
             <Button
               type="primary"
               onClick={() => setIsAddChannelModalVisible(true)}
-              className="add-channel-button"
-              style={{ marginLeft: 10 }}
+              className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600"
             >
               Add Channel
             </Button>
             <Button
               type="primary"
               onClick={() => fetchChannels()}
-              className="refresh-button"
-              style={{ marginLeft: 10 }}
+              className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
             >
               Refresh
             </Button>
             <Button
               type="primary"
               onClick={() => setIsChannelRecommendationModalVisible(true)}
-              className="add-channel-button"
-              style={{ marginLeft: 10 }}
+              className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600"
             >
               Channel Recommendation
             </Button>
           </div>
         }
       >
-        <Form form={form} component={false}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <Table
-            components={{
-              body: {
-                cell: EditableCell,
-              },
-            }}
-            columns={mergedColumns}
+            columns={columns}
             dataSource={channels}
             rowKey="id"
             loading={isLoading}
-            scroll={{ y: 400 }}
+            scroll={{
+              y: 500,
+              x: 1200,
+            }}
+            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
           />
-        </Form>
+        </div>
       </Card>
+      {/* Add Channel Modal */}
       <Modal
-        title="Add Channels"
+        title={
+          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+            Add Channels
+          </div>
+        }
         open={isAddChannelModalVisible}
         onCancel={() => setIsAddChannelModalVisible(false)}
         footer={null}
         width={1000}
         maskClosable={false}
+        className="dark:bg-gray-800"
       >
-        <AddChannelForm onFinish={onFinish} isLoading={isLoading} form={form} />
+        <div className="bg-white dark:bg-gray-800">
+          <AddChannelForm
+            onFinish={onFinish}
+            isLoading={isLoading}
+            form={form}
+          />
+        </div>
       </Modal>
+
+      {/* Edit Channel Modal */}
       <Modal
-        title="Channel Recommendation"
+        title={
+          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+            Edit Channel - {editingChannel?.name}
+          </div>
+        }
+        open={isEditChannelModalVisible}
+        onCancel={cancel}
+        footer={null}
+        width={800}
+        className="dark:bg-gray-800"
+        maskClosable={false}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={save}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Form.Item
+                name="id"
+                label={
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    Channel ID
+                  </span>
+                }
+              >
+                <Input
+                  disabled
+                  className="bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="language"
+                label={
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    Language
+                  </span>
+                }
+                rules={[{ required: true, message: "Please select language" }]}
+              >
+                <Select className="dark:bg-gray-700">
+                  {Object.entries(LANGUAGES)
+                    .filter(([_, value]) => value !== "all")
+                    .map(([key, value]) => (
+                      <Option key={value} value={value}>
+                        {key}
+                      </Option>
+                    ))}
+                </Select>
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="name"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Channel Name
+                </span>
+              }
+              rules={[{ required: true, message: "Please input channel name" }]}
+            >
+              <Input className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            </Form.Item>
+
+            <Form.Item
+              name="link"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Channel Link
+                </span>
+              }
+              rules={[
+                { required: true, message: "Please input channel link" },
+                { type: "url", message: "Please input a valid URL" },
+              ]}
+            >
+              <Input className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            </Form.Item>
+
+            <Form.Item
+              name="image_url"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Image URL
+                </span>
+              }
+              rules={[
+                { required: true, message: "Please input image URL" },
+                { type: "url", message: "Please input a valid URL" },
+              ]}
+            >
+              <Input className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            </Form.Item>
+
+            <Form.Item
+              name="visibility"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Visibility
+                </span>
+              }
+              rules={[{ required: true, message: "Please select visibility" }]}
+            >
+              <Select className="dark:bg-gray-700">
+                {Object.entries(VISIBILITY_OPTIONS)
+                  .filter(([_, value]) => value !== "all")
+                  .map(([key, value]) => (
+                    <Option key={value} value={value}>
+                      {key}
+                    </Option>
+                  ))}
+              </Select>
+            </Form.Item>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <Button
+                onClick={cancel}
+                className="bg-gray-500 hover:bg-gray-600 text-white border-gray-500 hover:border-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isUpdatingChannel}
+                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
+              >
+                <SaveOutlined className="mr-1" />
+                Save Changes
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* Channel Recommendation Modal */}
+      <Modal
+        title={
+          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+            Channel Recommendation
+          </div>
+        }
         open={isChannelRecommendationModalVisible}
         onCancel={() => setIsChannelRecommendationModalVisible(false)}
         footer={null}
         width={600}
         maskClosable={false}
+        className="dark:bg-gray-800"
       >
-        <ManageChannelRecommendations />
+        <div className="bg-white dark:bg-gray-800">
+          <ManageChannelRecommendations />
+        </div>
       </Modal>
     </div>
-  );
-};
-
-const EditableCell: React.FC<any> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
-}) => {
-  const inputNode = <Input />;
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
   );
 };
 

@@ -25,7 +25,6 @@ import {
   UploadOutlined,
   CheckOutlined,
   SaveOutlined,
-  CloseOutlined,
   SearchOutlined,
   LoadingOutlined,
   CloseCircleOutlined,
@@ -494,6 +493,46 @@ const AddVideosForm: React.FC<{
   );
 };
 
+// Add EditableCell component before VideoManagement component
+const EditableCell: React.FC<any> = ({
+  editing,
+  dataIndex,
+  title,
+  inputType,
+  record,
+  index,
+  children,
+  ...restProps
+}) => {
+  const inputNode =
+    inputType === "textarea" ? (
+      <TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
+    ) : (
+      <Input />
+    );
+
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[
+            {
+              required: true,
+              message: `Please Input ${title}!`,
+            },
+          ]}
+        >
+          {inputNode}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  );
+};
+
 const VideoManagement: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -517,9 +556,16 @@ const VideoManagement: React.FC = () => {
   >([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm(); // New form for edit modal
   const [srtFiles, setSrtFiles] = useState<{ [key: string]: File }>({});
   const [isUpdatingTranscript, setIsUpdatingTranscript] = useState(false);
   const [isBatchMerging, setIsBatchMerging] = useState(false);
+
+  // New state for edit modal
+  const [isEditVideoModalVisible, setIsEditVideoModalVisible] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+  const [isUpdatingVideo, setIsUpdatingVideo] = useState(false);
+
   // YouTube Player related states
   const [youtubePlayer, setYoutubePlayer] = useState<YouTubePlayer | null>(
     null
@@ -1312,8 +1358,9 @@ const VideoManagement: React.FC = () => {
 
   const edit = (record: Video | TranscriptItem) => {
     if ("video_id" in record) {
-      form.setFieldsValue({ ...record });
-      setEditingKey(record.video_id);
+      setEditingVideo(record);
+      editForm.setFieldsValue({ ...record });
+      setIsEditVideoModalVisible(true);
     } else {
       form.setFieldsValue({ transcript: record.transcript });
       setEditingKey(`${record.start}-${record.end}`);
@@ -1322,54 +1369,55 @@ const VideoManagement: React.FC = () => {
 
   const cancel = () => {
     setEditingKey("");
+    setIsEditVideoModalVisible(false);
+    setEditingVideo(null);
+    editForm.resetFields();
   };
 
-  const saveVideo = async (key: string, fieldName?: string) => {
+  const saveVideo = async (values: Partial<Video>) => {
+    if (!editingVideo) return;
+
     try {
-      let updatedFields: Partial<Video>;
+      setIsUpdatingVideo(true);
 
-      if (fieldName) {
-        const value = form.getFieldValue(fieldName);
-        updatedFields = { [fieldName]: value } as Partial<Video>;
-      } else {
-        const currentValues = await form.validateFields();
-        const originalVideo = videos.find((v) => v.video_id === key);
-
-        if (!originalVideo) {
-          message.error("Video not found");
-          return;
+      const updatedFields: Partial<Video> = {};
+      (Object.keys(values) as Array<keyof Video>).forEach((field) => {
+        if (values[field] !== editingVideo[field]) {
+          (updatedFields as any)[field] = values[field];
         }
+      });
 
-        updatedFields = {};
-        (Object.keys(currentValues) as Array<keyof Video>).forEach((field) => {
-          if (currentValues[field] !== originalVideo[field]) {
-            updatedFields[field] = currentValues[field];
-          }
-        });
-
-        if (Object.keys(updatedFields).length === 0) {
-          setEditingKey("");
-          return;
-        }
+      if (Object.keys(updatedFields).length === 0) {
+        message.info("No changes detected");
+        cancel();
+        return;
       }
 
-      await api.updateVideo(selectedChannel!, key, updatedFields);
+      await api.updateVideo(
+        selectedChannel!,
+        editingVideo.video_id,
+        updatedFields
+      );
+
       const newData = [...videos];
-      const index = newData.findIndex((item) => key === item.video_id);
+      const index = newData.findIndex(
+        (item) => editingVideo.video_id === item.video_id
+      );
       if (index > -1) {
         newData[index] = {
           ...newData[index],
           ...updatedFields,
         };
         setVideos(newData);
-        if (!fieldName) {
-          setEditingKey("");
-        }
         message.success("Video updated successfully");
       }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
+
+      cancel();
+    } catch (error) {
+      console.error("Error updating video:", error);
       message.error("Failed to update video");
+    } finally {
+      setIsUpdatingVideo(false);
     }
   };
 
@@ -1884,7 +1932,6 @@ const VideoManagement: React.FC = () => {
       title: "Video ID",
       dataIndex: "video_id",
       key: "video_id",
-      editable: false,
       width: "15%",
       filterDropdown: ({
         setSelectedKeys,
@@ -1939,12 +1986,22 @@ const VideoManagement: React.FC = () => {
           ?.toString()
           .toLowerCase()
           .includes(value.toLowerCase()) || false,
+      render: (text: string, record: Video) => (
+        <span
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Title",
       dataIndex: "title",
       key: "title",
-      editable: true,
       width: "15%",
       filterDropdown: ({
         setSelectedKeys,
@@ -1997,15 +2054,34 @@ const VideoManagement: React.FC = () => {
       onFilter: (value: any, record: Video) =>
         record.title?.toString().toLowerCase().includes(value.toLowerCase()) ||
         false,
+      render: (text: string, record: Video) => (
+        <span
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Link",
       dataIndex: "link",
       key: "link",
-      editable: false,
       width: "15%",
-      render: (text: string) => (
-        <a href={text} target="_blank" rel="noopener noreferrer">
+      render: (text: string, record: Video) => (
+        <a
+          href={text}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
           {text}
         </a>
       ),
@@ -2015,25 +2091,42 @@ const VideoManagement: React.FC = () => {
       dataIndex: "created_at",
       key: "created_at",
       width: "15%",
-      editable: false,
-      render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
       sorter: (a: Video, b: Video) => (a.created_at || 0) - (b.created_at || 0),
+      render: (text: number, record: Video) => (
+        <span
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {text ? formatUnixTimestamp(text) : ""}
+        </span>
+      ),
     },
     {
       title: "Updated At",
       dataIndex: "updated_at",
       key: "updated_at",
       width: "15%",
-      editable: false,
-      render: (text: number) => (text ? formatUnixTimestamp(text) : ""),
       sorter: (a: Video, b: Video) => (a.updated_at || 0) - (b.updated_at || 0),
+      render: (text: number, record: Video) => (
+        <span
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {text ? formatUnixTimestamp(text) : ""}
+        </span>
+      ),
     },
     {
       title: "Refined",
       dataIndex: "is_refined",
       key: "is_refined",
       width: "15%",
-      editable: false,
       render: (refined: boolean) => (
         <Tag color={refined ? "green" : "red"}>{refined ? "Yes" : "No"}</Tag>
       ),
@@ -2048,23 +2141,45 @@ const VideoManagement: React.FC = () => {
       dataIndex: "refined_at",
       key: "refined_at",
       width: "15%",
-      editable: false,
-      render: (refined_at: number) =>
-        refined_at ? formatUnixTimestamp(refined_at) : "",
+      render: (refined_at: number, record: Video) => (
+        <span
+          className={`font-mono text-sm ${
+            record.visibility === "private"
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {refined_at ? formatUnixTimestamp(refined_at) : ""}
+        </span>
+      ),
     },
     {
       title: "Visibility",
       dataIndex: "visibility",
       key: "visibility",
       width: "15%",
-      editable: false,
       render: (visibility: string, record: Video) => (
         <Select
           value={visibility}
           style={{ width: 120 }}
-          onChange={(value) => {
-            form.setFieldsValue({ visibility: value });
-            saveVideo(record.video_id, "visibility");
+          onChange={async (value) => {
+            try {
+              await api.updateVideo(selectedChannel!, record.video_id, {
+                visibility: value,
+              });
+              const newData = [...videos];
+              const index = newData.findIndex(
+                (item) => record.video_id === item.video_id
+              );
+              if (index > -1) {
+                newData[index] = { ...newData[index], visibility: value };
+                setVideos(newData);
+                message.success("Visibility updated successfully");
+              }
+            } catch (error) {
+              console.error("Error updating visibility:", error);
+              message.error("Failed to update visibility");
+            }
           }}
           className="video-visibility-select"
         >
@@ -2081,62 +2196,36 @@ const VideoManagement: React.FC = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: string, record: Video) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Button
-              onClick={() => saveVideo(record.video_id)}
-              style={{ marginRight: 8 }}
-              icon={<SaveOutlined />}
-            >
-              Save
-            </Button>
-            <Button onClick={cancel} icon={<CloseOutlined />}>
-              Cancel
-            </Button>
-          </span>
-        ) : (
-          <Space>
-            <Button
-              onClick={() => showTranscript(selectedChannel!, record.video_id)}
-            >
-              View Transcript
-            </Button>
-            <Button onClick={() => edit(record)} icon={<EditOutlined />}>
-              Edit
-            </Button>
-            <Button
-              hidden={true}
-              danger
-              onClick={() =>
-                handleDeleteVideo(selectedChannel!, record.video_id)
-              }
-            >
-              Delete
-            </Button>
-          </Space>
-        );
-      },
+      render: (_: string, record: Video) => (
+        <Space size="small" className="flex flex-wrap">
+          <Button
+            onClick={() => showTranscript(selectedChannel!, record.video_id)}
+            size="small"
+            className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600"
+          >
+            View Transcript
+          </Button>
+          <Button
+            onClick={() => edit(record)}
+            icon={<EditOutlined />}
+            size="small"
+            className="bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
+          >
+            Edit
+          </Button>
+          <Button
+            hidden={true}
+            danger
+            onClick={() => handleDeleteVideo(selectedChannel!, record.video_id)}
+            size="small"
+          >
+            Delete
+          </Button>
+        </Space>
+      ),
       width: "30%",
     },
   ];
-
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: Video) => ({
-        record,
-        inputType: col.dataIndex === "link" ? "text" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
 
   const handleChannelChange = (value: string) => {
     setSelectedChannel(value);
@@ -3311,112 +3400,117 @@ const VideoManagement: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Card
-        title={`Video Management | Total: ${videos.length} | Refined: ${
-          videos.filter((video) => video.is_refined).length
-        }`}
-      >
-        <Space style={{ marginBottom: 16 }}>
-          <span style={{ marginRight: 8 }}>Language:</span>
-          <Select
-            style={{ width: 150 }}
-            placeholder="Select Language"
-            onChange={handleLanguageChange}
-            value={selectedLanguage}
-          >
-            {Object.entries(LANGUAGES).map(([key, value]) => (
-              <Option key={value} value={value}>
-                {key}
-              </Option>
-            ))}
-          </Select>
-
-          <span style={{ marginLeft: 16, marginRight: 8 }}>Channel:</span>
-          <Select
-            style={{ width: 250 }}
-            placeholder="Select a channel"
-            onChange={handleChannelChange}
-            value={selectedChannel || undefined}
-            allowClear
-            onClear={() => {
-              setSelectedChannel("");
-              setSelectedChannelLink("");
-              setVideos([]);
-            }}
-          >
-            {channels
-              .filter(
-                (channel) =>
-                  selectedLanguage === LANGUAGES.All ||
-                  channel.language === selectedLanguage
-              )
-              .sort((a, b) => a.language.localeCompare(b.language))
-              .map((channel) => (
-                <Option key={channel.id} value={channel.id}>
-                  ({channel.language.toUpperCase()}) {channel.name}
+        className="dark:bg-gray-800 dark:text-white shadow-md"
+        title={
+          <div className="text-xl font-semibold dark:text-white">
+            Video Management | Total: {videos.length} | Refined:{" "}
+            {videos.filter((video) => video.is_refined).length}
+          </div>
+        }
+        extra={
+          <div className="flex items-center gap-1 flex-wrap">
+            <span style={{ marginRight: 8 }}>Language:</span>
+            <Select
+              style={{ width: 100 }}
+              placeholder="Select Language"
+              onChange={handleLanguageChange}
+              value={selectedLanguage}
+            >
+              {Object.entries(LANGUAGES).map(([key, value]) => (
+                <Option key={value} value={value}>
+                  {key}
                 </Option>
               ))}
-          </Select>
+            </Select>
 
-          <Button
-            type="primary"
-            onClick={() => {
-              if (selectedChannelLink)
-                window.open(selectedChannelLink, "_blank");
-            }}
-            disabled={!selectedChannelLink}
-            style={{ marginLeft: 10 }}
-          >
-            Open Channel
-          </Button>
-          <Button
-            type="primary"
-            onClick={showAddVideoModal}
-            disabled={!selectedChannel}
-            style={{ marginLeft: 10 }}
-          >
-            Add Videos
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => fetchVideos(selectedChannel!)}
-            className="refresh-button"
-            style={{ marginLeft: 10 }}
-          >
-            Refresh
-          </Button>
-          <Button
-            type="primary"
-            onClick={showTranscriptManagement}
-            disabled={!selectedChannel || videos.length === 0}
-            icon={<MergeCellsOutlined />}
-            style={{ marginLeft: 10 }}
-          >
-            Transcript Management
-          </Button>
-          <Button
-            type="primary"
-            onClick={showBatchVisibilityModal}
-            disabled={!selectedChannel || videos.length === 0}
-            icon={<EditOutlined />}
-            style={{ marginLeft: 10 }}
-          >
-            Batch Visibility Update
-          </Button>
-        </Space>
-        <Form form={form} component={false}>
+            <span style={{ marginLeft: 8, marginRight: 8 }}>Channel:</span>
+            <Select
+              style={{ width: 250 }}
+              placeholder="Select a channel"
+              onChange={handleChannelChange}
+              value={selectedChannel || undefined}
+              allowClear
+              onClear={() => {
+                setSelectedChannel("");
+                setSelectedChannelLink("");
+                setVideos([]);
+              }}
+            >
+              {channels
+                .filter(
+                  (channel) =>
+                    selectedLanguage === LANGUAGES.All ||
+                    channel.language === selectedLanguage
+                )
+                .sort((a, b) => a.language.localeCompare(b.language))
+                .map((channel) => (
+                  <Option key={channel.id} value={channel.id}>
+                    ({channel.language.toUpperCase()}) {channel.name}
+                  </Option>
+                ))}
+            </Select>
+
+            <Button
+              type="primary"
+              onClick={() => {
+                if (selectedChannelLink)
+                  window.open(selectedChannelLink, "_blank");
+              }}
+              disabled={!selectedChannelLink}
+              style={{ marginLeft: 10 }}
+            >
+              Open Channel
+            </Button>
+            <Button
+              type="primary"
+              onClick={showAddVideoModal}
+              disabled={!selectedChannel}
+              style={{ marginLeft: 10 }}
+            >
+              Add Videos
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => fetchVideos(selectedChannel!)}
+              className="refresh-button"
+              style={{ marginLeft: 10 }}
+            >
+              Refresh
+            </Button>
+            <Button
+              type="primary"
+              onClick={showTranscriptManagement}
+              disabled={!selectedChannel || videos.length === 0}
+              icon={<MergeCellsOutlined />}
+              style={{ marginLeft: 10 }}
+            >
+              Transcript Management
+            </Button>
+            <Button
+              type="primary"
+              onClick={showBatchVisibilityModal}
+              disabled={!selectedChannel || videos.length === 0}
+              icon={<EditOutlined />}
+              style={{ marginLeft: 10 }}
+            >
+              Batch Visibility Update
+            </Button>
+          </div>
+        }
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <Table
-            components={{
-              body: {
-                cell: EditableCell,
-              },
-            }}
-            columns={mergedColumns}
+            columns={columns}
             dataSource={videos}
             rowKey="video_id"
             loading={isLoading}
-            scroll={{ y: 400 }}
+            scroll={{
+              y: 500,
+              x: 1200,
+            }}
+            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
           />
-        </Form>
+        </div>
       </Card>
       <Modal
         title="Add Videos"
@@ -4372,50 +4466,114 @@ const VideoManagement: React.FC = () => {
           </Typography.Text>
         </div>
       </Modal>
+
+      {/* Edit Video Modal */}
+      <Modal
+        title={
+          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+            Edit Video - {editingVideo?.video_id}
+          </div>
+        }
+        open={isEditVideoModalVisible}
+        onCancel={cancel}
+        footer={null}
+        width={800}
+        className="dark:bg-gray-800"
+        maskClosable={false}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={saveVideo}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Form.Item
+                name="video_id"
+                label={
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    Video ID
+                  </span>
+                }
+              >
+                <Input
+                  disabled
+                  className="bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="visibility"
+                label={
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    Visibility
+                  </span>
+                }
+                rules={[
+                  { required: true, message: "Please select visibility" },
+                ]}
+              >
+                <Select className="dark:bg-gray-700">
+                  {Object.entries(VISIBILITY_OPTIONS)
+                    .filter(([_, value]) => value !== "all")
+                    .map(([key, value]) => (
+                      <Option key={value} value={value}>
+                        {key}
+                      </Option>
+                    ))}
+                </Select>
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="title"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Title
+                </span>
+              }
+              rules={[{ required: true, message: "Please input video title" }]}
+            >
+              <Input className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            </Form.Item>
+
+            <Form.Item
+              name="link"
+              label={
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Link
+                </span>
+              }
+              rules={[
+                { required: true, message: "Please input video link" },
+                { type: "url", message: "Please input a valid URL" },
+              ]}
+            >
+              <Input className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            </Form.Item>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <Button
+                onClick={cancel}
+                className="bg-gray-500 hover:bg-gray-600 text-white border-gray-500 hover:border-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isUpdatingVideo}
+                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
+              >
+                <SaveOutlined className="mr-1" />
+                Save Changes
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Modal>
     </div>
-  );
-};
-
-const EditableCell: React.FC<any> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
-}) => {
-  if (dataIndex === "visibility") {
-    return <td {...restProps}>{children}</td>;
-  }
-
-  const inputNode =
-    inputType === "textarea" ? (
-      <TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
-    ) : (
-      <Input />
-    );
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
   );
 };
 
