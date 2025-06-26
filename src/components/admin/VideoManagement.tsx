@@ -2221,7 +2221,6 @@ const VideoManagement: React.FC = () => {
             Edit
           </Button>
           <Button
-            hidden={true}
             danger
             onClick={() => handleDeleteVideo(selectedChannel!, record.video_id)}
             size="small"
@@ -3416,7 +3415,12 @@ const VideoManagement: React.FC = () => {
         }
         extra={
           <div className="flex items-center gap-1 flex-wrap">
-            <span style={{ marginRight: 8 }}>Language:</span>
+            <span
+              style={{ marginRight: 8 }}
+              className="text-sm dark:text-white"
+            >
+              Language:
+            </span>
             <Select
               style={{ width: 100 }}
               placeholder="Select Language"
@@ -3430,7 +3434,12 @@ const VideoManagement: React.FC = () => {
               ))}
             </Select>
 
-            <span style={{ marginLeft: 8, marginRight: 8 }}>Channel:</span>
+            <span
+              style={{ marginLeft: 8, marginRight: 8 }}
+              className="text-sm dark:text-white"
+            >
+              Channel:
+            </span>
             <Select
               style={{ width: 250 }}
               placeholder="Select a channel"
