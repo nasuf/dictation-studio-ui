@@ -3409,8 +3409,7 @@ const VideoManagement: React.FC = () => {
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
-            Video Management | Total: {videos.length} | Refined:{" "}
-            {videos.filter((video) => video.is_refined).length}
+            Video Management | Total: {videos.length}
           </div>
         }
         extra={
