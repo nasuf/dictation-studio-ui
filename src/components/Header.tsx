@@ -138,6 +138,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       >
         {t("feedback")}
       </Menu.Item>
+      <Menu.Item
+        key="settings"
+        onClick={() => navigate("/profile/reward-developer")}
+        className="header-menu-item"
+      >
+        {t("supportDeveloper")}
+      </Menu.Item>
       <Menu.Item key="logout" onClick={logout} className="header-menu-item">
         {t("logout")}
       </Menu.Item>

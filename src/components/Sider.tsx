@@ -8,6 +8,7 @@ import {
   PlusCircleTwoTone,
   RocketTwoTone,
   ExclamationCircleTwoTone,
+  HeartTwoTone,
 } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -101,6 +102,12 @@ const AppSider: React.FC<AppSiderProps> = ({
       icon: <ExclamationCircleTwoTone />,
       label: t("videoErrorReports"),
       path: "/profile/video-error-reports",
+    },
+    {
+      key: "SupportDeveloper",
+      icon: <HeartTwoTone />,
+      label: t("supportDeveloper"),
+      path: "/profile/reward-developer",
     },
   ];
 

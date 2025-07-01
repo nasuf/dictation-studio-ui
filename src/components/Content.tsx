@@ -40,6 +40,7 @@ import Feedback from "@/components/profile/Feedback";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import VideoErrorReportManagement from "@/components/admin/VideoErrorReportManagement";
 import UserVideoErrorReports from "@/components/profile/VideoErrorReports";
+import Reward from "@/components/profile/Reward";
 
 const { Content } = Layout;
 
@@ -510,6 +511,7 @@ const AppContent: React.FC = () => {
                 path="/profile/video-error-reports"
                 element={<UserVideoErrorReports />}
               />
+              <Route path="/profile/reward-developer" element={<Reward />} />
             </Routes>
           </Content>
         </Layout>
