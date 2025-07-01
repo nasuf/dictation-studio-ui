@@ -1237,6 +1237,10 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   // 手动保存函数（有提示框）
   const saveProgress = useCallback(async () => {
+    if (!hasUnsavedChanges) {
+      console.log("No unsaved changes, skipping auto-save");
+      return;
+    }
     const userInputJson: { [key: number]: string } = {};
     transcript.forEach((item, index) => {
       if (item.userInput && item.userInput.trim() !== "") {
