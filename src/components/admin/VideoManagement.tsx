@@ -550,6 +550,9 @@ const VideoManagement: React.FC = () => {
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string>("");
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [currentVideoTitle, setCurrentVideoTitle] = useState<string | null>(
+    null
+  );
   const [selectedRows, setSelectedRows] = useState<TranscriptItem[]>([]);
   const [transcriptHistory, setTranscriptHistory] = useState<
     TranscriptItem[][]
@@ -764,11 +767,16 @@ const VideoManagement: React.FC = () => {
     message.success(`SRT file uploaded for video ${videoId}`);
   };
 
-  const showTranscript = async (channelId: string, videoId: string) => {
+  const showTranscript = async (
+    channelId: string,
+    videoId: string,
+    videoTitle: string
+  ) => {
     setIsTranscriptLoading(true);
     setIsModalVisible(true);
     setCurrentVideoId(videoId);
     setSelectedChannel(channelId);
+    setCurrentVideoTitle(videoTitle);
 
     // Find the video to get its link
     const video = videos.find((v) => v.video_id === videoId);
@@ -2206,7 +2214,9 @@ const VideoManagement: React.FC = () => {
       render: (_: string, record: Video) => (
         <Space size="small" className="flex flex-wrap">
           <Button
-            onClick={() => showTranscript(selectedChannel!, record.video_id)}
+            onClick={() =>
+              showTranscript(selectedChannel!, record.video_id, record.title)
+            }
             size="small"
             className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600"
           >
@@ -3546,7 +3556,7 @@ const VideoManagement: React.FC = () => {
       </Modal>
       <Modal
         maskClosable={false}
-        title={`Video Transcript - ${currentVideoId}`}
+        title={`Video Transcript - ${currentVideoTitle} [${currentVideoId}]`}
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -3997,7 +4007,11 @@ const VideoManagement: React.FC = () => {
                   type="primary"
                   size="small"
                   onClick={() =>
-                    showTranscript(selectedChannel!, record.video_id)
+                    showTranscript(
+                      selectedChannel!,
+                      record.video_id,
+                      record.title
+                    )
                   }
                   icon={<EditOutlined />}
                 >
