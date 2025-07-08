@@ -690,26 +690,31 @@ const VideoMain: React.ForwardRefRenderFunction<
   };
 
   const compareInputWithTranscript = (input: string, transcript: string) => {
-    const language = detectLanguage(transcript);
+    // Normalize all types of apostrophes to standard ASCII apostrophe for consistent comparison
+    const normalizedInput = input.replace(/['’‘`´]/g, "'");
+    const normalizedTranscript = transcript.replace(/['’‘`´]/g, "'");
 
-    const cleanedInput = cleanString(input, language);
-    const cleanedTranscript = cleanString(transcript, language);
+    const language = detectLanguage(normalizedTranscript);
+
+    const cleanedInput = cleanString(normalizedInput, language);
+    const cleanedTranscript = cleanString(normalizedTranscript, language);
 
     const inputWords = splitWords(cleanedInput, language);
     const transcriptWords = splitWords(cleanedTranscript, language);
-    const originalTranscriptWords = splitWords(transcript, language);
-    const originalInputWords = splitWords(input, language);
+    const originalTranscriptWords = splitWords(normalizedTranscript, language);
+    const originalInputWords = splitWords(normalizedInput, language);
 
     // Debug logging for development
     const isDebugMode = process.env.NODE_ENV === "development";
     if (
       isDebugMode &&
-      (input.includes("they") || input.includes("up")) &&
-      (transcript.includes("they") || transcript.includes("up"))
+      (normalizedInput.includes("they") || normalizedInput.includes("up")) &&
+      (normalizedTranscript.includes("they") ||
+        normalizedTranscript.includes("up"))
     ) {
       console.log("🔍 Position-Weighted Matching Debug:");
-      console.log("Input:", input);
-      console.log("Transcript:", transcript);
+      console.log("Input:", normalizedInput);
+      console.log("Transcript:", normalizedTranscript);
       console.log("Input words:", inputWords);
       console.log("Transcript words:", transcriptWords);
     }
@@ -734,8 +739,9 @@ const VideoMain: React.ForwardRefRenderFunction<
 
       if (
         isDebugMode &&
-        (input.includes("they") || input.includes("up")) &&
-        (transcript.includes("they") || transcript.includes("up"))
+        (normalizedInput.includes("they") || normalizedInput.includes("up")) &&
+        (normalizedTranscript.includes("they") ||
+          normalizedTranscript.includes("up"))
       ) {
         console.log(
           `Position weight for input[${inputIndex}] -> transcript[${transcriptIndex}]: ${weight.toFixed(
@@ -860,8 +866,10 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         if (
           isDebugMode &&
-          (input.includes("they") || input.includes("up")) &&
-          (transcript.includes("they") || transcript.includes("up"))
+          (normalizedInput.includes("they") ||
+            normalizedInput.includes("up")) &&
+          (normalizedTranscript.includes("they") ||
+            normalizedTranscript.includes("up"))
         ) {
           console.log("Cost matrix:", costMatrix);
           console.log("Match candidates:", matchCandidates);
@@ -898,8 +906,10 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         if (
           isDebugMode &&
-          (input.includes("they") || input.includes("up")) &&
-          (transcript.includes("they") || transcript.includes("up"))
+          (normalizedInput.includes("they") ||
+            normalizedInput.includes("up")) &&
+          (normalizedTranscript.includes("they") ||
+            normalizedTranscript.includes("up"))
         ) {
           console.log("All possible matches sorted by score:", allMatches);
         }
@@ -926,8 +936,10 @@ const VideoMain: React.ForwardRefRenderFunction<
 
         if (
           isDebugMode &&
-          (input.includes("they") || input.includes("up")) &&
-          (transcript.includes("they") || transcript.includes("up"))
+          (normalizedInput.includes("they") ||
+            normalizedInput.includes("up")) &&
+          (normalizedTranscript.includes("they") ||
+            normalizedTranscript.includes("up"))
         ) {
           console.log("Final matches:", finalMatches);
         }
