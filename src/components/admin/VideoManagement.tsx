@@ -2275,6 +2275,27 @@ const VideoManagement: React.FC = () => {
     setIsAddVideoModalVisible(true);
   };
 
+  const trimSpaces = () => {
+    if (!currentTranscript || currentTranscript.length === 0) {
+      message.warning("No transcript available to trim");
+      return;
+    }
+    // Save current state to history before making changes
+    setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+    // Trim spaces from the transcript and replace multiple spaces with a single space
+    const trimmedTranscript = currentTranscript.map((item) => ({
+      ...item,
+      transcript: item.transcript.trim().replace(/\s+/g, " "),
+    }));
+
+    // Update transcript state
+    setCurrentTranscript(trimmedTranscript);
+    message.success(
+      `Trimmed transcript and replaced multiple spaces with a single space`
+    );
+  };
+
   // Function to automatically merge transcript items
   const autoMergeTranscripts = () => {
     if (!currentTranscript || currentTranscript.length === 0) {
@@ -3777,6 +3798,13 @@ const VideoManagement: React.FC = () => {
                   Apply Filters ({filters.length})
                 </Button>
                 <Button
+                  onClick={trimSpaces}
+                  icon={<MergeCellsOutlined />}
+                  size="small"
+                >
+                  Trim Spaces
+                </Button>
+                <Button
                   onClick={toggleVideoRefinedStatus}
                   loading={isMarkingRefined}
                   type={isVideoRefined ? "default" : "primary"}
@@ -3845,7 +3873,7 @@ const VideoManagement: React.FC = () => {
             disabled={isBatchRestoring}
             icon={<MergeCellsOutlined />}
           >
-            Auto Merge to All Transcripts (
+            Auto Merge to All (
             {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
           </Button>,
           <Button
@@ -3859,7 +3887,7 @@ const VideoManagement: React.FC = () => {
             }
             icon={<FilterOutlined />}
           >
-            Apply Filters to All Transcripts (
+            Apply Filters to All (
             {transcriptSummary.filter((s) => s.transcriptCount > 0).length})
           </Button>,
           <Button
