@@ -436,6 +436,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     // 重置进度时，重置计时器相关状态
     setTotalTime(0);
     setLastSavedTotalTime(0);
+    setHasUnsavedChanges(true);
   };
 
   const scrollToCurrentSentence = useCallback(() => {
