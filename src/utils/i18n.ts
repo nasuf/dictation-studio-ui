@@ -216,7 +216,7 @@ const enTranslations = {
   pressKey: "Press key...",
   tip: "Tip",
   shortcutKeysTip:
-    "These shortcuts work when the video player is active. Please use single keys only (e.g., Tab, Enter, Space, A-Z, 0-9, F1-F12). Combination keys are not supported.",
+    "These shortcuts work when the video player is active. Please use single keys only. Combination keys are not supported.",
   repeatCurrentSentence: "Repeat current sentence",
   playPreviousSentence: "Play previous sentence",
   playNextSentence: "Play next sentence",
@@ -687,7 +687,7 @@ const zhTranslations = {
   pressKey: "按键中...",
   tip: "提示",
   shortcutKeysTip:
-    "这些快捷键在视频播放器激活时有效。请仅使用单个按键（如Tab、Enter、空格、A-Z、0-9、F1-F12等）。不支持组合键。",
+    "这些快捷键在视频播放器激活时有效。请仅使用单个按键。不支持组合键。",
   repeatCurrentSentence: "重复当前句子",
   playPreviousSentence: "播放上一句",
   playNextSentence: "播放下一句",
@@ -1220,7 +1220,7 @@ const zhTraditionalTranslations = {
   pressKey: "按鍵中...",
   tip: "提示",
   shortcutKeysTip:
-    "這些快捷鍵在視頻播放器激活時有效。請僅使用單個按鍵（如Tab、Enter、空格、A-Z、0-9、F1-F12等）。不支持組合鍵。",
+    "這些快捷鍵在視頻播放器激活時有效。請僅使用單個按鍵。不支持組合鍵。",
   repeatCurrentSentence: "重複當前句子",
   playPreviousSentence: "播放上一句",
   playNextSentence: "播放下一句",
@@ -1883,7 +1883,7 @@ const koTranslations = {
   pressKey: "키 입력 중...",
   tip: "팁",
   shortcutKeysTip:
-    "이 단축키들은 비디오 플레이어가 활성화되어 있을 때 작동합니다. 단일 키만 사용해주세요 (예: Tab, Enter, Space, A-Z, 0-9, F1-F12 등). 조합키는 지원되지 않습니다.",
+    "이 단축키들은 비디오 플레이어가 활성화되어 있을 때 작동합니다. 단일 키만 사용해주세요. 조합키는 지원되지 않습니다.",
   repeatCurrentSentence: "현재 문장 반복",
   playPreviousSentence: "이전 문장 재생",
   playNextSentence: "다음 문장 재생",
