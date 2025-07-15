@@ -2131,7 +2131,7 @@ const VideoManagement: React.FC = () => {
       ),
     },
     {
-      title: "Refined",
+      title: `Refined (${videos.filter((video) => video.is_refined).length})`,
       dataIndex: "is_refined",
       key: "is_refined",
       width: "15%",
