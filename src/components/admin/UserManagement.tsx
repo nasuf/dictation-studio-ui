@@ -1749,7 +1749,7 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="p-4 sm:p-6 lg:p-8">
       <Card
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
@@ -1759,72 +1759,145 @@ const UserManagement: React.FC = () => {
           </div>
         }
         extra={
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              type="primary"
-              onClick={handleRefresh}
-              loading={isRefreshing}
-              className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
-            >
-              Refresh User List
-            </Button>
-            <Button
-              type="primary"
-              onClick={showMembershipModal}
-              disabled={selectedUsers.length === 0}
-              className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
-            >
-              Edit Membership
-            </Button>
-            <Button
-              type="primary"
-              onClick={showRoleModal}
-              disabled={selectedUsers.length === 0}
-              className="dark:bg-green-600 dark:hover:bg-green-700 dark:border-green-600"
-            >
-              Edit Role
-            </Button>
-            <Button
-              type="primary"
-              onClick={showCodeGeneratorModal}
-              className="dark:bg-purple-600 dark:hover:bg-purple-700 dark:border-purple-600"
-            >
-              Generate Membership Code
-            </Button>
-            <Button
-              type="primary"
-              onClick={showCodesModal}
-              className="dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:border-cyan-600"
-            >
-              View Active Codes
-            </Button>
-            <Button
-              type="primary"
-              onClick={showStatsModal}
-              icon={<BarChartOutlined />}
-              className="dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:border-emerald-600"
-            >
-              Usage Statistics
-            </Button>
+          <div className="w-full">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  type="primary"
+                  onClick={handleRefresh}
+                  loading={isRefreshing}
+                  className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600 w-full"
+                  size="small"
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showStatsModal}
+                  icon={<BarChartOutlined />}
+                  className="dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:border-emerald-600 w-full"
+                  size="small"
+                >
+                  Statistics
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showMembershipModal}
+                  disabled={selectedUsers.length === 0}
+                  className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600 w-full"
+                  size="small"
+                >
+                  Edit Member
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showRoleModal}
+                  disabled={selectedUsers.length === 0}
+                  className="dark:bg-green-600 dark:hover:bg-green-700 dark:border-green-600 w-full"
+                  size="small"
+                >
+                  Edit Role
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showCodeGeneratorModal}
+                  className="dark:bg-purple-600 dark:hover:bg-purple-700 dark:border-purple-600 w-full sm:col-span-2"
+                  size="small"
+                >
+                  Generate Code
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showCodesModal}
+                  className="dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:border-cyan-600 w-full sm:col-span-2"
+                  size="small"
+                >
+                  Active Codes
+                </Button>
+              </div>
+            </div>
+            
+            {/* Desktop Layout */}
+            <div className="hidden lg:flex items-center gap-2 flex-wrap">
+              <Button
+                type="primary"
+                onClick={handleRefresh}
+                loading={isRefreshing}
+                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+              >
+                Refresh User List
+              </Button>
+              <Button
+                type="primary"
+                onClick={showMembershipModal}
+                disabled={selectedUsers.length === 0}
+                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+              >
+                Edit Membership
+              </Button>
+              <Button
+                type="primary"
+                onClick={showRoleModal}
+                disabled={selectedUsers.length === 0}
+                className="dark:bg-green-600 dark:hover:bg-green-700 dark:border-green-600"
+              >
+                Edit Role
+              </Button>
+              <Button
+                type="primary"
+                onClick={showCodeGeneratorModal}
+                className="dark:bg-purple-600 dark:hover:bg-purple-700 dark:border-purple-600"
+              >
+                Generate Membership Code
+              </Button>
+              <Button
+                type="primary"
+                onClick={showCodesModal}
+                className="dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:border-cyan-600"
+              >
+                View Active Codes
+              </Button>
+              <Button
+                type="primary"
+                onClick={showStatsModal}
+                icon={<BarChartOutlined />}
+                className="dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:border-emerald-600"
+              >
+                Usage Statistics
+              </Button>
+            </div>
           </div>
         }
       >
-        <div className="bg-white dark:bg-gray-800 rounded-lg">
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={users}
-            rowKey="email"
-            loading={isLoading}
-            scroll={{
-              y: 500, // Fixed height to ensure pagination is visible
-              x: 1200, // Allow horizontal scroll if needed
-            }}
-            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
-          />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={users}
+              rowKey="email"
+              loading={isLoading}
+              scroll={{
+                y: window.innerWidth < 768 ? 400 : 500,
+                x: window.innerWidth < 768 ? 800 : 1200,
+              }}
+              size={window.innerWidth < 768 ? 'small' : 'middle'}
+              className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: window.innerWidth >= 768,
+                showTotal: (total, range) => 
+                  window.innerWidth >= 768 
+                    ? `${range[0]}-${range[1]} of ${total} items`
+                    : `${total} total`,
+                responsive: true,
+              }}
+            />
+          </div>
         </div>
       </Card>
 

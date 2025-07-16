@@ -301,7 +301,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
-      <div className="flex-shrink-0 p-6">
+      <div className="flex-shrink-0 p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex items-center gap-2 w-full md:w-auto">
             {isMobile && (
@@ -432,7 +432,7 @@ const AppContent: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-3 md:mx-6 mb-3 md:mb-6">
+      <div className="flex-grow overflow-hidden bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 rounded-lg mx-2 sm:mx-4 md:mx-6 mb-2 sm:mb-4 md:mb-6">
         <Layout className="h-full bg-transparent">
           <AppSider collapsed={siderCollapsed} onCollapse={setSiderCollapsed} />
           <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 custom-scrollbar">

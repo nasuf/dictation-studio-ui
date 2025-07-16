@@ -3435,7 +3435,7 @@ const VideoManagement: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="p-4 sm:p-6 lg:p-8">
       <Card
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
@@ -3444,118 +3444,232 @@ const VideoManagement: React.FC = () => {
           </div>
         }
         extra={
-          <div className="flex items-center gap-1 flex-wrap">
-            <span
-              style={{ marginRight: 8 }}
-              className="text-sm dark:text-white"
-            >
-              Language:
-            </span>
-            <Select
-              style={{ width: 100 }}
-              placeholder="Select Language"
-              onChange={handleLanguageChange}
-              value={selectedLanguage}
-            >
-              {Object.entries(LANGUAGES).map(([key, value]) => (
-                <Option key={value} value={value}>
-                  {key}
-                </Option>
-              ))}
-            </Select>
-
-            <span
-              style={{ marginLeft: 8, marginRight: 8 }}
-              className="text-sm dark:text-white"
-            >
-              Channel:
-            </span>
-            <Select
-              style={{ width: 250 }}
-              placeholder="Select a channel"
-              onChange={handleChannelChange}
-              value={selectedChannel || undefined}
-              allowClear
-              onClear={() => {
-                setSelectedChannel("");
-                setSelectedChannelLink("");
-                setVideos([]);
-              }}
-            >
-              {channels
-                .filter(
-                  (channel) =>
-                    selectedLanguage === LANGUAGES.All ||
-                    channel.language === selectedLanguage
-                )
-                .sort((a, b) => a.language.localeCompare(b.language))
-                .map((channel) => (
-                  <Option key={channel.id} value={channel.id}>
-                    ({channel.language.toUpperCase()}) {channel.name}
+          <div className="w-full">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden space-y-4">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm dark:text-white whitespace-nowrap">
+                    Language:
+                  </span>
+                  <Select
+                    className="flex-1 min-w-0"
+                    placeholder="Select Language"
+                    onChange={handleLanguageChange}
+                    value={selectedLanguage}
+                    size="small"
+                  >
+                    {Object.entries(LANGUAGES).map(([key, value]) => (
+                      <Option key={value} value={value}>
+                        {key}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm dark:text-white whitespace-nowrap">
+                    Channel:
+                  </span>
+                  <Select
+                    className="flex-1 min-w-0"
+                    placeholder="Select a channel"
+                    onChange={handleChannelChange}
+                    value={selectedChannel || undefined}
+                    allowClear
+                    size="small"
+                    onClear={() => {
+                      setSelectedChannel("");
+                      setSelectedChannelLink("");
+                      setVideos([]);
+                    }}
+                  >
+                    {channels
+                      .filter(
+                        (channel) =>
+                          selectedLanguage === LANGUAGES.All ||
+                          channel.language === selectedLanguage
+                      )
+                      .sort((a, b) => a.language.localeCompare(b.language))
+                      .map((channel) => (
+                        <Option key={channel.id} value={channel.id}>
+                          ({channel.language.toUpperCase()}) {channel.name}
+                        </Option>
+                      ))}
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedChannelLink)
+                      window.open(selectedChannelLink, "_blank");
+                  }}
+                  disabled={!selectedChannelLink}
+                  size="small"
+                  className="w-full"
+                >
+                  Open Channel
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showAddVideoModal}
+                  disabled={!selectedChannel}
+                  size="small"
+                  className="w-full"
+                >
+                  Add Videos
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => fetchVideos(selectedChannel!)}
+                  className="refresh-button w-full"
+                  size="small"
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showTranscriptManagement}
+                  disabled={!selectedChannel || videos.length === 0}
+                  icon={<MergeCellsOutlined />}
+                  size="small"
+                  className="w-full"
+                >
+                  Transcript
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={showBatchVisibilityModal}
+                  disabled={!selectedChannel || videos.length === 0}
+                  icon={<EditOutlined />}
+                  size="small"
+                  className="w-full sm:col-span-2"
+                >
+                  Batch Visibility
+                </Button>
+              </div>
+            </div>
+            
+            {/* Desktop Layout */}
+            <div className="hidden lg:flex items-center gap-1 flex-wrap">
+              <span className="text-sm dark:text-white mr-2">
+                Language:
+              </span>
+              <Select
+                style={{ width: 100 }}
+                placeholder="Select Language"
+                onChange={handleLanguageChange}
+                value={selectedLanguage}
+              >
+                {Object.entries(LANGUAGES).map(([key, value]) => (
+                  <Option key={value} value={value}>
+                    {key}
                   </Option>
                 ))}
-            </Select>
+              </Select>
 
-            <Button
-              type="primary"
-              onClick={() => {
-                if (selectedChannelLink)
-                  window.open(selectedChannelLink, "_blank");
-              }}
-              disabled={!selectedChannelLink}
-              style={{ marginLeft: 10 }}
-            >
-              Open Channel
-            </Button>
-            <Button
-              type="primary"
-              onClick={showAddVideoModal}
-              disabled={!selectedChannel}
-              style={{ marginLeft: 10 }}
-            >
-              Add Videos
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => fetchVideos(selectedChannel!)}
-              className="refresh-button"
-              style={{ marginLeft: 10 }}
-            >
-              Refresh
-            </Button>
-            <Button
-              type="primary"
-              onClick={showTranscriptManagement}
-              disabled={!selectedChannel || videos.length === 0}
-              icon={<MergeCellsOutlined />}
-              style={{ marginLeft: 10 }}
-            >
-              Transcript Management
-            </Button>
-            <Button
-              type="primary"
-              onClick={showBatchVisibilityModal}
-              disabled={!selectedChannel || videos.length === 0}
-              icon={<EditOutlined />}
-              style={{ marginLeft: 10 }}
-            >
-              Batch Visibility Update
-            </Button>
+              <span className="text-sm dark:text-white mx-2">
+                Channel:
+              </span>
+              <Select
+                style={{ width: 250 }}
+                placeholder="Select a channel"
+                onChange={handleChannelChange}
+                value={selectedChannel || undefined}
+                allowClear
+                onClear={() => {
+                  setSelectedChannel("");
+                  setSelectedChannelLink("");
+                  setVideos([]);
+                }}
+              >
+                {channels
+                  .filter(
+                    (channel) =>
+                      selectedLanguage === LANGUAGES.All ||
+                      channel.language === selectedLanguage
+                  )
+                  .sort((a, b) => a.language.localeCompare(b.language))
+                  .map((channel) => (
+                    <Option key={channel.id} value={channel.id}>
+                      ({channel.language.toUpperCase()}) {channel.name}
+                    </Option>
+                  ))}
+              </Select>
+
+              <Button
+                type="primary"
+                onClick={() => {
+                  if (selectedChannelLink)
+                    window.open(selectedChannelLink, "_blank");
+                }}
+                disabled={!selectedChannelLink}
+                className="ml-2"
+              >
+                Open Channel
+              </Button>
+              <Button
+                type="primary"
+                onClick={showAddVideoModal}
+                disabled={!selectedChannel}
+                className="ml-2"
+              >
+                Add Videos
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => fetchVideos(selectedChannel!)}
+                className="refresh-button ml-2"
+              >
+                Refresh
+              </Button>
+              <Button
+                type="primary"
+                onClick={showTranscriptManagement}
+                disabled={!selectedChannel || videos.length === 0}
+                icon={<MergeCellsOutlined />}
+                className="ml-2"
+              >
+                Transcript Management
+              </Button>
+              <Button
+                type="primary"
+                onClick={showBatchVisibilityModal}
+                disabled={!selectedChannel || videos.length === 0}
+                icon={<EditOutlined />}
+                className="ml-2"
+              >
+                Batch Visibility Update
+              </Button>
+            </div>
           </div>
         }
       >
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-          <Table
-            columns={columns}
-            dataSource={videos}
-            rowKey="video_id"
-            loading={isLoading}
-            scroll={{
-              y: 500,
-              x: 1200,
-            }}
-            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
-          />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={videos}
+              rowKey="video_id"
+              loading={isLoading}
+              scroll={{
+                y: window.innerWidth < 768 ? 400 : 500,
+                x: window.innerWidth < 768 ? 800 : 1200,
+              }}
+              size={window.innerWidth < 768 ? 'small' : 'middle'}
+              className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: window.innerWidth >= 768,
+                showTotal: (total, range) => 
+                  window.innerWidth >= 768 
+                    ? `${range[0]}-${range[1]} of ${total} items`
+                    : `${total} total`,
+                responsive: true,
+              }}
+            />
+          </div>
         </div>
       </Card>
       <Modal
@@ -3564,7 +3678,8 @@ const VideoManagement: React.FC = () => {
         open={isAddVideoModalVisible}
         onCancel={() => setIsAddVideoModalVisible(false)}
         footer={null}
-        width={800}
+        width={window.innerWidth < 768 ? '95%' : 800}
+        style={{ top: window.innerWidth < 768 ? 20 : undefined }}
       >
         <AddVideosForm
           onFinish={onFinish}

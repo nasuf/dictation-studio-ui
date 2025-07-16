@@ -39,67 +39,169 @@ const AddChannelForm: React.FC<{
         {(fields, { add, remove }) => (
           <>
             {fields.map(({ key, name, ...restField }) => (
-              <Space
+              <div
                 key={key}
-                style={{ display: "flex", marginBottom: 8 }}
-                align="baseline"
+                className="mb-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
               >
-                <Form.Item
-                  {...restField}
-                  name={[name, "name"]}
-                  rules={[{ required: true, message: "Missing channel name" }]}
-                >
-                  <Input placeholder="Channel Name" />
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, "id"]}
-                  rules={[{ required: true, message: "Missing channel ID" }]}
-                >
-                  <Input placeholder="Channel ID" />
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, "image_url"]}
-                  rules={[{ required: true, message: "Missing image URL" }]}
-                >
-                  <Input placeholder="Image URL" />
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, "link"]}
-                  rules={[{ required: true, message: "Missing channel link" }]}
-                >
-                  <Input placeholder="Channel Link" />
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, "language"]}
-                  rules={[
-                    { required: true, message: "Missing channel language" },
-                  ]}
-                >
-                  <Select placeholder="Channel Language">
-                    <Option value="en">English</Option>
-                    <Option value="zh">Chinese</Option>
-                    <Option value="ja">Japanese</Option>
-                    <Option value="ko">Korean</Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, "visibility"]}
-                  rules={[
-                    { required: true, message: "Missing channel visibility" },
-                  ]}
-                >
-                  <Select placeholder="Channel Visibility">
-                    <Option value="public">Public</Option>
-                    <Option value="private">Private</Option>
-                  </Select>
-                </Form.Item>
-                <MinusCircleOutlined onClick={() => remove(name)} />
-              </Space>
+                {/* Mobile Layout */}
+                <div className="block lg:hidden space-y-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium text-gray-700 dark:text-gray-300">
+                      Channel {name + 1}
+                    </h4>
+                    <Button
+                      type="text"
+                      danger
+                      icon={<MinusCircleOutlined />}
+                      onClick={() => remove(name)}
+                      size="small"
+                    />
+                  </div>
+                  <Form.Item
+                    {...restField}
+                    name={[name, "name"]}
+                    rules={[
+                      { required: true, message: "Missing channel name" },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Input placeholder="Channel Name" />
+                  </Form.Item>
+                  <Form.Item
+                    {...restField}
+                    name={[name, "id"]}
+                    rules={[{ required: true, message: "Missing channel ID" }]}
+                    className="mb-2"
+                  >
+                    <Input placeholder="Channel ID" />
+                  </Form.Item>
+                  <Form.Item
+                    {...restField}
+                    name={[name, "image_url"]}
+                    rules={[{ required: true, message: "Missing image URL" }]}
+                    className="mb-2"
+                  >
+                    <Input placeholder="Image URL" />
+                  </Form.Item>
+                  <Form.Item
+                    {...restField}
+                    name={[name, "link"]}
+                    rules={[
+                      { required: true, message: "Missing channel link" },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Input placeholder="Channel Link" />
+                  </Form.Item>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Form.Item
+                      {...restField}
+                      name={[name, "language"]}
+                      rules={[
+                        { required: true, message: "Missing channel language" },
+                      ]}
+                      className="mb-0"
+                    >
+                      <Select placeholder="Language" size="small">
+                        <Option value="en">English</Option>
+                        <Option value="zh">Chinese</Option>
+                        <Option value="ja">Japanese</Option>
+                        <Option value="ko">Korean</Option>
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "visibility"]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Missing channel visibility",
+                        },
+                      ]}
+                      className="mb-0"
+                    >
+                      <Select placeholder="Visibility" size="small">
+                        <Option value="public">Public</Option>
+                        <Option value="private">Private</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden lg:block">
+                  <Space
+                    style={{ display: "flex", marginBottom: 8 }}
+                    align="baseline"
+                    wrap
+                  >
+                    <Form.Item
+                      {...restField}
+                      name={[name, "name"]}
+                      rules={[
+                        { required: true, message: "Missing channel name" },
+                      ]}
+                    >
+                      <Input placeholder="Channel Name" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "id"]}
+                      rules={[
+                        { required: true, message: "Missing channel ID" },
+                      ]}
+                    >
+                      <Input placeholder="Channel ID" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "image_url"]}
+                      rules={[{ required: true, message: "Missing image URL" }]}
+                    >
+                      <Input placeholder="Image URL" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "link"]}
+                      rules={[
+                        { required: true, message: "Missing channel link" },
+                      ]}
+                    >
+                      <Input placeholder="Channel Link" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "language"]}
+                      rules={[
+                        { required: true, message: "Missing channel language" },
+                      ]}
+                    >
+                      <Select placeholder="Channel Language">
+                        <Option value="en">English</Option>
+                        <Option value="zh">Chinese</Option>
+                        <Option value="ja">Japanese</Option>
+                        <Option value="ko">Korean</Option>
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "visibility"]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Missing channel visibility",
+                        },
+                      ]}
+                    >
+                      <Select placeholder="Channel Visibility">
+                        <Option value="public">Public</Option>
+                        <Option value="private">Private</Option>
+                      </Select>
+                    </Form.Item>
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Space>
+                </div>
+              </div>
             ))}
             <Form.Item>
               <Button
@@ -807,7 +909,7 @@ const ChannelManagement: React.FC = () => {
   ];
 
   return (
-    <div className="p-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-screen">
       <Card
         className="dark:bg-gray-800 dark:text-white shadow-lg border-0 dark:border-gray-700"
         title={
@@ -816,43 +918,88 @@ const ChannelManagement: React.FC = () => {
           </div>
         }
         extra={
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              type="primary"
-              onClick={() => setIsAddChannelModalVisible(true)}
-              className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600"
-            >
-              Add Channel
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => fetchChannels()}
-              className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
-            >
-              Refresh
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => setIsChannelRecommendationModalVisible(true)}
-              className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600"
-            >
-              Channel Recommendation
-            </Button>
+          <div className="w-full">
+            {/* Mobile Layout */}
+            <div className="block sm:hidden space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                <Button
+                  type="primary"
+                  onClick={() => setIsAddChannelModalVisible(true)}
+                  className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 w-full"
+                  size="small"
+                >
+                  Add Channel
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => fetchChannels()}
+                  className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 w-full"
+                  size="small"
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => setIsChannelRecommendationModalVisible(true)}
+                  className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 w-full"
+                  size="small"
+                >
+                  Recommendations
+                </Button>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+              <Button
+                type="primary"
+                onClick={() => setIsAddChannelModalVisible(true)}
+                className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600"
+              >
+                Add Channel
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => fetchChannels()}
+                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
+              >
+                Refresh
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => setIsChannelRecommendationModalVisible(true)}
+                className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600"
+              >
+                Channel Recommendation
+              </Button>
+            </div>
           </div>
         }
       >
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-          <Table
-            columns={columns}
-            dataSource={channels}
-            rowKey="id"
-            loading={isLoading}
-            scroll={{
-              y: 500,
-              x: 1200,
-            }}
-            className="w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
-          />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={channels}
+              rowKey="id"
+              loading={isLoading}
+              scroll={{
+                y: window.innerWidth < 768 ? 400 : 500,
+                x: window.innerWidth < 768 ? 800 : 1200,
+              }}
+              size={window.innerWidth < 768 ? "small" : "middle"}
+              className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: window.innerWidth >= 768,
+                showTotal: (total, range) =>
+                  window.innerWidth >= 768
+                    ? `${range[0]}-${range[1]} of ${total} items`
+                    : `${total} total`,
+                responsive: true,
+              }}
+            />
+          </div>
         </div>
       </Card>
       {/* Add Channel Modal */}
@@ -865,7 +1012,8 @@ const ChannelManagement: React.FC = () => {
         open={isAddChannelModalVisible}
         onCancel={() => setIsAddChannelModalVisible(false)}
         footer={null}
-        width={1000}
+        width={window.innerWidth < 768 ? "95%" : 1000}
+        style={{ top: window.innerWidth < 768 ? 20 : undefined }}
         maskClosable={false}
         className="dark:bg-gray-800"
       >
