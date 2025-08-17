@@ -13,7 +13,6 @@ import {
   Progress,
   Typography,
   Tag,
-  Tooltip,
 } from "antd";
 import {
   MinusCircleOutlined,
@@ -35,9 +34,11 @@ import {
   ClockCircleOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
-  StopOutlined,
   FieldTimeOutlined,
   RollbackOutlined,
+  CloseOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
@@ -60,7 +61,6 @@ import {
 } from "@/utils/videoPlaybackUtils";
 
 const { Option } = Select;
-const { TextArea } = Input;
 
 const extractVideoId = (url: string): string => {
   if (!url) return "";
@@ -493,45 +493,346 @@ const AddVideosForm: React.FC<{
   );
 };
 
-// Add EditableCell component before VideoManagement component
-const EditableCell: React.FC<any> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
+// Enhanced Transcript Item Component with Double-Click Editing
+const TranscriptItemCard: React.FC<{
+  item: TranscriptItem;
+  index: number;
+  isEditing: boolean;
+  isPlaying: boolean;
+  isPlayerReady: boolean;
+  isSelected: boolean;
+  timeRecord: { start?: number; end?: number };
+  onEdit: () => void;
+  onSave: (transcript: string) => void;
+  onCancel: () => void;
+  onPlay: () => void;
+  onStop: () => void;
+  onPlayFromHere: () => void;
+  onSeekToStart: () => void;
+  onSeekToEnd: () => void;
+  onRecordStart: () => void;
+  onRecordEnd: () => void;
+  onUndoStart: () => void;
+  onUndoEnd: () => void;
+  onFineTuneStart: (delta: number) => void;
+  onFineTuneEnd: (delta: number) => void;
+  onAddRow: () => void;
+  onDeleteRow: () => void;
+  onSelect: (selected: boolean) => void;
+}> = ({
+  item,
   index,
-  children,
-  ...restProps
+  isEditing,
+  isPlaying,
+  isPlayerReady,
+  isSelected,
+  timeRecord,
+  onEdit,
+  onSave,
+  onCancel,
+  onPlay,
+  onStop,
+  onPlayFromHere,
+  onSeekToStart,
+  onSeekToEnd,
+  onRecordStart,
+  onRecordEnd,
+  onUndoStart,
+  onUndoEnd,
+  onFineTuneStart,
+  onFineTuneEnd,
+  onAddRow,
+  onDeleteRow,
+  onSelect,
 }) => {
-  const inputNode =
-    inputType === "textarea" ? (
-      <TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
-    ) : (
-      <Input />
-    );
+  const [editingText, setEditingText] = useState(item.transcript);
+
+  useEffect(() => {
+    setEditingText(item.transcript);
+  }, [item.transcript, isEditing]);
+
+  const handleSave = () => {
+    onSave(editingText);
+  };
+
+  const handleDoubleClick = () => {
+    if (!isEditing) {
+      onEdit();
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
+  };
 
   return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-lg border p-4 mb-4 transition-all duration-200 hover:shadow-md ${
+        isSelected
+          ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+          : "border-gray-200 dark:border-gray-700"
+      }`}
+    >
+      {/* Header with selection checkbox and index */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          />
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            #{index + 1}
+          </span>
+        </div>
+        {isSelected && (
+          <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded">
+            Selected
+          </span>
+        )}
+      </div>
+
+      {/* Time Controls Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Start Time Section */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Start Time:
+            </span>
+            <span className="text-lg font-mono text-green-600 dark:text-green-400">
+              {timeRecord.start !== undefined
+                ? formatTime(timeRecord.start)
+                : formatTime(item.start)}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={onRecordStart}
+              disabled={!isPlayerReady}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                timeRecord.start !== undefined
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <FieldTimeOutlined className="mr-1" />
+              Record
+            </button>
+            {timeRecord.start !== undefined && (
+              <button
+                onClick={onUndoStart}
+                className="px-2 py-1 text-xs rounded bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+              >
+                <RollbackOutlined className="mr-1" />
+                Undo
+              </button>
+            )}
+            <button
+              onClick={onSeekToStart}
+              disabled={!isPlayerReady}
+              className="px-2 py-1 text-xs rounded bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300 hover:bg-green-300 dark:hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Go
+            </button>
+          </div>
+          {/* Fine-tune buttons for start time */}
+          <div className="flex gap-1">
+            <button
+              onClick={() => onFineTuneStart(-0.05)}
+              className="px-2 py-1 text-xs rounded bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300 hover:bg-orange-300 dark:hover:bg-orange-700 transition-colors"
+            >
+              -0.05s
+            </button>
+            <button
+              onClick={() => onFineTuneStart(0.05)}
+              className="px-2 py-1 text-xs rounded bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300 hover:bg-orange-300 dark:hover:bg-orange-700 transition-colors"
+            >
+              +0.05s
+            </button>
+          </div>
+        </div>
+
+        {/* End Time Section */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              End Time:
+            </span>
+            <span className="text-lg font-mono text-green-600 dark:text-green-400">
+              {timeRecord.end !== undefined
+                ? formatTime(timeRecord.end)
+                : formatTime(item.end)}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={onRecordEnd}
+              disabled={!isPlayerReady}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                timeRecord.end !== undefined
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <FieldTimeOutlined className="mr-1" />
+              Record
+            </button>
+            {timeRecord.end !== undefined && (
+              <button
+                onClick={onUndoEnd}
+                className="px-2 py-1 text-xs rounded bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+              >
+                <RollbackOutlined className="mr-1" />
+                Undo
+              </button>
+            )}
+            <button
+              onClick={onSeekToEnd}
+              disabled={!isPlayerReady}
+              className="px-2 py-1 text-xs rounded bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300 hover:bg-green-300 dark:hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Go
+            </button>
+          </div>
+          {/* Fine-tune buttons for end time */}
+          <div className="flex gap-1">
+            <button
+              onClick={() => onFineTuneEnd(-0.05)}
+              className="px-2 py-1 text-xs rounded bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300 hover:bg-orange-300 dark:hover:bg-orange-700 transition-colors"
+            >
+              -0.05s
+            </button>
+            <button
+              onClick={() => onFineTuneEnd(0.05)}
+              className="px-2 py-1 text-xs rounded bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300 hover:bg-orange-300 dark:hover:bg-orange-700 transition-colors"
+            >
+              +0.05s
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Transcript Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+            Transcript
+          </span>
+        </div>
+
+        {/* Transcript Text with Double-Click Editing */}
+        <div
+          onDoubleClick={handleDoubleClick}
+          className={`min-h-[80px] p-3 rounded border transition-all duration-200 ${
+            isEditing
+              ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+              : "border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+          }`}
         >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
+          {isEditing ? (
+            <textarea
+              value={editingText}
+              onChange={(e) => setEditingText(e.target.value)}
+              className="w-full h-20 p-2 border-none outline-none resize-none bg-transparent text-gray-900 dark:text-gray-100"
+              placeholder="Enter transcript text..."
+              autoFocus
+            />
+          ) : (
+            <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
+              {item.transcript || (
+                <span className="text-gray-400 italic">
+                  Double-click to edit transcript
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Consolidated Action Buttons */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSave}
+                className="px-3 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                <CheckOutlined className="mr-1" />
+                Save
+              </button>
+              <button
+                onClick={onCancel}
+                className="px-3 py-1 text-sm rounded bg-gray-500 text-white hover:bg-gray-600 transition-colors"
+              >
+                <CloseOutlined className="mr-1" />
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Playback Controls */}
+              <button
+                onClick={isPlaying ? onStop : onPlay}
+                disabled={!isPlayerReady}
+                className={`px-3 py-1 text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isPlaying
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                {isPlaying ? (
+                  <PauseCircleOutlined className="mr-1" />
+                ) : (
+                  <PlayCircleOutlined className="mr-1" />
+                )}
+                {isPlaying ? "Stop" : "Play"}
+              </button>
+              <button
+                onClick={onPlayFromHere}
+                disabled={!isPlayerReady}
+                className="px-3 py-1 text-sm rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PlayCircleOutlined className="mr-1" />
+                Play From Here
+              </button>
+
+              {/* Editing Controls */}
+              <button
+                onClick={onEdit}
+                className="px-3 py-1 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+              >
+                <EditOutlined className="mr-1" />
+                Edit
+              </button>
+              <button
+                onClick={onAddRow}
+                className="px-3 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                <PlusOutlined className="mr-1" />
+                Add Row
+              </button>
+              <button
+                onClick={onDeleteRow}
+                className="px-3 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+              >
+                <MinusCircleOutlined className="mr-1" />
+                Delete
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
+
+// EditableCell component removed as we now use the card-based design
 
 const VideoManagement: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -578,6 +879,10 @@ const VideoManagement: React.FC = () => {
   const [currentPlayingIndex, setCurrentPlayingIndex] = useState<number | null>(
     null
   );
+  const [isContinuousPlay, setIsContinuousPlay] = useState(false);
+  const [continuousPlayStartIndex, setContinuousPlayStartIndex] = useState<
+    number | null
+  >(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [currentVideoLink, setCurrentVideoLink] = useState<string>("");
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
@@ -674,6 +979,10 @@ const VideoManagement: React.FC = () => {
   // Video refined status related state
   const [isVideoRefined, setIsVideoRefined] = useState<boolean>(false);
   const [isMarkingRefined, setIsMarkingRefined] = useState(false);
+  // Video visibility related state
+  const [currentVideoVisibility, setCurrentVideoVisibility] =
+    useState<string>("private");
+  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
 
   useEffect(() => {
     fetchChannels();
@@ -778,10 +1087,11 @@ const VideoManagement: React.FC = () => {
     setSelectedChannel(channelId);
     setCurrentVideoTitle(videoTitle);
 
-    // Find the video to get its link
+    // Find the video to get its link and visibility
     const video = videos.find((v) => v.video_id === videoId);
     if (video) {
       setCurrentVideoLink(video.link);
+      setCurrentVideoVisibility(video.visibility || "private");
     }
 
     try {
@@ -889,8 +1199,60 @@ const VideoManagement: React.FC = () => {
     if (playbackController) {
       playbackController.stop();
       setCurrentPlayingIndex(null);
+      setIsContinuousPlay(false);
+      setContinuousPlayStartIndex(null);
     }
   }, [playbackController]);
+
+  // 连续播放功能：从指定索引开始播放直到最后
+  const playFromHere = useCallback(
+    async (startIndex: number) => {
+      if (!playbackController || !youtubePlayer || !currentTranscript.length) {
+        message.warning("Player not ready");
+        return;
+      }
+
+      try {
+        setIsContinuousPlay(true);
+        setContinuousPlayStartIndex(startIndex);
+        setCurrentPlayingIndex(startIndex);
+
+        const playNext = async (index: number) => {
+          if (index >= currentTranscript.length) {
+            // 播放完成
+            setCurrentPlayingIndex(null);
+            setIsContinuousPlay(false);
+            setContinuousPlayStartIndex(null);
+            return;
+          }
+
+          const segment = currentTranscript[index];
+          const transcriptSegment: TranscriptSegment = {
+            start: segment.start,
+            end: segment.end,
+            transcript: segment.transcript,
+          };
+
+          setCurrentPlayingIndex(index);
+          await playbackController.playSegment(transcriptSegment, () => {
+            // 当前段播放完成，播放下一段
+            if (isContinuousPlay) {
+              playNext(index + 1);
+            }
+          });
+        };
+
+        await playNext(startIndex);
+      } catch (error) {
+        console.error("Error in continuous playback:", error);
+        message.error("Failed to start continuous playback");
+        setCurrentPlayingIndex(null);
+        setIsContinuousPlay(false);
+        setContinuousPlayStartIndex(null);
+      }
+    },
+    [playbackController, youtubePlayer, currentTranscript, isContinuousPlay]
+  );
 
   const handlePlaybackSpeedChange = useCallback(
     (speed: number) => {
@@ -1333,6 +1695,160 @@ const VideoManagement: React.FC = () => {
     [currentTranscript, transcriptHistory, timeRecords]
   );
 
+  // Fine-tuning functions for start and end times
+  const fineTuneStartTime = useCallback(
+    (segmentKey: string, delta: number) => {
+      const segmentIndex = currentTranscript.findIndex(
+        (segment) => `${segment.start}-${segment.end}` === segmentKey
+      );
+
+      if (segmentIndex === -1) {
+        message.error("Segment not found");
+        return;
+      }
+
+      // Save current state to history before making changes
+      setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+      const newTranscript = [...currentTranscript];
+      const currentSegment = newTranscript[segmentIndex];
+      const timeRecord = timeRecords[segmentKey];
+
+      // Determine the current start time (recorded or original)
+      const currentStartTime = timeRecord?.start ?? currentSegment.start;
+      const newStartTime = Math.max(0, currentStartTime + delta);
+
+      // Update the segment
+      newTranscript[segmentIndex].start = newStartTime;
+
+      // Update time records
+      const newKey = `${newStartTime}-${currentSegment.end}`;
+      setTimeRecords((prev) => {
+        const newRecords = { ...prev };
+        if (segmentKey !== newKey && newRecords[segmentKey]) {
+          // Migrate the record to new key
+          newRecords[newKey] = { ...newRecords[segmentKey] };
+          delete newRecords[segmentKey];
+        } else if (!newRecords[newKey]) {
+          newRecords[newKey] = { segmentIndex };
+        }
+
+        // Update the time record
+        newRecords[newKey] = {
+          ...newRecords[newKey],
+          start: newStartTime,
+          userRecordedStart: true,
+          originalStart: timeRecord?.originalStart ?? currentSegment.start,
+        };
+
+        return newRecords;
+      });
+
+      setCurrentTranscript(newTranscript);
+      message.success(
+        `Start time adjusted by ${delta > 0 ? "+" : ""}${delta}s`
+      );
+    },
+    [currentTranscript, transcriptHistory, timeRecords]
+  );
+
+  const fineTuneEndTime = useCallback(
+    (segmentKey: string, delta: number) => {
+      const segmentIndex = currentTranscript.findIndex(
+        (segment) => `${segment.start}-${segment.end}` === segmentKey
+      );
+
+      if (segmentIndex === -1) {
+        message.error("Segment not found");
+        return;
+      }
+
+      // Save current state to history before making changes
+      setTranscriptHistory([...transcriptHistory, [...currentTranscript]]);
+
+      const newTranscript = [...currentTranscript];
+      const currentSegment = newTranscript[segmentIndex];
+      const timeRecord = timeRecords[segmentKey];
+
+      // Determine the current end time (recorded or original)
+      const currentEndTime = timeRecord?.end ?? currentSegment.end;
+      const newEndTime = Math.max(
+        currentSegment.start + 0.1,
+        currentEndTime + delta
+      );
+
+      // Update the current segment's end time
+      newTranscript[segmentIndex].end = newEndTime;
+
+      // Update the next segment's start time to match (if exists)
+      if (segmentIndex + 1 < newTranscript.length) {
+        newTranscript[segmentIndex + 1].start = newEndTime;
+      }
+
+      // Update time records for current segment
+      const newKey = `${currentSegment.start}-${newEndTime}`;
+      setTimeRecords((prev) => {
+        const newRecords = { ...prev };
+
+        // Handle current segment time record
+        if (segmentKey !== newKey && newRecords[segmentKey]) {
+          // Migrate the record to new key
+          newRecords[newKey] = { ...newRecords[segmentKey] };
+          delete newRecords[segmentKey];
+        } else if (!newRecords[newKey]) {
+          newRecords[newKey] = { segmentIndex };
+        }
+
+        // Update the current segment time record
+        newRecords[newKey] = {
+          ...newRecords[newKey],
+          end: newEndTime,
+          userRecordedEnd: true,
+          originalEnd: timeRecord?.originalEnd ?? currentSegment.end,
+        };
+
+        // Handle next segment time record (if exists)
+        if (segmentIndex + 1 < newTranscript.length) {
+          const nextSegment = newTranscript[segmentIndex + 1];
+          const oldNextKey = `${nextSegment.start}-${nextSegment.end}`;
+          const newNextKey = `${newEndTime}-${nextSegment.end}`;
+
+          if (newRecords[oldNextKey]) {
+            // Migrate next segment record
+            newRecords[newNextKey] = {
+              ...newRecords[oldNextKey],
+              start: newEndTime,
+              userRecordedStart: true,
+              originalStart:
+                newRecords[oldNextKey].originalStart ?? nextSegment.start,
+            };
+            delete newRecords[oldNextKey];
+          } else {
+            // Create new record for next segment
+            newRecords[newNextKey] = {
+              segmentIndex: segmentIndex + 1,
+              start: newEndTime,
+              userRecordedStart: true,
+              originalStart: nextSegment.start,
+            };
+          }
+        }
+
+        return newRecords;
+      });
+
+      setCurrentTranscript(newTranscript);
+      message.success(
+        `End time adjusted by ${delta > 0 ? "+" : ""}${delta}s ${
+          segmentIndex + 1 < newTranscript.length
+            ? "(next segment start updated)"
+            : ""
+        }`
+      );
+    },
+    [currentTranscript, transcriptHistory, timeRecords]
+  );
+
   const getCurrentVideoTime = useCallback(() => {
     if (!youtubePlayer) return 0;
     return youtubePlayer.getCurrentTime();
@@ -1429,27 +1945,7 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const saveTranscript = async (key: string) => {
-    try {
-      const row = await form.validateFields();
-      const newData = [...currentTranscript];
-      const index = newData.findIndex(
-        (item) => key === `${item.start}-${item.end}`
-      );
-      if (index > -1) {
-        const item = newData[index];
-        const updatedItem = {
-          ...item,
-          ...row,
-        };
-        newData.splice(index, 1, updatedItem);
-        setCurrentTranscript(newData);
-        setEditingKey("");
-      }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
-    }
-  };
+  // saveTranscript function removed as we now handle saving inline in the card component
 
   // Add new row below the current row
   const addNewRowBelow = (record: TranscriptItem) => {
@@ -1654,269 +2150,32 @@ const VideoManagement: React.FC = () => {
     });
   };
 
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: (
-      selectedRowKeys: React.Key[],
-      selectedRows: TranscriptItem[]
-    ) => {
-      setSelectedRowKeys(selectedRowKeys);
-      setSelectedRows(selectedRows);
-    },
-  };
+  // Selection logic for transcript cards
+  const handleTranscriptSelection = useCallback(
+    (item: TranscriptItem, selected: boolean) => {
+      const key = `${item.start}-${item.end}`;
 
-  const transcriptColumns = [
-    {
-      title: "Start Time",
-      dataIndex: "start",
-      key: "start",
-      render: (text: number, record: TranscriptItem) => {
-        const segmentKey = `${record.start}-${record.end}`;
-        const timeRecord = timeRecords[segmentKey];
-        const recordedStart = timeRecord?.start;
-
-        return (
-          <div>
-            <div style={{ marginBottom: 4 }}>
-              {recordedStart !== undefined ? (
-                <span style={{ color: "#52c41a", fontWeight: "bold" }}>
-                  {formatTime(recordedStart)}
-                </span>
-              ) : (
-                formatTime(text)
-              )}
-            </div>
-            <Space size="small">
-              <Tooltip title="Record start time at current player position">
-                <Button
-                  size="small"
-                  icon={<FieldTimeOutlined />}
-                  onClick={() => startTimeRecording(segmentKey)}
-                  disabled={!isPlayerReady}
-                  type={recordedStart !== undefined ? "primary" : "default"}
-                />
-              </Tooltip>
-              {recordedStart !== undefined && (
-                <Tooltip title="Undo start time recording">
-                  <Button
-                    size="small"
-                    icon={<RollbackOutlined />}
-                    onClick={() => undoTimeRecording(segmentKey, "start")}
-                    type="default"
-                    danger
-                    style={{
-                      backgroundColor: "#fff2f0",
-                      borderColor: "#ffccc7",
-                      color: "#ff4d4f",
-                    }}
-                  />
-                </Tooltip>
-              )}
-              <Tooltip title="Seek to this time">
-                <Button
-                  size="small"
-                  onClick={() =>
-                    seekToTime(
-                      recordedStart !== undefined ? recordedStart : text
-                    )
-                  }
-                  disabled={!isPlayerReady}
-                >
-                  Go
-                </Button>
-              </Tooltip>
-            </Space>
-          </div>
+      if (selected) {
+        setSelectedRowKeys((prev) => [...prev, key]);
+        setSelectedRows((prev) => [...prev, item]);
+      } else {
+        setSelectedRowKeys((prev) => prev.filter((k) => k !== key));
+        setSelectedRows((prev) =>
+          prev.filter((row) => `${row.start}-${row.end}` !== key)
         );
-      },
-      width: "16%",
+      }
     },
-    {
-      title: "End Time",
-      dataIndex: "end",
-      key: "end",
-      render: (text: number, record: TranscriptItem) => {
-        const segmentKey = `${record.start}-${record.end}`;
-        const timeRecord = timeRecords[segmentKey];
-        const recordedEnd = timeRecord?.end;
+    []
+  );
 
-        return (
-          <div>
-            <div style={{ marginBottom: 4 }}>
-              {recordedEnd !== undefined ? (
-                <span style={{ color: "#52c41a", fontWeight: "bold" }}>
-                  {formatTime(recordedEnd)}
-                </span>
-              ) : (
-                formatTime(text)
-              )}
-            </div>
-            <Space size="small">
-              <Tooltip title="Record end time at current player position">
-                <Button
-                  size="small"
-                  icon={<FieldTimeOutlined />}
-                  onClick={() => endTimeRecording(segmentKey)}
-                  disabled={!isPlayerReady}
-                  type={recordedEnd !== undefined ? "primary" : "default"}
-                />
-              </Tooltip>
-              {recordedEnd !== undefined && (
-                <Tooltip title="Undo end time recording">
-                  <Button
-                    size="small"
-                    icon={<RollbackOutlined />}
-                    onClick={() => undoTimeRecording(segmentKey, "end")}
-                    type="default"
-                    danger
-                    style={{
-                      backgroundColor: "#fff2f0",
-                      borderColor: "#ffccc7",
-                      color: "#ff4d4f",
-                    }}
-                  />
-                </Tooltip>
-              )}
-              <Tooltip title="Seek to this time">
-                <Button
-                  size="small"
-                  onClick={() =>
-                    seekToTime(recordedEnd !== undefined ? recordedEnd : text)
-                  }
-                  disabled={!isPlayerReady}
-                >
-                  Go
-                </Button>
-              </Tooltip>
-            </Space>
-          </div>
-        );
-      },
-      width: "16%",
+  // Check if an item is selected
+  const isItemSelected = useCallback(
+    (item: TranscriptItem) => {
+      const key = `${item.start}-${item.end}`;
+      return selectedRowKeys.includes(key);
     },
-    {
-      title: "Transcript",
-      dataIndex: "transcript",
-      key: "transcript",
-      editable: true,
-      width: "56%",
-      render: (text: string, record: TranscriptItem, index: number) => {
-        const editable = isEditing(record);
-        if (editable) {
-          return text;
-        }
-
-        return (
-          <div>
-            <div style={{ marginBottom: 8 }}>{text}</div>
-            <Space size="small">
-              <Tooltip title="Play this segment">
-                <Button
-                  size="small"
-                  icon={
-                    currentPlayingIndex === index ? (
-                      <PauseCircleOutlined />
-                    ) : (
-                      <PlayCircleOutlined />
-                    )
-                  }
-                  onClick={() => {
-                    if (currentPlayingIndex === index) {
-                      stopPlayback();
-                    } else {
-                      playTranscriptSegment(record, index);
-                    }
-                  }}
-                  disabled={!isPlayerReady}
-                  type={currentPlayingIndex === index ? "primary" : "default"}
-                >
-                  {currentPlayingIndex === index ? "Playing" : "Play"}
-                </Button>
-              </Tooltip>
-              {currentPlayingIndex === index && (
-                <Button
-                  size="small"
-                  icon={<StopOutlined />}
-                  onClick={stopPlayback}
-                  danger
-                >
-                  Stop
-                </Button>
-              )}
-            </Space>
-          </div>
-        );
-      },
-    },
-    {
-      title: "Action",
-      dataIndex: "operation",
-      render: (_: any, record: TranscriptItem) => {
-        const editable = isEditing(record);
-
-        return editable ? (
-          <span>
-            <Button
-              onClick={() => saveTranscript(`${record.start}-${record.end}`)}
-              style={{ marginRight: 8 }}
-              type="link"
-            >
-              Save
-            </Button>
-            <Button onClick={cancel} type="link">
-              Cancel
-            </Button>
-          </span>
-        ) : (
-          <Space direction="vertical" size="small">
-            <Button
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              icon={<EditOutlined />}
-              size="small"
-            >
-              Edit
-            </Button>
-            <Button
-              disabled={editingKey !== ""}
-              onClick={() => addNewRowBelow(record)}
-              icon={<PlusOutlined />}
-              size="small"
-              type="dashed"
-            >
-              Add Row Below
-            </Button>
-            <Button
-              disabled={editingKey !== "" || currentTranscript.length <= 1}
-              onClick={() => deleteCurrentRow(record)}
-              icon={<MinusCircleOutlined />}
-              size="small"
-              danger
-            >
-              Delete Row
-            </Button>
-          </Space>
-        );
-      },
-      width: "12%",
-    },
-  ];
-
-  const mergedTranscriptColumns = transcriptColumns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: TranscriptItem) => ({
-        record,
-        inputType: col.dataIndex === "transcript" ? "textarea" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
+    [selectedRowKeys]
+  );
 
   const handleDeleteVideo = async (channelId: string, videoId: string) => {
     Modal.confirm({
@@ -2856,13 +3115,7 @@ const VideoManagement: React.FC = () => {
     setSelectedVisibilityOption("");
   };
 
-  // Filter-related functions
-  const handleTextSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      setSelectedText(selection.toString().trim());
-    }
-  };
+  // Filter-related functions - handleTextSelection removed as not used in new card design
 
   const addToFilters = () => {
     if (!selectedText.trim()) {
@@ -3190,6 +3443,40 @@ const VideoManagement: React.FC = () => {
       message.error("Failed to mark video as refined");
     } finally {
       setIsMarkingRefined(false);
+    }
+  };
+
+  // Function to toggle video visibility
+  const toggleVideoVisibility = async () => {
+    if (!selectedChannel || !currentVideoId) {
+      message.error("No video or channel selected");
+      return;
+    }
+
+    setIsTogglingVisibility(true);
+    try {
+      const newVisibility =
+        currentVideoVisibility === "public" ? "private" : "public";
+      await api.updateVideo(selectedChannel, currentVideoId, {
+        visibility: newVisibility,
+      });
+      setCurrentVideoVisibility(newVisibility);
+
+      // Update the videos list to reflect the change
+      setVideos((prevVideos) =>
+        prevVideos.map((video) =>
+          video.video_id === currentVideoId
+            ? { ...video, visibility: newVisibility }
+            : video
+        )
+      );
+
+      message.success(`Video visibility changed to ${newVisibility}`);
+    } catch (error) {
+      console.error("Error changing video visibility:", error);
+      message.error("Failed to change video visibility");
+    } finally {
+      setIsTogglingVisibility(false);
     }
   };
 
@@ -3550,12 +3837,10 @@ const VideoManagement: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
+
             {/* Desktop Layout */}
             <div className="hidden lg:flex items-center gap-1 flex-wrap">
-              <span className="text-sm dark:text-white mr-2">
-                Language:
-              </span>
+              <span className="text-sm dark:text-white mr-2">Language:</span>
               <Select
                 style={{ width: 100 }}
                 placeholder="Select Language"
@@ -3569,9 +3854,7 @@ const VideoManagement: React.FC = () => {
                 ))}
               </Select>
 
-              <span className="text-sm dark:text-white mx-2">
-                Channel:
-              </span>
+              <span className="text-sm dark:text-white mx-2">Channel:</span>
               <Select
                 style={{ width: 250 }}
                 placeholder="Select a channel"
@@ -3657,13 +3940,13 @@ const VideoManagement: React.FC = () => {
                 y: window.innerWidth < 768 ? 400 : 500,
                 x: window.innerWidth < 768 ? 800 : 1200,
               }}
-              size={window.innerWidth < 768 ? 'small' : 'middle'}
+              size={window.innerWidth < 768 ? "small" : "middle"}
               className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
               pagination={{
                 showSizeChanger: true,
                 showQuickJumper: window.innerWidth >= 768,
-                showTotal: (total, range) => 
-                  window.innerWidth >= 768 
+                showTotal: (total, range) =>
+                  window.innerWidth >= 768
                     ? `${range[0]}-${range[1]} of ${total} items`
                     : `${total} total`,
                 responsive: true,
@@ -3678,7 +3961,7 @@ const VideoManagement: React.FC = () => {
         open={isAddVideoModalVisible}
         onCancel={() => setIsAddVideoModalVisible(false)}
         footer={null}
-        width={window.innerWidth < 768 ? '95%' : 800}
+        width={window.innerWidth < 768 ? "95%" : 800}
         style={{ top: window.innerWidth < 768 ? 20 : undefined }}
       >
         <AddVideosForm
@@ -3701,6 +3984,9 @@ const VideoManagement: React.FC = () => {
           setCurrentPlayingIndex(null);
           setTimeRecords({});
           setIsVideoRefined(false);
+          // Clear selection states
+          setSelectedRowKeys([]);
+          setSelectedRows([]);
           if (playbackController) {
             playbackController.stop();
           }
@@ -3734,6 +4020,18 @@ const VideoManagement: React.FC = () => {
                       Video Player
                     </Typography.Text>
                     <Space size="small">
+                      {/* Transcript Count Display */}
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded text-xs">
+                          {currentTranscript.length} items
+                        </span>
+                        {selectedRows.length > 0 && (
+                          <span className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded text-xs">
+                            {selectedRows.length} selected
+                          </span>
+                        )}
+                      </div>
+                      
                       <Typography.Text className="text-gray-700 dark:text-gray-300 text-xs">
                         Speed:
                       </Typography.Text>
@@ -3933,6 +4231,34 @@ const VideoManagement: React.FC = () => {
                   {isVideoRefined ? "Refined ✓" : "Mark as Refined"}
                 </Button>
                 <Button
+                  onClick={toggleVideoVisibility}
+                  loading={isTogglingVisibility}
+                  type={
+                    currentVideoVisibility === "public" ? "default" : "primary"
+                  }
+                  size="small"
+                  icon={
+                    currentVideoVisibility === "public" ? (
+                      <EyeOutlined />
+                    ) : (
+                      <EyeInvisibleOutlined />
+                    )
+                  }
+                  style={{
+                    backgroundColor:
+                      currentVideoVisibility === "public"
+                        ? "#52c41a"
+                        : "#ff4d4f",
+                    borderColor:
+                      currentVideoVisibility === "public"
+                        ? "#52c41a"
+                        : "#ff4d4f",
+                    color: "white",
+                  }}
+                >
+                  {currentVideoVisibility === "public" ? "Public" : "Private"}
+                </Button>
+                <Button
                   loading={isUpdatingTranscript}
                   onClick={updateFullTranscript}
                   type="primary"
@@ -3951,24 +4277,107 @@ const VideoManagement: React.FC = () => {
               component={false}
               className="flex-1 flex flex-col"
             >
-              <Table
-                components={{
-                  body: {
-                    cell: EditableCell,
-                  },
-                }}
-                rowSelection={rowSelection}
-                columns={mergedTranscriptColumns}
-                dataSource={currentTranscript}
-                rowKey={(record) => `${record.start}-${record.end}`}
-                scroll={{ y: "calc(98vh - 480px)" }}
-                onRow={() => ({
-                  onMouseUp: handleTextSelection,
-                })}
-                size="small"
-                className="transcript-table"
-                loading={isTranscriptLoading}
-              />
+              {/* New Card-Based Transcript Editor */}
+              <div
+                className="flex-1 overflow-y-auto px-4 py-2 space-y-4"
+                style={{ maxHeight: "calc(98vh - 480px)" }}
+              >
+                {isTranscriptLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                      <p className="mt-2 text-gray-600 dark:text-gray-400">
+                        Loading transcript...
+                      </p>
+                    </div>
+                  </div>
+                ) : currentTranscript.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No transcript segments available
+                  </div>
+                ) : (
+                  currentTranscript.map((item, index) => {
+                    const segmentKey = `${item.start}-${item.end}`;
+                    const timeRecord = timeRecords[segmentKey] || {};
+                    const isItemEditing = isEditing(item);
+                    const isItemPlaying = currentPlayingIndex === index;
+
+                    return (
+                      <TranscriptItemCard
+                        key={segmentKey}
+                        item={item}
+                        index={index}
+                        isEditing={isItemEditing}
+                        isPlaying={isItemPlaying}
+                        isPlayerReady={isPlayerReady}
+                        isSelected={isItemSelected(item)}
+                        timeRecord={timeRecord}
+                        onEdit={() => edit(item)}
+                        onSave={(transcript) => {
+                          // Update the form field value and save
+                          form.setFieldsValue({ transcript });
+
+                          // Manually update the transcript instead of using the original saveTranscript
+                          const newData = [...currentTranscript];
+                          const segmentIndex = newData.findIndex(
+                            (segment) =>
+                              `${segment.start}-${segment.end}` === segmentKey
+                          );
+                          if (segmentIndex > -1) {
+                            newData[segmentIndex] = {
+                              ...newData[segmentIndex],
+                              transcript,
+                            };
+                            setCurrentTranscript(newData);
+                            setEditingKey("");
+                          }
+                        }}
+                        onCancel={cancel}
+                        onPlay={() => {
+                          if (isItemPlaying) {
+                            stopPlayback();
+                          } else {
+                            playTranscriptSegment(item, index);
+                          }
+                        }}
+                        onStop={stopPlayback}
+                        onPlayFromHere={() => playFromHere(index)}
+                        onSeekToStart={() =>
+                          seekToTime(
+                            timeRecord.start !== undefined
+                              ? timeRecord.start
+                              : item.start
+                          )
+                        }
+                        onSeekToEnd={() =>
+                          seekToTime(
+                            timeRecord.end !== undefined
+                              ? timeRecord.end
+                              : item.end
+                          )
+                        }
+                        onRecordStart={() => startTimeRecording(segmentKey)}
+                        onRecordEnd={() => endTimeRecording(segmentKey)}
+                        onUndoStart={() =>
+                          undoTimeRecording(segmentKey, "start")
+                        }
+                        onUndoEnd={() => undoTimeRecording(segmentKey, "end")}
+                        onFineTuneStart={(delta) =>
+                          fineTuneStartTime(segmentKey, delta)
+                        }
+                        onFineTuneEnd={(delta) =>
+                          fineTuneEndTime(segmentKey, delta)
+                        }
+                        onAddRow={() => addNewRowBelow(item)}
+                        onDeleteRow={() => deleteCurrentRow(item)}
+                        onSelect={(selected) =>
+                          handleTranscriptSelection(item, selected)
+                        }
+                      />
+                    );
+                  })
+                )}
+              </div>
             </Form>
           </div>
         </div>

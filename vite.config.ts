@@ -16,4 +16,21 @@ export default defineConfig({
   define: {
     "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
   },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "antd",
+      "react-router-dom",
+      "@ant-design/icons",
+      "axios",
+      "lodash",
+    ],
+    exclude: [],
+  },
+  server: {
+    fs: {
+      strict: false,
+    },
+  },
 });
