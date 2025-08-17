@@ -87,7 +87,7 @@ export async function encryptPasswordSecure(
     const derivedKey = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt: salt as BufferSource,
         iterations: 100000,
         hash: "SHA-256",
       },
@@ -96,7 +96,7 @@ export async function encryptPasswordSecure(
     );
 
     const hashHex = arrayBufferToHex(derivedKey);
-    const saltHex_result = arrayBufferToHex(salt.buffer);
+    const saltHex_result = arrayBufferToHex(salt.buffer as ArrayBuffer);
 
     return {
       hash: hashHex,
@@ -237,7 +237,7 @@ export async function encryptPasswordCompact(
     const derivedKey = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt: salt as BufferSource,
         iterations: 50000, // Reduced from 100000 for balance of security and performance
         hash: "SHA-256",
       },
@@ -246,7 +246,7 @@ export async function encryptPasswordCompact(
     );
 
     // Use Base64 encoding for more compact representation
-    const saltBase64 = arrayBufferToBase64(salt.buffer);
+    const saltBase64 = arrayBufferToBase64(salt.buffer as ArrayBuffer);
     const hashBase64 = arrayBufferToBase64(derivedKey);
 
     // Format: salt.hash (using dot separator for shorter string)
@@ -292,7 +292,7 @@ export async function verifyPasswordCompact(
     const derivedKey = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt: salt as BufferSource,
         iterations: 50000,
         hash: "SHA-256",
       },
@@ -340,7 +340,7 @@ export async function encryptPasswordDeterministic(
     const derivedKey = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt: salt as BufferSource,
         iterations: 50000, // Balance of security and performance
         hash: "SHA-256",
       },
@@ -349,7 +349,7 @@ export async function encryptPasswordDeterministic(
     );
 
     // Use Base64 encoding for compact representation
-    const saltBase64 = arrayBufferToBase64(salt.buffer);
+    const saltBase64 = arrayBufferToBase64(salt.buffer as ArrayBuffer);
     const hashBase64 = arrayBufferToBase64(derivedKey);
 
     // Format: salt.hash (using dot separator)

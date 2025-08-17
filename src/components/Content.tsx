@@ -6,7 +6,6 @@ import {
   LoadingOutlined,
   ArrowLeftOutlined,
   ReloadOutlined,
-  MenuOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +29,7 @@ import { COMPONENT_STYLE } from "@/utils/const";
 import { UpgradePlan } from "@/components/profile/UpgradePlan";
 import MissedWordsModal from "@/components/dictation/video/MissedWordsModal";
 import VideoErrorReportModal from "@/components/dictation/video/VideoErrorReportModal";
+import SettingsModal from "@/components/dictation/video/SettingsModal";
 import { api } from "@/api/api";
 import { setMissedWords } from "@/redux/userSlice";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
@@ -44,7 +44,17 @@ import Reward from "@/components/profile/Reward";
 
 const { Content } = Layout;
 
-const AppContent: React.FC = () => {
+interface AppContentProps {
+  siderCollapsed?: boolean;
+  setSiderCollapsed?: (collapsed: boolean) => void;
+  isMobile?: boolean;
+}
+
+const AppContent: React.FC<AppContentProps> = ({
+  siderCollapsed: propSiderCollapsed,
+  setSiderCollapsed: propSetSiderCollapsed,
+  isMobile: propIsMobile,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -67,12 +77,27 @@ const AppContent: React.FC = () => {
     useState(false);
   const [isVideoErrorReportModalVisible, setIsVideoErrorReportModalVisible] =
     useState(false);
+  const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
   const [isWordEditing, setIsWordEditing] = useState(false);
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
   const [shouldResetWords, setShouldResetWords] = useState(false);
   const [isSavingWords, setIsSavingWords] = useState(false);
-  const [siderCollapsed, setSiderCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  
+  // Video list state for status filtering
+  const [progressFilter, setProgressFilter] = useState('all');
+  const [videoStatusCounts, setVideoStatusCounts] = useState({
+    completed: 0,
+    in_progress: 0,
+    not_started: 0,
+  });
+  
+  // Use props if provided, otherwise fallback to local state
+  const [localSiderCollapsed, setLocalSiderCollapsed] = useState(false);
+  const [localIsMobile, setLocalIsMobile] = useState(false);
+  
+  const siderCollapsed = propSiderCollapsed !== undefined ? propSiderCollapsed : localSiderCollapsed;
+  const setSiderCollapsed = propSetSiderCollapsed || setLocalSiderCollapsed;
+  const isMobile = propIsMobile !== undefined ? propIsMobile : localIsMobile;
 
   // 频道列表状态
   const [allChannels, setAllChannels] = useState<Channel[]>([]);
@@ -91,6 +116,10 @@ const AppContent: React.FC = () => {
     location.pathname === "/" ||
     location.pathname === "/dictation" ||
     location.pathname === "/dictation/video";
+
+  const isVideoListPage =
+    location.pathname.includes("/dictation/video/") &&
+    location.pathname.split("/").length === 4;
 
   const isVideoPage =
     location.pathname.includes("/dictation/video/") &&
@@ -152,11 +181,17 @@ const AppContent: React.FC = () => {
       fetchVideoTitle();
       fetchChannelName();
     }
+
+    // 如果是视频列表页面，获取视频状态统计
+    if (isVideoListPage) {
+      fetchVideoStatusCounts();
+    }
   }, [
     location.pathname,
     dispatch,
     isChannelListPage,
     isVideoPage,
+    isVideoListPage,
     currentChannelId,
     currentVideoId,
   ]);
@@ -186,6 +221,37 @@ const AppContent: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching channel name:", error);
+    }
+  };
+
+  // 获取视频状态统计
+  const fetchVideoStatusCounts = async () => {
+    if (!isVideoListPage || !currentChannelId) return;
+    
+    try {
+      const [videoResponse, progressResponse] = await Promise.all([
+        api.getVideoList(currentChannelId, VISIBILITY_OPTIONS.Public),
+        api.getChannelProgress(currentChannelId),
+      ]);
+      
+      const videos = videoResponse.data.videos;
+      const progress = progressResponse.data.progress;
+      
+      const counts = videos.reduce((acc: any, video: any) => {
+        const videoProgress = progress[video.video_id] || 0;
+        if (videoProgress >= 100) {
+          acc.completed++;
+        } else if (videoProgress > 0) {
+          acc.in_progress++;
+        } else {
+          acc.not_started++;
+        }
+        return acc;
+      }, { completed: 0, in_progress: 0, not_started: 0 });
+      
+      setVideoStatusCounts(counts);
+    } catch (error) {
+      console.error("Error fetching video status counts:", error);
     }
   };
 
@@ -286,54 +352,45 @@ const AppContent: React.FC = () => {
     { label: "한국어", value: LANGUAGES.Korean },
   ];
 
-  // 检测屏幕尺寸
+  // Only run local mobile detection if not using props
   useEffect(() => {
-    const checkScreenSize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      setSiderCollapsed(mobile);
-    };
+    if (propIsMobile === undefined) {
+      const checkScreenSize = () => {
+        const mobile = window.innerWidth < 768;
+        setLocalIsMobile(mobile);
+        setLocalSiderCollapsed(mobile);
+      };
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+      checkScreenSize();
+      window.addEventListener("resize", checkScreenSize);
+      return () => window.removeEventListener("resize", checkScreenSize);
+    }
+  }, [propIsMobile]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
       <div className="flex-shrink-0 p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            {isMobile && (
-              <button
-                onClick={() => setSiderCollapsed(!siderCollapsed)}
-                className="flex items-center justify-center p-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
-                 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600"
-              >
-                <MenuOutlined />
-              </button>
-            )}
             <button
               onClick={handleGoBack}
-              className={`${
-                isMobile ? "hidden" : "flex"
-              } items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
-               dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600`}
+              className="hidden md:flex items-center justify-center px-4 py-2 bg-white-500 text-black shadow-md rounded-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50
+               dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:ring-gray-600"
             >
               <ArrowLeftOutlined className="mr-2" />
               <span>{t("goBack")}</span>
             </button>
 
-            {/* 移动端语言选择器 */}
+            {/* 移动端语言选择器 - 右对齐 */}
             {isMobile && (isChannelListPage || isWordPage) && (
-              <div className="flex items-center gap-1 flex-1 min-w-0">
-                <span className="text-gray-600 dark:text-gray-300 text-xs whitespace-nowrap flex-shrink-0">
+              <div className="flex items-center gap-1 ml-auto">
+                <span className="text-gray-600 dark:text-gray-300 text-xs whitespace-nowrap">
                   {t("dictationLanguage")}:
                 </span>
                 <Select
                   value={selectedLanguage}
                   onChange={handleLanguageChange}
-                  style={{ flex: 1, minWidth: 80 }}
+                  style={{ minWidth: 100 }}
                   options={languageOptions}
                   className="dark:bg-gray-700"
                   size="small"
@@ -342,7 +399,7 @@ const AppContent: React.FC = () => {
             )}
           </div>
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full lg:w-auto">
+          <div className="flex flex-col lg:flex-row items-end lg:items-center gap-4 w-full lg:w-auto ml-auto">
             {isWordEditing && (
               <div className="flex gap-2 w-full md:w-auto">
                 <button
@@ -379,53 +436,104 @@ const AppContent: React.FC = () => {
                 />
               </div>
             )}
+
+            {/* Video Status Filter Tabs - Flutter-style design */}
+            {isVideoListPage && (
+              <div className="w-full flex justify-center md:justify-end">
+                <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 shadow-sm">
+                  <button
+                    onClick={() => setProgressFilter('completed')}
+                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
+                      progressFilter === 'completed'
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{videoStatusCounts.completed}</span>
+                    <span className="text-xs mt-0.5">{t('done')}</span>
+                  </button>
+                  <button
+                    onClick={() => setProgressFilter('in_progress')}
+                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
+                      progressFilter === 'in_progress'
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{videoStatusCounts.in_progress}</span>
+                    <span className="text-xs mt-0.5">{t('inProgress')}</span>
+                  </button>
+                  <button
+                    onClick={() => setProgressFilter('not_started')}
+                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
+                      progressFilter === 'not_started'
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{videoStatusCounts.not_started}</span>
+                    <span className="text-xs mt-0.5">{t('notStarted')}</span>
+                  </button>
+                  <button
+                    onClick={() => setProgressFilter('all')}
+                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
+                      progressFilter === 'all'
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{videoStatusCounts.completed + videoStatusCounts.in_progress + videoStatusCounts.not_started}</span>
+                    <span className="text-xs mt-0.5">{t('all')}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {isVideoPage && (
-              <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto button-container">
-                {/* <button
-                  onClick={showMissedWordsModal}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white shadow-md rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50
-     dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:dark:opacity-50"
-                >
-                  <FileTextOutlined className="mr-2" />
-                  <span className="hidden md:inline">
-                    {t("missedWordsSummary")}
-                  </span>
-                  <span className="md:hidden">{t("missedWords")}</span>
-                </button> */}
+              <div className="flex flex-row gap-1 md:gap-4 w-auto button-container">
+                {/* Mobile: Icon-only buttons, Desktop: Full buttons */}
                 <button
                   onClick={() => setIsVideoErrorReportModalVisible(true)}
-                  className="flex items-center justify-center px-4 py-2 bg-red-500 text-white shadow-md rounded-md hover:bg-red-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50
-     dark:bg-red-700 dark:text-white dark:hover:bg-red-800"
+                  className="flex items-center justify-center p-2 md:px-4 md:py-2 bg-red-500 text-white shadow-md rounded-md hover:bg-red-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 dark:bg-red-700 dark:text-white dark:hover:bg-red-800"
+                  title={t("reportError")}
                 >
-                  <ExclamationCircleOutlined className="mr-2" />
+                  <ExclamationCircleOutlined className="md:mr-2" />
                   <span className="hidden md:inline">{t("reportError")}</span>
-                  <span className="md:hidden">{t("report")}</span>
                 </button>
                 <button
                   onClick={handleResetProgress}
                   disabled={!isDictationStarted}
-                  className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50
-     dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800"
+                  className="flex items-center justify-center p-2 md:px-4 md:py-2 bg-yellow-500 text-white shadow-md rounded-md hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50 dark:bg-yellow-700 dark:text-white dark:hover:bg-yellow-800 disabled:opacity-50"
+                  title={t("resetProgress")}
                 >
-                  <ReloadOutlined className="mr-2" />
+                  <ReloadOutlined className="md:mr-2" />
                   <span className="hidden md:inline">{t("resetProgress")}</span>
-                  <span className="md:hidden">{t("reset")}</span>
                 </button>
                 <button
                   onClick={handleSaveProgress}
                   disabled={!isDictationStarted}
-                  className="flex items-center justify-center px-4 py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50
-     dark:bg-green-700 dark:text-white dark:hover:bg-green-800"
+                  className="flex items-center justify-center p-2 md:px-4 md:py-2 bg-green-500 text-white shadow-md rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 dark:bg-green-700 dark:text-white dark:hover:bg-green-800 disabled:opacity-50"
+                  title={t("saveProgressBtnText")}
                 >
                   {isSavingProgress ? (
-                    <LoadingOutlined className="mr-2" />
+                    <LoadingOutlined className="md:mr-2" />
                   ) : (
-                    <CloudUploadOutlined className="mr-2" />
+                    <CloudUploadOutlined className="md:mr-2" />
                   )}
                   <span className="hidden md:inline">
                     {t("saveProgressBtnText")}
                   </span>
-                  <span className="md:hidden">{t("save")}</span>
+                </button>
+                <button
+                  onClick={() => setIsSettingsModalVisible(true)}
+                  className="flex items-center justify-center p-2 md:px-4 md:py-2 bg-gray-500 text-white shadow-md rounded-md hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                  title="Player Settings"
+                >
+                  <svg className="w-4 h-4 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="hidden md:inline">Settings</span>
                 </button>
               </div>
             )}
@@ -467,7 +575,7 @@ const AppContent: React.FC = () => {
               <Route path="/dictation/progress" element={<UserProgress />} />
               <Route
                 path="/dictation/video/:channelId"
-                element={<VideoList />}
+                element={<VideoList progressFilter={progressFilter} />}
               />
               <Route
                 path="/dictation/video/:channelId/:videoId"
@@ -529,6 +637,25 @@ const AppContent: React.FC = () => {
           videoId={currentVideoId}
           videoTitle={currentVideoTitle}
           channelName={currentChannelName}
+        />
+      )}
+      {isVideoPage && videoMainRef.current && (
+        <SettingsModal
+          visible={isSettingsModalVisible}
+          onClose={() => setIsSettingsModalVisible(false)}
+          playbackSpeed={videoMainRef.current.getSettings().playbackSpeed}
+          autoRepeat={videoMainRef.current.getSettings().autoRepeat}
+          shortcuts={videoMainRef.current.getSettings().shortcuts}
+          settingShortcut={videoMainRef.current.getSettings().settingShortcut}
+          handleSpeedChange={(speed) => videoMainRef.current?.updateSpeedSetting(speed)}
+          handleAutoRepeatChange={(repeat) => videoMainRef.current?.updateAutoRepeatSetting(repeat)}
+          handleShortcutSet={(key) => videoMainRef.current?.updateShortcutSetting(key)}
+          handleShortcutKeyPress={(e) => videoMainRef.current?.handleShortcutKeyPress(e)}
+          onSave={async () => {
+            if (videoMainRef.current) {
+              await videoMainRef.current.saveSettings();
+            }
+          }}
         />
       )}
     </div>

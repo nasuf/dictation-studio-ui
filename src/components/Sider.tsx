@@ -186,7 +186,11 @@ const AppSider: React.FC<AppSiderProps> = ({
 
   return (
     <Sider
-      className="bg-white dark:bg-gray-800"
+      className={`${
+        isMobile 
+          ? "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg" 
+          : "bg-white dark:bg-gray-800"
+      }`}
       width={200}
       collapsedWidth={isMobile ? 0 : 80}
       collapsed={collapsed}
@@ -195,8 +199,9 @@ const AppSider: React.FC<AppSiderProps> = ({
       trigger={null}
       style={{
         overflow: "auto",
-        height: "100%",
+        height: isMobile ? "calc(100vh - 3rem)" : "100%", // 3rem = h-12 header height
         position: isMobile ? "fixed" : "relative",
+        top: isMobile ? "3rem" : "auto", // Align with header bottom
         left: isMobile && collapsed ? -200 : 0,
         zIndex: isMobile ? 1000 : "auto",
         transition: "all 0.2s",
@@ -207,11 +212,19 @@ const AppSider: React.FC<AppSiderProps> = ({
         selectedKeys={selectedKeys}
         defaultOpenKeys={defaultOpenKeys}
         style={{ height: "100%" }}
-        className="bg-white dark:bg-gray-800"
+        className="bg-transparent"
         inlineCollapsed={collapsed}
       >
         {renderMenuItems(siderItems)}
       </Menu>
+      
+      {/* Mobile overlay to close sider when clicking outside */}
+      {isMobile && !collapsed && (
+        <div
+          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-[999]"
+          onClick={() => onCollapse?.(true)}
+        />
+      )}
     </Sider>
   );
 };

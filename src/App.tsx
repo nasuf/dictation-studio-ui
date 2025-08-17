@@ -32,6 +32,23 @@ const App: React.FC = () => {
   const language = useSelector(
     (state: RootState) => state.user.userInfo?.language ?? DEFAULT_LANGUAGE
   );
+  
+  // Sider state management
+  const [siderCollapsed, setSiderCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setSiderCollapsed(mobile);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
@@ -102,10 +119,15 @@ const App: React.FC = () => {
                   isDarkMode={isDarkMode}
                   toggleDarkMode={toggleDarkMode}
                   language={language}
+                  onSiderToggle={() => setSiderCollapsed(!siderCollapsed)}
                 />
               </Header>
               <Content className="flex-grow overflow-hidden bg-transparent">
-                <AppContent />
+                <AppContent 
+                  siderCollapsed={siderCollapsed}
+                  setSiderCollapsed={setSiderCollapsed}
+                  isMobile={isMobile}
+                />
               </Content>
               <Footer className="flex-shrink-0 p-0 bg-transparent">
                 <AppFooter />

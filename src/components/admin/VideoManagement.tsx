@@ -880,9 +880,6 @@ const VideoManagement: React.FC = () => {
     null
   );
   const [isContinuousPlay, setIsContinuousPlay] = useState(false);
-  const [continuousPlayStartIndex, setContinuousPlayStartIndex] = useState<
-    number | null
-  >(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [currentVideoLink, setCurrentVideoLink] = useState<string>("");
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
@@ -1200,7 +1197,6 @@ const VideoManagement: React.FC = () => {
       playbackController.stop();
       setCurrentPlayingIndex(null);
       setIsContinuousPlay(false);
-      setContinuousPlayStartIndex(null);
     }
   }, [playbackController]);
 
@@ -1214,7 +1210,6 @@ const VideoManagement: React.FC = () => {
 
       try {
         setIsContinuousPlay(true);
-        setContinuousPlayStartIndex(startIndex);
         setCurrentPlayingIndex(startIndex);
 
         const playNext = async (index: number) => {
@@ -1222,8 +1217,7 @@ const VideoManagement: React.FC = () => {
             // 播放完成
             setCurrentPlayingIndex(null);
             setIsContinuousPlay(false);
-            setContinuousPlayStartIndex(null);
-            return;
+                  return;
           }
 
           const segment = currentTranscript[index];
@@ -1248,8 +1242,7 @@ const VideoManagement: React.FC = () => {
         message.error("Failed to start continuous playback");
         setCurrentPlayingIndex(null);
         setIsContinuousPlay(false);
-        setContinuousPlayStartIndex(null);
-      }
+        }
     },
     [playbackController, youtubePlayer, currentTranscript, isContinuousPlay]
   );

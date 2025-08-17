@@ -5,6 +5,7 @@ import {
   UserOutlined,
   SunOutlined,
   MoonOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useLanguageToggle } from "@/hooks/useLanguageToggle";
@@ -24,6 +25,7 @@ interface AppHeaderProps {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   language: string;
+  onSiderToggle?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -31,6 +33,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   isDarkMode,
   toggleDarkMode,
   language,
+  onSiderToggle,
 }) => {
   const { i18n, t } = useTranslation();
   const { toggleLanguage, currentLanguage } = useLanguageToggle();
@@ -152,24 +155,45 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   );
 
   return (
-    <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white dark:text-gray-300 py-2 px-4 md:px-6 flex items-center justify-between shadow-lg h-16">
-      <div className="flex items-center">
-        <GradualSpacing
-          className="text-2xl md:text-2xl font-bold cursor-pointer font-display text-center font-bold -tracking-widest text-white dark:text-gray-300 md:leading-[5rem]"
-          text="Dictation Studio"
-          customProps={{ onClick: () => navigate("/dictation/video") }}
-        />
+    <header className="bg-gradient-to-r from-purple-900 via-purple-700 to-blue-600 dark:bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white dark:text-gray-300 py-1 md:py-2 px-4 md:px-6 flex items-center justify-between shadow-lg h-12 md:h-16">
+      <div className="flex items-center gap-3">
+        {/* Mobile Menu Button - only show if onSiderToggle is provided */}
+        {onSiderToggle && (
+          <button
+            onClick={onSiderToggle}
+            className="md:hidden flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            <MenuOutlined />
+          </button>
+        )}
+        
+        {/* Mobile: Simple text, Desktop: GradualSpacing */}
+        <div className="md:hidden">
+          <span 
+            className="text-lg font-bold cursor-pointer text-white dark:text-gray-300"
+            onClick={() => navigate("/dictation/video")}
+          >
+            Dictation Studio
+          </span>
+        </div>
+        <div className="hidden md:block">
+          <GradualSpacing
+            className="text-2xl font-bold cursor-pointer font-display text-center font-bold -tracking-widest text-white dark:text-gray-300 md:leading-[5rem]"
+            text="Dictation Studio"
+            customProps={{ onClick: () => navigate("/dictation/video") }}
+          />
+        </div>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-4">
         <Switch
           checked={isDarkMode}
           onChange={toggleDarkMode}
           checkedChildren={<MoonOutlined />}
           unCheckedChildren={<SunOutlined />}
-          className="bg-purple-500 dark:bg-gray-600"
+          className="bg-purple-500 dark:bg-gray-600 scale-75 md:scale-100"
         />
         <Dropdown overlay={languageMenu} trigger={["click"]}>
-          <button className="flex items-center space-x-1 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-2 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base">
+          <button className="flex items-center space-x-1 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-1 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-xs md:text-base">
             <GlobalOutlined />
             <span className="hidden md:inline">
               {i18n.language === "en"
@@ -186,18 +210,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </Dropdown>
         {userInfo ? (
           <Dropdown overlay={userMenu} trigger={["click"]}>
-            <button className="flex items-center space-x-1 md:space-x-2 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-2 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base">
+            <button className="flex items-center space-x-1 md:space-x-2 bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 px-1 md:px-3 py-1 md:py-2 rounded-md transition duration-300 text-xs md:text-base">
               <img
                 src={userInfo.avatar}
                 alt="User Avatar"
-                className="w-6 h-6 md:w-8 md:h-8 rounded-full"
+                className="w-5 h-5 md:w-8 md:h-8 rounded-full"
               />
             </button>
           </Dropdown>
         ) : (
           <button
             onClick={showLoginModal}
-            className="bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 text-white px-2 md:px-4 py-1 md:py-2 rounded-md transition duration-300 text-sm md:text-base"
+            className="bg-transparent hover:bg-white/10 dark:hover:bg-gray-600/50 text-white px-1 md:px-4 py-1 md:py-2 rounded-md transition duration-300 text-xs md:text-base"
           >
             <UserOutlined className="md:mr-2" />
             <span className="hidden md:inline">{t("login")}</span>

@@ -7,12 +7,11 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
 } from "react";
-import { message, Modal, Popover, Button, Tag, Spin } from "antd";
+import { message, Modal, Tag, Spin, Button } from "antd";
 import {
   StepBackwardOutlined,
   StepForwardOutlined,
   RedoOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { useParams, useNavigate } from "react-router-dom";
@@ -41,7 +40,6 @@ import {
 import Timer from "./Timer";
 import { RootState } from "@/redux/store";
 import { store } from "@/redux/store";
-import Settings from "./Settings";
 import {
   cleanString,
   splitWords,
@@ -66,6 +64,17 @@ export interface VideoMainRef {
   getMissedWords: () => string[];
   removeMissedWord: (word: string) => void;
   resetProgress: (transcriptData?: TranscriptItem[]) => void;
+  getSettings: () => {
+    playbackSpeed: number;
+    autoRepeat: number;
+    shortcuts: ShortcutKeys;
+    settingShortcut: string | null;
+  };
+  updateSpeedSetting: (speed: number) => void;
+  updateAutoRepeatSetting: (repeat: number) => void;
+  updateShortcutSetting: (key: string) => void;
+  handleShortcutKeyPress: (e: KeyboardEvent) => void;
+  saveSettings: () => Promise<void>;
 }
 
 // Add new interface for video dictation quota
@@ -105,6 +114,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [missedWords, setMissedWords] = useState<string[]>([]);
   const [playbackController, setPlaybackController] =
     useState<VideoPlaybackController | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -112,9 +122,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [isUserTyping, setIsUserTyping] = useState(false);
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
-  const [configChanged, setConfigChanged] = useState(false);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
-  const [isSavingDictationConfig, setIsSavingDictationConfig] = useState(false);
   // settings
   const autoRepeat = useSelector(
     (state: RootState) => state.user.userInfo?.dictation_config.auto_repeat || 0
@@ -480,7 +488,7 @@ const VideoMain: React.ForwardRefRenderFunction<
     const controller = new VideoPlaybackController(playerRef.current, {
       playbackSpeed: playbackSpeed,
       onStateChange: (state: VideoPlaybackState) => {
-        // Handle state changes if needed
+        setIsVideoPlaying(state.isPlaying);
         console.log("Playback state changed:", state);
       },
     });
@@ -1105,15 +1113,15 @@ const VideoMain: React.ForwardRefRenderFunction<
       0
     );
 
-    const completedWords = transcript.reduce((sum, item, index) => {
-      if (revealedSentences.includes(index)) {
+    const completedWords = transcript.reduce((sum, item) => {
+      if (item.userInput && item.userInput.trim()) {
         return sum + item.transcript.split(/\s+/).length;
       }
       return sum;
     }, 0);
 
-    const correctWords = transcript.reduce((sum, item, index) => {
-      if (item.userInput && revealedSentences.includes(index)) {
+    const correctWords = transcript.reduce((sum, item) => {
+      if (item.userInput && item.userInput.trim()) {
         const { completionPercentage } = compareInputWithTranscript(
           item.userInput,
           item.transcript
@@ -1302,27 +1310,40 @@ const VideoMain: React.ForwardRefRenderFunction<
     getMissedWords: () => missedWords,
     removeMissedWord,
     resetProgress,
+    getSettings: () => ({
+      playbackSpeed,
+      autoRepeat,
+      shortcuts,
+      settingShortcut,
+    }),
+    updateSpeedSetting: handleSpeedChange,
+    updateAutoRepeatSetting: handleAutoRepeatChange,
+    updateShortcutSetting: handleShortcutSet,
+    handleShortcutKeyPress,
+    saveSettings: handleSaveSettings,
   }));
 
-  const handleUserInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleUserInput = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const newValue = e.target.value;
     setUserInput(newValue);
 
-    // Check if content exceeds 3 lines to show/hide scrollbar
-    const textarea = e.target;
+    // Check if content exceeds 3 lines to show/hide scrollbar (only for textarea)
+    if (e.target.tagName === 'TEXTAREA') {
+      const textarea = e.target as HTMLTextAreaElement;
 
-    const lineHeight = 1.6; // em
-    const fontSize = 16; // px
-    const padding = 32; // py-4 = 1rem * 2 = 32px (consistent padding)
-    const maxHeightFor3Lines = lineHeight * fontSize * 3 + padding;
+      const lineHeight = 1.6; // em
+      const fontSize = 16; // px
+      const padding = 32; // py-4 = 1rem * 2 = 32px (consistent padding)
+      const maxHeightFor3Lines = lineHeight * fontSize * 3 + padding;
 
-    // Reset height to auto to get accurate scrollHeight
-    textarea.style.height = "auto";
-    const scrollHeight = textarea.scrollHeight;
+      // Reset height to auto to get accurate scrollHeight
+      textarea.style.height = "auto";
+      const scrollHeight = textarea.scrollHeight;
 
-    // Determine if scrollbar should be shown (only when content exceeds 3 lines)
-    const needsScrollbar = scrollHeight > maxHeightFor3Lines;
-    setShowTextareaScrollbar(needsScrollbar);
+      // Determine if scrollbar should be shown (only when content exceeds 3 lines)
+      const needsScrollbar = scrollHeight > maxHeightFor3Lines;
+      setShowTextareaScrollbar(needsScrollbar);
+    }
 
     resetUserTypingTimer();
     // 更新最后活跃时间
@@ -1420,28 +1441,17 @@ const VideoMain: React.ForwardRefRenderFunction<
     };
 
     try {
-      setIsSavingDictationConfig(true);
       await api.saveUserConfig({ dictation_config: config });
       message.success(t("dictationConfigUpdated"));
-      setConfigChanged(false);
     } catch (e) {
       message.error(t("dictationConfigUpdateFailed"));
-    } finally {
-      setIsSavingDictationConfig(false);
     }
   };
 
-  const handlePopoverVisibleChange = (visible: boolean) => {
-    if (!visible && configChanged) {
-      setConfigChanged(false);
-      handleSaveSettings();
-    }
-  };
 
   const handleSpeedChange = useCallback(
     (newSpeed: number) => {
       dispatch(setDictationPlaybackSpeed(newSpeed));
-      setConfigChanged(true);
       if (playerRef.current) {
         playerRef.current.setPlaybackRate(newSpeed);
       }
@@ -1455,7 +1465,6 @@ const VideoMain: React.ForwardRefRenderFunction<
   const handleAutoRepeatChange = useCallback(
     (value: number) => {
       dispatch(setDictationAutoRepeat(value));
-      setConfigChanged(true);
     },
     [autoRepeat]
   );
@@ -1463,9 +1472,24 @@ const VideoMain: React.ForwardRefRenderFunction<
   const handleShortcutSet = useCallback(
     (key: string) => {
       setSettingShortcut(key);
-      setConfigChanged(true);
     },
     [shortcuts]
+  );
+
+  const handleShortcutKeyPress = useCallback(
+    (e: KeyboardEvent) => {
+      if (settingShortcut) {
+        e.preventDefault();
+        dispatch(
+          setDictationShortcutKeys({
+            ...userInfo?.dictation_config.shortcuts,
+            [settingShortcut]: e.code || "",
+          })
+        );
+        setSettingShortcut(null);
+      }
+    },
+    [settingShortcut, userInfo?.dictation_config.shortcuts, dispatch]
   );
 
   useEffect(() => {
@@ -1479,14 +1503,7 @@ const VideoMain: React.ForwardRefRenderFunction<
         activeElement?.tagName === "TEXTAREA";
 
       if (settingShortcut) {
-        e.preventDefault();
-        dispatch(
-          setDictationShortcutKeys({
-            ...userInfo?.dictation_config.shortcuts,
-            [settingShortcut]: e.code || "",
-          })
-        );
-        setSettingShortcut(null);
+        handleShortcutKeyPress(e);
       } else {
         // Only trigger shortcuts in the following cases:
         // 1. Not focused in input field, or
@@ -1553,17 +1570,6 @@ const VideoMain: React.ForwardRefRenderFunction<
     setIsImeComposing(false);
   };
 
-  const settingsContent = (
-    <Settings
-      playbackSpeed={playbackSpeed}
-      autoRepeat={autoRepeat}
-      shortcuts={shortcuts}
-      handleSpeedChange={handleSpeedChange}
-      handleAutoRepeatChange={handleAutoRepeatChange}
-      handleShortcutSet={handleShortcutSet}
-      settingShortcut={settingShortcut}
-    />
-  );
 
   // Add listener for user's first input to register video to quota
   useEffect(() => {
@@ -1623,6 +1629,13 @@ const VideoMain: React.ForwardRefRenderFunction<
             text-align: center;
             opacity: 0.6;
           }
+          .hide-scrollbar {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
           .dictation-textarea.hide-scrollbar {
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -1632,11 +1645,349 @@ const VideoMain: React.ForwardRefRenderFunction<
           }
         `}
       </style>
-      <div className="flex justify-center items-start h-full w-full p-5">
+      {/* Mobile Layout (< md) - Following Flutter Structure */}
+      <div className="md:hidden h-full w-full flex flex-col overflow-hidden">
+        {/* Video Player Section */}
+        <div className="flex-shrink-0">
+          {/* Quota Info */}
+          {quotaInfo &&
+            quotaInfo.limit !== -1 &&
+            (!userInfo?.plan || !userInfo?.plan?.name) && (
+              <div className="mx-4 mt-4 mb-2 bg-blue-50 border-l-4 border-blue-500 p-2 rounded-md shadow-sm dark:bg-blue-900/30 dark:border-blue-400">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  {t("freeUserQuotaHeader", {
+                    used: quotaInfo.used,
+                    limit: quotaInfo.limit === -1 ? "∞" : quotaInfo.limit,
+                  })}
+                  <span className="mx-1">•</span>
+                  <span className="text-xs text-blue-600 dark:text-blue-200">
+                    {t("freeUserQuotaRenewal", {
+                      endDate: quotaInfo.endDate,
+                    })}
+                  </span>
+                </p>
+              </div>
+            )}
+
+
+          {/* Video Player with Controls */}
+          <div className="px-4 pt-3">
+            <div className="relative pt-[42%] md:pt-[56.25%] bg-black rounded-lg overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full z-10" />
+              <YouTube
+                videoId={videoId}
+                opts={youtubeOpts}
+                onReady={onVideoReady}
+                onStateChange={onVideoStateChange}
+                className="absolute top-0 left-0 w-full h-full"
+              />
+
+              {/* Video Control Buttons Overlay */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="flex justify-center space-x-3">
+                  <button
+                    onClick={() => {
+                      lastActivityRef.current = Date.now();
+                      playPreviousSentence();
+                    }}
+                    disabled={currentSentenceIndex === 0}
+                    className="p-2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 disabled:bg-black/30 text-white transition duration-300 ease-in-out shadow-md flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <StepBackwardOutlined className="text-base" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      lastActivityRef.current = Date.now();
+                      if (isVideoPlaying && playbackController?.isPlaying()) {
+                        playbackController.stop();
+                      } else {
+                        playCurrentSentence();
+                      }
+                    }}
+                    className="p-2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white transition duration-300 ease-in-out shadow-md flex items-center justify-center backdrop-blur-sm"
+                  >
+                    {isVideoPlaying ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <RedoOutlined className="text-base" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      lastActivityRef.current = Date.now();
+                      playNextSentence();
+                    }}
+                    disabled={currentSentenceIndex === transcript.length - 1}
+                    className="p-2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 disabled:bg-black/30 text-white transition duration-300 ease-in-out shadow-md flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <StepForwardOutlined className="text-base" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Compact Progress Bar - Following Flutter Design */}
+        <div className="flex-shrink-0 mx-4 my-3">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center">
+              {/* Progress */}
+              <div className="flex-1 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    {Math.round(overallCompletion)}%
+                  </span>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  Progress
+                </div>
+              </div>
+
+              {/* Accuracy */}
+              <div className="flex-1 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <svg className="w-3.5 h-3.5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className={`text-lg font-bold ${
+                    overallAccuracy >= 90 ? 'text-green-600 dark:text-green-400' :
+                    overallAccuracy >= 80 ? 'text-yellow-600 dark:text-yellow-400' :
+                    overallAccuracy >= 70 ? 'text-orange-600 dark:text-orange-400' :
+                    'text-red-600 dark:text-red-400'
+                  }`}>
+                    {Math.round(overallAccuracy)}%
+                  </span>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  Accuracy
+                </div>
+              </div>
+
+              {/* Time */}
+              <div className="flex-1 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <svg className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    {Math.floor(totalTime / 60)}:{(totalTime % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  Time
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area - Following Flutter Structure */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-4 py-4">
+          {/* Loading state for mobile subtitle area */}
+          {isLoadingTranscript || isCheckingQuota ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Spin size="large" />
+                <p className="mt-4 text-gray-600 dark:text-gray-400">
+                  {isLoadingTranscript ? t("loadingTranscript") : t("checkingQuota")}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Current Sentence Display with Toggle */}
+              {transcript.length > 0 && currentSentenceIndex < transcript.length && (
+            <div className="mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md border border-gray-200 dark:border-gray-700">
+                {/* Header with sentence info and toggle */}
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Sentence {currentSentenceIndex + 1} / {transcript.length}
+                  </span>
+                  <button
+                    onClick={() => {
+                      // Save current input before hiding/showing
+                      saveUserInput();
+                      setRevealedSentences(prev => 
+                        prev.includes(currentSentenceIndex)
+                          ? prev.filter(i => i !== currentSentenceIndex)
+                          : [...prev, currentSentenceIndex]
+                      );
+                    }}
+                    className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {revealedSentences.includes(currentSentenceIndex) ? (
+                      <span className="text-blue-600 dark:text-blue-400 text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878a3 3 0 004.242 4.242M21.035 12a9.97 9.97 0 01-1.563 3.029" />
+                        </svg>
+                        Hide
+                      </span>
+                    ) : (
+                      <span className="text-blue-600 dark:text-blue-400 text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Show
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Comparison Content - Following Flutter SimpleComparisonWidget */}
+                {revealedSentences.includes(currentSentenceIndex) && (
+                  <div className="space-y-3">
+                    {/* Original Text Section */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          Original Text
+                        </span>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-wrap gap-1 break-words overflow-hidden">
+                          {compareInputWithTranscript(
+                            transcript[currentSentenceIndex].userInput || "",
+                            transcript[currentSentenceIndex].transcript
+                          ).transcriptResult.map((word, wordIndex) => (
+                            <span
+                              key={wordIndex}
+                              className={`${
+                                word.isCorrect
+                                  ? "bg-green-200 dark:bg-green-700/50 text-green-800 dark:text-green-200"
+                                  : "bg-red-200 dark:bg-red-700/50 text-red-800 dark:text-red-200"
+                              } px-1 py-0.5 rounded text-sm break-words`}
+                            >
+                              {word.word}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* User Input Section */}
+                    {transcript[currentSentenceIndex].userInput && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                            Your Input
+                          </span>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="flex flex-wrap gap-1 break-words overflow-hidden">
+                            {compareInputWithTranscript(
+                              transcript[currentSentenceIndex].userInput || "",
+                              transcript[currentSentenceIndex].transcript
+                            ).originalInputResult.map((word, wordIndex) => (
+                              <span
+                                key={wordIndex}
+                                className={`${
+                                  word.isCorrect
+                                    ? "bg-green-200 dark:bg-green-700/50 text-green-800 dark:text-green-200"
+                                    : "bg-red-200 dark:bg-red-700/50 text-red-800 dark:text-red-200"
+                                } px-1 py-0.5 rounded text-sm break-words`}
+                              >
+                                {word.word}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+            </>
+          )}
+        </div>
+
+        {/* Input Area at Bottom - Fixed Position */}
+        <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+          <div className="relative">
+            {/* Mobile: Single line input */}
+            <div className="md:hidden">
+              <input
+                type="text"
+                value={userInput}
+                onChange={handleUserInput}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
+                placeholder={t("inputPlaceHolder")}
+                className="w-full text-base px-4 py-3 pr-20 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-400 transition-all duration-300 ease-in-out"
+              />
+            </div>
+            {/* Desktop: Multi-line textarea */}
+            <div className="hidden md:block">
+              <textarea
+                value={userInput}
+                onChange={handleUserInput}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
+                placeholder={t("inputPlaceHolder")}
+                className={`dictation-textarea w-full text-base leading-relaxed px-4 py-3 pr-20 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-400 transition-all duration-300 ease-in-out resize-none whitespace-pre-wrap break-words overflow-auto ${
+                  showTextareaScrollbar ? "" : "hide-scrollbar"
+                }`}
+                rows={3}
+              />
+            </div>
+            {/* Input Action Buttons - Following Flutter suffixIcon Design */}
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+              {userInput.trim() && (
+                <button
+                  onClick={() => setUserInput("")}
+                  className="p-1.5 bg-gray-400 hover:bg-gray-500 text-white rounded-md transition-colors duration-200"
+                  title="Clear"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (userInput.trim()) {
+                    saveUserInput();
+                    revealCurrentSentence();
+                    updateOverallProgress();
+                    requestAnimationFrame(() => {
+                      playNextSentence();
+                    });
+                  }
+                }}
+                disabled={!userInput.trim()}
+                className="p-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors duration-200"
+                title="Submit and Next"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout (≥ md) */}
+      <div className="hidden md:flex justify-center items-start h-full w-full p-5">
         <div className="flex justify-between w-full max-w-7xl h-full">
           <div className="flex-1 flex flex-col justify-center pr-5 pt-10 max-w-2xl h-full overflow-y-auto hide-scrollbar">
             <div className="w-full max-w-xl mb-4">
-              {/* Group quota info into a single line display */}
+              {/* Desktop quota info */}
               {quotaInfo &&
                 quotaInfo.limit !== -1 &&
                 (!userInfo?.plan || !userInfo?.plan?.name) && (
@@ -1671,20 +2022,6 @@ const VideoMain: React.ForwardRefRenderFunction<
                   onStateChange={onVideoStateChange}
                   className="absolute top-0 left-0 w-full h-full"
                 />
-                <Popover
-                  content={settingsContent}
-                  trigger="click"
-                  placement="bottomLeft"
-                  overlayClassName="custom-popover"
-                  onOpenChange={handlePopoverVisibleChange}
-                >
-                  <Button
-                    icon={
-                      isSavingDictationConfig ? <Spin /> : <SettingOutlined />
-                    }
-                    className="absolute top-2 left-2 z-20 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300"
-                  />
-                </Popover>
               </div>
             </div>
             <div className="w-full max-w-xl space-y-4">
@@ -1702,11 +2039,21 @@ const VideoMain: React.ForwardRefRenderFunction<
                 <button
                   onClick={() => {
                     lastActivityRef.current = Date.now();
-                    playCurrentSentence();
+                    if (isVideoPlaying && playbackController?.isPlaying()) {
+                      playbackController.stop();
+                    } else {
+                      playCurrentSentence();
+                    }
                   }}
                   className="p-3 w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 transition duration-300 ease-in-out shadow-md flex items-center justify-center"
                 >
-                  <RedoOutlined className="text-lg" />
+                  {isVideoPlaying ? (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <RedoOutlined className="text-lg" />
+                  )}
                 </button>
                 <button
                   onClick={() => {
@@ -1740,6 +2087,7 @@ const VideoMain: React.ForwardRefRenderFunction<
             </div>
           </div>
 
+          {/* Desktop Right Column */}
           <div className="flex-1 flex flex-col h-full max-w-2xl">
             {isLoadingTranscript || isCheckingQuota ? (
               <div className="flex items-center justify-center h-full">

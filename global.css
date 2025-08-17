@@ -71,29 +71,7 @@ body {
   color: #1890ff !important;
 }
 
-/* Existing dark mode styles for video card */
-.dark .video-card.ant-card {
-  background-color: rgba(31, 41, 55, 0.5);
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.dark .video-card .ant-card-body {
-  background-color: rgba(31, 41, 55, 0.5);
-  padding: 12px;
-}
-
-.dark .video-card .ant-card-meta-title {
-  color: #e5e7eb;
-}
-
-.dark .video-card:hover {
-  box-shadow: 0 5px 11px rgba(0, 0, 0, 0.5);
-}
-
-.dark .video-card .ant-progress-text {
-  color: #ffffff;
-}
+/* Legacy dark mode styles for progress page video cards - removed as handled by UniversalCard */
 
 /* Fix dark mode table filter dropdown issues */
 .dark .ant-table-filter-dropdown {

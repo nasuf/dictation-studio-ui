@@ -121,29 +121,55 @@ export const ScrollableContainer = styled.div`
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
+  padding: 8px 20px 20px 20px;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 12px;
+    padding: 8px 8px 20px 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px 4px 16px 4px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 4px 2px 12px 2px;
   }
 `;
 
 export const VideoCardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  gap: 16px;
   align-content: start;
   width: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 `;
 
@@ -250,88 +276,174 @@ export const ScrollingTitle = styled.div`
 `;
 
 export const CustomHoverCard = styled(Card)`
-  transition: transform 0.3s ease-in-out;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .ant-card-cover {
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .ant-card-body {
+    padding: 12px;
+    background: #f0f2f5;
+    height: 60px;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
+    .ant-card-body {
+      padding: 8px;
+      height: 60px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
+    .ant-card-body {
+      padding: 6px;
+      height: 60px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
+    .ant-card-body {
+      padding: 4px;
+      height: 60px;
+      font-size: 11px;
+    }
+  }
+
+  .dark & {
+    .ant-card-body {
+      background: #1f2937;
+    }
   }
 `;
 
 export const ChannelGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
   padding: 0px;
   width: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 0 8px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 0 4px;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   @media (max-width: 360px) {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 0 4px;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 `;
 
-export const ChannelCard = styled(Card)`
+// Universal card component for both channels and videos
+export const UniversalCard = styled(Card)<{ contentType?: 'channel' | 'video' }>`
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  height: 240px;
   background-color: transparent;
   border: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 5px 11px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   }
 
   .ant-card-cover {
-    height: 180px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
   }
 
   .ant-card-body {
     padding: 0;
-    height: 60px;
+    height: ${props => props.contentType === 'video' ? '100px' : '60px'};
+    box-sizing: border-box;
   }
 
   @media (max-width: 768px) {
-    height: 220px;
-
-    .ant-card-cover {
-      height: 160px;
-    }
-
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
     .ant-card-body {
-      height: 60px;
+      height: ${props => props.contentType === 'video' ? '95px' : '60px'};
     }
   }
 
   @media (max-width: 480px) {
-    height: 200px;
-
-    .ant-card-cover {
-      height: 140px;
-    }
-
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
     .ant-card-body {
-      height: 60px;
+      height: ${props => props.contentType === 'video' ? '90px' : '60px'};
+    }
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
+    .ant-card-body {
+      height: ${props => props.contentType === 'video' ? '85px' : '60px'};
     }
   }
 `;
+
+// Backward compatibility alias
+export const ChannelCard = UniversalCard;
 
 export const ChannelImage = styled.img`
   width: 100%;
@@ -346,44 +458,141 @@ export const ChannelImage = styled.img`
   }
 `;
 
-export const ChannelInfo = styled.div`
-  padding: 12px;
-  background: #f0f2f5;
-  height: 60px;
+// Universal content info component for both channels and videos
+export const UniversalContentInfo = styled.div<{ contentType?: 'channel' | 'video' }>`
+  padding: 12px !important;
+  background: #f0f2f5 !important;
+  height: ${props => props.contentType === 'video' ? '100px' : '60px'} !important;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: ${props => props.contentType === 'video' ? 'flex-start' : 'center'};
+  justify-content: ${props => props.contentType === 'video' ? 'flex-start' : 'center'};
+  box-sizing: border-box;
 
   .dark & {
-    background: #1f2937;
+    background: #1f2937 !important;
   }
 
   @media (max-width: 768px) {
-    padding: 10px;
-    height: 60px;
+    padding: 10px !important;
+    height: ${props => props.contentType === 'video' ? '95px' : '60px'} !important;
   }
 
   @media (max-width: 480px) {
-    padding: 8px;
-    height: 60px;
+    padding: 8px !important;
+    height: ${props => props.contentType === 'video' ? '90px' : '60px'} !important;
+    font-size: 12px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 6px !important;
+    height: ${props => props.contentType === 'video' ? '85px' : '60px'} !important;
+    font-size: 11px;
   }
 `;
 
+// Backward compatibility alias
+export const ChannelInfo = UniversalContentInfo;
+
 const { Title } = Typography;
-export const ChannelName = styled(Title)`
+
+// Universal title component for both channels and videos
+export const UniversalContentTitle = styled(Title)<{ contentType?: 'channel' | 'video' }>`
   margin: 0 !important;
   font-size: 14px !important;
-  text-align: center;
-  line-height: 1.2;
+  text-align: ${props => props.contentType === 'video' ? 'left' : 'center'};
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   color: #333;
+  flex: ${props => props.contentType === 'video' ? '1' : 'none'};
+  height: ${props => props.contentType === 'video' ? 'auto' : 'auto'};
+  max-height: ${props => props.contentType === 'video' ? '42px' : 'none'};
+  word-break: break-word;
 
   .dark & {
     color: #e5e7eb;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 13px !important;
+    line-height: 1.25;
+    max-height: ${props => props.contentType === 'video' ? '39px' : 'none'};
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px !important;
+    line-height: 1.25;
+    max-height: ${props => props.contentType === 'video' ? '36px' : 'none'};
+  }
+
+  @media (max-width: 360px) {
+    font-size: 11px !important;
+    line-height: 1.25;
+    max-height: ${props => props.contentType === 'video' ? '33px' : 'none'};
+  }
+`;
+
+// Backward compatibility alias
+export const ChannelName = UniversalContentTitle;
+
+// Status indicator component for videos with smart spacing
+export const StatusIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: 2px;
+  gap: 4px;
+  flex-shrink: 0;
+  min-height: 16px;
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .status-text {
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    min-height: 15px;
+    margin-bottom: 1px;
+    
+    .status-text {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    gap: 3px;
+    min-height: 14px;
+    margin-bottom: 0;
+    
+    .status-dot {
+      width: 6px;
+      height: 6px;
+    }
+    
+    .status-text {
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    min-height: 13px;
+    
+    .status-text {
+      font-size: 8px;
+    }
   }
 `;
 

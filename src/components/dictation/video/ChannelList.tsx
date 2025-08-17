@@ -3,16 +3,15 @@ import { Link } from "react-router-dom";
 import { Channel } from "@/utils/type";
 import {
   ChannelGrid,
-  ChannelCard,
-  ChannelImage,
-  ChannelInfo,
-  ChannelName,
+  UniversalCard,
+  UniversalContentInfo,
+  UniversalContentTitle,
   ScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { useDispatch } from "react-redux";
 import { setChannelName } from "@/redux/navigationSlice";
 import { useTranslation } from "react-i18next";
-import { Empty } from "antd";
+import { Empty, Tag } from "antd";
 
 interface ChannelListProps {
   channels: Channel[];
@@ -23,10 +22,26 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
+  // Language tag color mapping - all blue
+  const getLanguageColor = () => {
+    return '#1890ff'; // Blue color for all languages
+  };
+
+  // Language display name mapping
+  const getLanguageDisplay = (language: string) => {
+    const displayMap: { [key: string]: string } = {
+      'english': 'EN',
+      'chinese': '中文',
+      'japanese': '日本語',
+      'korean': '한국어',
+    };
+    return displayMap[language.toLowerCase()] || language.toUpperCase();
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 md:h-32 md:w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -50,23 +65,50 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading }) => {
                   onClick={() => dispatch(setChannelName(channel.name))}
                   state={{ name: channel.name }}
                 >
-                  <ChannelCard
+                  <UniversalCard
+                    contentType="channel"
                     hoverable
                     cover={
-                      <ChannelImage
-                        alt={channel.name}
-                        src={channel.image_url}
-                        onError={(e) => {
-                          e.currentTarget.src = "/404.jpg";
-                        }}
-                      />
+                      <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                        <img
+                          alt={channel.name}
+                          src={channel.image_url}
+                          onError={(e) => {
+                            e.currentTarget.src = "/404.jpg";
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: "8px 8px 0 0",
+                          }}
+                        />
+                        {/* Video count badge in top-right corner */}
+                        <div className="absolute top-2 right-2">
+                          <div className="bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-lg">
+                            {channel.videos?.length || 0}
+                          </div>
+                        </div>
+                        {/* Language tag in bottom-left corner */}
+                        <div className="absolute bottom-2 left-2">
+                          <Tag 
+                            color={getLanguageColor()}
+                            className="text-xs font-medium border-0 shadow-md"
+                          >
+                            {getLanguageDisplay(channel.language)}
+                          </Tag>
+                        </div>
+                      </div>
                     }
                     styles={{ body: { padding: 0 } }}
                   >
-                    <ChannelInfo>
-                      <ChannelName level={5}>{channel.name}</ChannelName>
-                    </ChannelInfo>
-                  </ChannelCard>
+                    <UniversalContentInfo contentType="channel">
+                      <UniversalContentTitle level={5} contentType="channel">{channel.name}</UniversalContentTitle>
+                    </UniversalContentInfo>
+                  </UniversalCard>
                 </Link>
               ))}
           </ChannelGrid>
