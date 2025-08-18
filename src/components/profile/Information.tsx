@@ -74,13 +74,32 @@ const Information: React.FC = () => {
     );
   }
 
+  const InfoCard: React.FC<{ icon: string; title: string; value: string }> = ({
+    icon,
+    title,
+    value,
+  }) => (
+    <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3 flex items-center">
+      <span className="text-2xl mr-3">{icon}</span>
+      <div>
+        <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+          {title}
+        </h3>
+        <p className="text-sm font-medium text-gray-800 dark:text-white">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+
   const PlanBadge = ({ planName }: { planName: string }) => (
     <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-orange-900 dark:text-orange-300">
       {planName}
     </span>
   );
 
-  return (
+  // 大屏幕渲染函数
+  const renderDesktopView = () => (
     <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
       <div className="flex items-center justify-center min-h-full p-6">
         <div className="max-w-5xl w-full space-y-6">
@@ -205,24 +224,164 @@ const Information: React.FC = () => {
       </div>
     </ScrollableContainer>
   );
+
+  // 小屏幕渲染函数（参考Flutter设计）
+  const renderMobileView = () => (
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* 顶部动态Header - 参考Flutter设计 */}
+      <div className="bg-gradient-to-b from-blue-500 to-purple-600 dark:from-gray-800 dark:to-gray-900 p-4 shadow-lg">
+        <div className="flex items-center justify-start">
+          <h1 className="text-xl font-bold text-white mr-3">
+            {userInfo?.username}
+          </h1>
+          {userInfo?.role === USER_ROLE.ADMIN ? (
+            <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs font-semibold border border-blue-500/40">
+              ADMIN
+            </span>
+          ) : userInfo?.plan?.name ? (
+            <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-xs font-semibold border border-purple-500/40">
+              {userInfo.plan.name}
+            </span>
+          ) : (
+            <span className="bg-gray-500/20 text-gray-300 px-2 py-1 rounded-full text-xs font-semibold border border-gray-500/40">
+              {USER_PLAN.FREE}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 主要内容区域 */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-4">
+          {/* 信息卡片区域 - 2x2网格布局 */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            {/* 第一行 - Email和Plan */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="text-center">
+                <div className="w-8 h-8 mx-auto mb-2 flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <span className="text-blue-600 dark:text-blue-400 text-lg">📧</span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                  {t("email")}
+                </div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate" title={userInfo?.email}>
+                  {userInfo?.email || ""}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="w-8 h-8 mx-auto mb-2 flex items-center justify-center bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <span className="text-purple-600 dark:text-purple-400 text-lg">🎭</span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                  {t("plan")}
+                </div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {userInfo?.plan?.name || USER_PLAN.FREE}
+                </div>
+              </div>
+            </div>
+
+            {/* 分隔线 */}
+            <div className="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+            {/* 第二行 - 过期时间和总时长 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="w-8 h-8 mx-auto mb-2 flex items-center justify-center bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <span className="text-orange-600 dark:text-orange-400 text-lg">⏳</span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                  {userInfo?.plan?.nextPaymentTime ? t("nextPayment") : t("expireTime")}
+                </div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {userInfo?.plan?.nextPaymentTime
+                    ? formatTimestamp(userInfo.plan.nextPaymentTime, "date")
+                    : userInfo?.plan?.expireTime
+                    ? formatTimestamp(userInfo.plan.expireTime, "date")
+                    : t("noLimit")}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="w-8 h-8 mx-auto mb-2 flex items-center justify-center bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <span className="text-green-600 dark:text-green-400 text-lg">⏱️</span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                  {t("totalDictationTime")}
+                </div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {totalDuration !== null ? formatDuration(totalDuration) : t("loading")}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 听写活动热力图 */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-6 h-6 mr-2 flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 rounded">
+                  <span className="text-blue-600 dark:text-blue-400 text-sm">📅</span>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                  {t("dictationActivities")}
+                </h3>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+              >
+                <span className="text-blue-600 dark:text-blue-400 text-sm">🔄</span>
+              </button>
+            </div>
+            
+            {/* 热力图容器 - 横向滚动 */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[320px]">
+                <CalendarHeatmap
+                  startDate={subYears(new Date(), 1)}
+                  endDate={new Date()}
+                  values={dailyDurations}
+                  showWeekdayLabels={false}
+                  classForValue={(value) => getColor(value as DailyDuration | null)}
+                  titleForValue={(value) =>
+                    value
+                      ? `${format(new Date(value.date), "yyyy-MM-dd")} ${formatDuration(value.count)}`
+                      : t("noData")
+                  }
+                />
+              </div>
+            </div>
+            
+            {/* 图例 */}
+            <div className="flex justify-end items-center mt-3 text-xs">
+              <span className="text-gray-500 dark:text-gray-400 mr-2">{t("less")}</span>
+              <div className="flex space-x-1">
+                {["color-empty", "color-scale-1", "color-scale-2", "color-scale-3", "color-scale-4"].map((color) => (
+                  <div key={color} className={`w-2 h-2 ${color} rounded-sm`}></div>
+                ))}
+              </div>
+              <span className="text-gray-500 dark:text-gray-400 ml-2">{t("more")}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* 大屏幕版本 - 768px及以上 */}
+      <div className="hidden md:block h-full">
+        {renderDesktopView()}
+      </div>
+      
+      {/* 小屏幕版本 - 768px以下，参考Flutter设计 */}
+      <div className="block md:hidden h-full">
+        {renderMobileView()}
+      </div>
+    </>
+  );
 };
 
-const InfoCard: React.FC<{ icon: string; title: string; value: string }> = ({
-  icon,
-  title,
-  value,
-}) => (
-  <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3 flex items-center">
-    <span className="text-2xl mr-3">{icon}</span>
-    <div>
-      <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-        {title}
-      </h3>
-      <p className="text-sm font-medium text-gray-800 dark:text-white">
-        {value}
-      </p>
-    </div>
-  </div>
-);
 
 export default Information;

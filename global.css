@@ -16,8 +16,17 @@
   }
 }
 
-body {
+html, body {
   @apply bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800;
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
 }
 
 @keyframes blink-cursor {

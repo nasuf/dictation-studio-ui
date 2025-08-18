@@ -10,7 +10,6 @@ import {
   Space,
   Card,
   Descriptions,
-  Tooltip,
 } from "antd";
 import {
   ExclamationCircleOutlined,
@@ -121,21 +120,31 @@ const VideoErrorReportManagement: React.FC = () => {
       title: t("reportId"),
       dataIndex: "id",
       key: "id",
-      width: 180,
+      width: 150,
+      render: (id: string) => (
+        <span className="font-mono text-xs">
+          {id.substring(0, 8)}...
+        </span>
+      ),
     },
     {
       title: t("channelName"),
       dataIndex: "channelName",
       key: "channelName",
-      width: 180,
+      width: 150,
+      ellipsis: true,
+      render: (name: string) => (
+        <span className="text-xs">{name}</span>
+      ),
     },
     {
       title: t("video"),
       key: "video",
-      width: 250,
+      width: 200,
+      ellipsis: true,
       render: (record: VideoErrorReport) => (
         <div>
-          <div className="font-medium truncate text-sm">
+          <div className="font-medium truncate text-xs" title={record.videoTitle}>
             {record.videoTitle}
           </div>
         </div>
@@ -144,11 +153,11 @@ const VideoErrorReportManagement: React.FC = () => {
     {
       title: t("reportUser"),
       key: "user",
-      width: 150,
+      width: 120,
       render: (record: VideoErrorReport) => (
         <div>
-          <div className="text-sm">{record.userName}</div>
-          <div className="text-xs dark:text-gray-400">{record.userEmail}</div>
+          <div className="text-xs truncate" title={record.userName}>{record.userName}</div>
+          <div className="text-xs dark:text-gray-400 truncate" title={record.userEmail}>{record.userEmail}</div>
         </div>
       ),
     },
@@ -156,7 +165,7 @@ const VideoErrorReportManagement: React.FC = () => {
       title: t("errorType"),
       dataIndex: "errorType",
       key: "errorType",
-      width: 120,
+      width: 100,
       render: (errorType: string) => (
         <Tag color="blue" className="text-xs">
           {getErrorTypeLabel(errorType)}
@@ -167,10 +176,10 @@ const VideoErrorReportManagement: React.FC = () => {
       title: t("status"),
       dataIndex: "status",
       key: "status",
-      width: 100,
+      width: 80,
       render: (status: string) => (
         <Tag color={getStatusColor(status)} className="text-xs">
-          {t(status)}
+          {status === "pending" ? "⏳" : status === "resolved" ? "✅" : "❌"}
         </Tag>
       ),
     },
@@ -178,7 +187,7 @@ const VideoErrorReportManagement: React.FC = () => {
       title: t("reportTime"),
       dataIndex: "timestamp",
       key: "timestamp",
-      width: 140,
+      width: 100,
       render: (timestamp: number) => (
         <span className="text-xs">{formatTimestamp(timestamp, "date")}</span>
       ),
@@ -186,26 +195,24 @@ const VideoErrorReportManagement: React.FC = () => {
     {
       title: t("reportActions"),
       key: "actions",
-      width: 120,
+      width: 80,
       render: (record: VideoErrorReport) => (
-        <Space size="small">
-          <Tooltip title={t("viewDetails")}>
+        <Space size="small" className="flex flex-col sm:flex-row">
+          <Button
+            type="text"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetails(record)}
+            className="text-xs px-1"
+          />
+          {record.status === "pending" && (
             <Button
               type="text"
               size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleUpdateStatus(record)}
+              className="text-xs px-1"
             />
-          </Tooltip>
-          {record.status === "pending" && (
-            <Tooltip title={t("updateStatus")}>
-              <Button
-                type="text"
-                size="small"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleUpdateStatus(record)}
-              />
-            </Tooltip>
           )}
         </Space>
       ),
@@ -213,35 +220,49 @@ const VideoErrorReportManagement: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="h-full flex flex-col p-2 sm:p-4 md:p-6">
       <Card
+        className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
         title={
-          <div className="text-xl font-semibold dark:text-white">
-            {t("videoErrorReportManagement")} | Total: {reports.length}
-          </div>
-        }
-        extra={
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <span className="text-base sm:text-lg font-semibold dark:text-white">
+              {t("videoErrorReportManagement")} | Total: {reports.length}
+            </span>
             <Button
               type="primary"
               icon={<ReloadOutlined />}
               onClick={fetchReports}
               loading={loading}
-              style={{ marginLeft: 10 }}
+              size="small"
+              className="w-full sm:w-auto"
             >
               {t("refresh")}
             </Button>
           </div>
         }
+        bodyStyle={{ height: "calc(100% - 65px)", padding: 0 }}
       >
-        <Table
-          columns={columns}
-          dataSource={reports}
-          rowKey="id"
-          loading={loading}
-          scroll={{ x: 1200, y: 500 }}
-          size="large"
-        />
+        <div className="h-full overflow-auto p-2 sm:p-4">
+          <Table
+            columns={columns}
+            dataSource={reports}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: 1200 }}
+            size="small"
+            className="[&_.ant-table-thead>tr>th]:text-xs [&_.ant-table-tbody>tr>td]:text-xs"
+            pagination={{
+              responsive: true,
+              showSizeChanger: false,
+              showQuickJumper: false,
+              showTotal: (total, range) => 
+                window.innerWidth > 640 
+                  ? `${range[0]}-${range[1]} of ${total} items`
+                  : `${range[0]}-${range[1]}/${total}`,
+              pageSize: window.innerWidth > 640 ? 10 : 5,
+            }}
+          />
+        </div>
       </Card>
 
       {/* Detail Modal */}
@@ -266,7 +287,8 @@ const VideoErrorReportManagement: React.FC = () => {
             </Button>
           ),
         ]}
-        width={800}
+        width={window.innerWidth < 768 ? "95%" : 800}
+        style={{ top: window.innerWidth < 768 ? 20 : undefined }}
       >
         {selectedReport && (
           <Card>
@@ -444,7 +466,8 @@ const VideoErrorReportManagement: React.FC = () => {
             {t("submit")}
           </Button>,
         ]}
-        width={600}
+        width={window.innerWidth < 768 ? "95%" : 600}
+        style={{ top: window.innerWidth < 768 ? 20 : undefined }}
       >
         {selectedReport && (
           <div className="space-y-4">

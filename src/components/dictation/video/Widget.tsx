@@ -124,8 +124,15 @@ export const ScrollableContainer = styled.div`
   padding: 8px 20px 20px 20px;
   box-sizing: border-box;
 
+  /* Hide scrollbar on mobile */
   @media (max-width: 768px) {
     padding: 8px 8px 20px 8px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    
+    &::-webkit-scrollbar {
+      display: none; /* WebKit */
+    }
   }
 
   @media (max-width: 480px) {

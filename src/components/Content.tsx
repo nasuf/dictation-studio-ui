@@ -146,6 +146,23 @@ const AppContent: React.FC<AppContentProps> = ({
     }
   };
 
+  // 刷新频道数据
+  const refreshChannels = async () => {
+    setIsLoadingChannels(true);
+    try {
+      const response = await api.getChannels(
+        VISIBILITY_OPTIONS.Public,
+        LANGUAGES.All
+      );
+      setAllChannels(response.data);
+      filterChannelsByLanguage(response.data, selectedLanguage);
+    } catch (error) {
+      console.error("Error refreshing channels:", error);
+    } finally {
+      setIsLoadingChannels(false);
+    }
+  };
+
   // 根据语言过滤频道
   const filterChannelsByLanguage = (channels: Channel[], language: string) => {
     if (language === LANGUAGES.All) {
@@ -369,7 +386,8 @@ const AppContent: React.FC<AppContentProps> = ({
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
-      <div className="flex-shrink-0 p-4 sm:p-6">
+      {/* Hide Content header on mobile for channel list and video list */}
+      <div className={`flex-shrink-0 p-4 sm:p-6 ${isMobile && (isChannelListPage || isVideoListPage) ? 'hidden' : ''}`}>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex items-center gap-2 w-full md:w-auto">
             <button
@@ -437,54 +455,65 @@ const AppContent: React.FC<AppContentProps> = ({
               </div>
             )}
 
-            {/* Video Status Filter Tabs - Flutter-style design */}
-            {isVideoListPage && (
+            {/* Video Status Filter Tabs - Flutter-style design - Only show on desktop */}
+            {isVideoListPage && !isMobile && (
               <div className="w-full flex justify-center md:justify-end">
-                <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 shadow-sm">
-                  <button
-                    onClick={() => setProgressFilter('completed')}
-                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
-                      progressFilter === 'completed'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">{videoStatusCounts.completed}</span>
-                    <span className="text-xs mt-0.5">{t('done')}</span>
-                  </button>
-                  <button
-                    onClick={() => setProgressFilter('in_progress')}
-                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
-                      progressFilter === 'in_progress'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">{videoStatusCounts.in_progress}</span>
-                    <span className="text-xs mt-0.5">{t('inProgress')}</span>
-                  </button>
-                  <button
-                    onClick={() => setProgressFilter('not_started')}
-                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
-                      progressFilter === 'not_started'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">{videoStatusCounts.not_started}</span>
-                    <span className="text-xs mt-0.5">{t('notStarted')}</span>
-                  </button>
-                  <button
-                    onClick={() => setProgressFilter('all')}
-                    className={`flex flex-col items-center px-2 py-1.5 text-xs font-medium rounded-lg transition-colors w-14 ${
-                      progressFilter === 'all'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">{videoStatusCounts.completed + videoStatusCounts.in_progress + videoStatusCounts.not_started}</span>
-                    <span className="text-xs mt-0.5">{t('all')}</span>
-                  </button>
+                <div className="p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setProgressFilter(progressFilter === 'completed' ? 'all' : 'completed')}
+                      className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 min-w-[60px] min-h-[50px] ${
+                        progressFilter === 'completed'
+                          ? 'bg-blue-500 text-white shadow-sm border-2 border-blue-600'
+                          : videoStatusCounts.completed > 0
+                            ? 'bg-blue-50/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 hover:bg-blue-100/70 dark:hover:bg-blue-900/50'
+                            : 'bg-gray-100/50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border border-gray-300/30 dark:border-gray-600/30'
+                      }`}
+                      disabled={videoStatusCounts.completed === 0}
+                    >
+                      <span className="font-semibold text-base leading-none">{videoStatusCounts.completed}</span>
+                      <span className="text-[11px] mt-1 leading-none">{t('done')}</span>
+                    </button>
+                    <button
+                      onClick={() => setProgressFilter(progressFilter === 'in_progress' ? 'all' : 'in_progress')}
+                      className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 min-w-[60px] min-h-[50px] ${
+                        progressFilter === 'in_progress'
+                          ? 'bg-orange-500 text-white shadow-sm border-2 border-orange-600'
+                          : videoStatusCounts.in_progress > 0
+                            ? 'bg-orange-50/50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border border-orange-200/60 dark:border-orange-800/60 hover:bg-orange-100/70 dark:hover:bg-orange-900/50'
+                            : 'bg-gray-100/50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border border-gray-300/30 dark:border-gray-600/30'
+                      }`}
+                      disabled={videoStatusCounts.in_progress === 0}
+                    >
+                      <span className="font-semibold text-base leading-none">{videoStatusCounts.in_progress}</span>
+                      <span className="text-[11px] mt-1 leading-none">{t('inProgress')}</span>
+                    </button>
+                    <button
+                      onClick={() => setProgressFilter(progressFilter === 'not_started' ? 'all' : 'not_started')}
+                      className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 min-w-[60px] min-h-[50px] ${
+                        progressFilter === 'not_started'
+                          ? 'bg-gray-500 text-white shadow-sm border-2 border-gray-600'
+                          : videoStatusCounts.not_started > 0
+                            ? 'bg-gray-50/50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 border border-gray-300/60 dark:border-gray-600/60 hover:bg-gray-100/70 dark:hover:bg-gray-600/50'
+                            : 'bg-gray-100/50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border border-gray-300/30 dark:border-gray-600/30'
+                      }`}
+                      disabled={videoStatusCounts.not_started === 0}
+                    >
+                      <span className="font-semibold text-base leading-none">{videoStatusCounts.not_started}</span>
+                      <span className="text-[11px] mt-1 leading-none">{t('notStarted')}</span>
+                    </button>
+                    <button
+                      onClick={() => setProgressFilter('all')}
+                      className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 min-w-[60px] min-h-[50px] ${
+                        progressFilter === 'all'
+                          ? 'bg-blue-600 text-white shadow-sm border-2 border-blue-700'
+                          : 'bg-blue-50/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 hover:bg-blue-100/70 dark:hover:bg-blue-900/50'
+                      }`}
+                    >
+                      <span className="font-semibold text-base leading-none">{videoStatusCounts.completed + videoStatusCounts.in_progress + videoStatusCounts.not_started}</span>
+                      <span className="text-[11px] mt-1 leading-none">{t('all')}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -551,6 +580,7 @@ const AppContent: React.FC<AppContentProps> = ({
                   <ChannelList
                     channels={filteredChannels}
                     isLoading={isLoadingChannels}
+                    onRefresh={refreshChannels}
                   />
                 }
               />
@@ -560,6 +590,7 @@ const AppContent: React.FC<AppContentProps> = ({
                   <ChannelList
                     channels={filteredChannels}
                     isLoading={isLoadingChannels}
+                    onRefresh={refreshChannels}
                   />
                 }
               />
@@ -569,6 +600,7 @@ const AppContent: React.FC<AppContentProps> = ({
                   <ChannelList
                     channels={filteredChannels}
                     isLoading={isLoadingChannels}
+                    onRefresh={refreshChannels}
                   />
                 }
               />

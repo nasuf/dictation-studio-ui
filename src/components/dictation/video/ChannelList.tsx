@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Channel } from "@/utils/type";
 import {
@@ -12,15 +12,23 @@ import { useDispatch } from "react-redux";
 import { setChannelName } from "@/redux/navigationSlice";
 import { useTranslation } from "react-i18next";
 import { Empty, Tag } from "antd";
+import MobileHeader from "@/components/MobileHeader";
 
 interface ChannelListProps {
   channels: Channel[];
   isLoading: boolean;
+  onRefresh?: () => void;
 }
 
-const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading }) => {
+const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefresh }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const [searchValue, setSearchValue] = useState("");
+
+  // Filter channels based on search
+  const filteredChannels = channels.filter(channel =>
+    channel.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   // Language tag color mapping - all blue
   const getLanguageColor = () => {
@@ -48,15 +56,26 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 频道列表 */}
+      {/* Mobile Header - only visible on small screens */}
+      <div className="md:hidden">
+        <MobileHeader
+          channelCount={channels.length}
+          onRefresh={onRefresh}
+          onSearch={setSearchValue}
+          searchValue={searchValue}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* Channel List Content */}
       <ScrollableContainer>
-        {channels.length === 0 ? (
+        {filteredChannels.length === 0 ? (
           <div className="flex justify-center items-center h-full w-full">
-            <Empty description={t("noChannelsFound")} />
+            <Empty description={searchValue ? t("noSearchResults") : t("noChannelsFound")} />
           </div>
         ) : (
           <ChannelGrid>
-            {channels
+            {filteredChannels
               .sort((a, b) => a.language.localeCompare(b.language))
               .map((channel) => (
                 <Link

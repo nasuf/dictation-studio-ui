@@ -6,7 +6,6 @@ import {
   Button,
   message as antdMessage,
   Menu,
-  Layout,
   Upload,
   Empty,
   Image,
@@ -23,7 +22,6 @@ import {
 } from "@ant-design/icons";
 
 const { TextArea } = Input;
-const { Content, Sider } = Layout;
 
 export default function FeedbackManagement() {
   const { t } = useTranslation();
@@ -149,154 +147,189 @@ export default function FeedbackManagement() {
 
   if (feedbackUserList.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full w-full">
-        <Empty
-          description={
-            <span className="text-gray-500 dark:text-gray-400">
-              No feedback data available
-            </span>
-          }
-        />
+      <div className="h-full flex flex-col p-2 sm:p-4 md:p-6">
+        <Card className="flex-grow flex items-center justify-center shadow-sm dark:bg-gray-800 dark:border-gray-700">
+          <Empty
+            description={
+              <span className="text-gray-500 dark:text-gray-400">
+                No feedback data available
+              </span>
+            }
+          />
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full">
-      <>
-        <Sider
-          className="bg-white dark:bg-gray-800 dark:text-white"
-          width={200}
-        >
+    <div className="h-full flex flex-col lg:flex-row p-2 sm:p-4 md:p-6">
+      {/* Mobile User Selection */}
+      <div className="lg:hidden mb-4">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium dark:text-gray-300">Select User:</span>
+            <Menu
+              mode="horizontal"
+              selectedKeys={[selectedUser || ""]}
+              onSelect={({ key }) => setSelectedUser(key)}
+              className="bg-transparent dark:bg-gray-800 dark:text-white border-none overflow-x-auto"
+              style={{ borderBottom: "none" }}
+            >
+              {feedbackUserList.map((user: FeedbackUserList) => (
+                <Menu.Item key={user.email} className="dark:text-white text-xs">
+                  {user.email.length > 20 ? `${user.email.substring(0, 20)}...` : user.email}
+                </Menu.Item>
+              ))}
+            </Menu>
+          </div>
+        </Card>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block lg:w-64 lg:mr-4">
+        <Card className="h-full shadow-sm dark:bg-gray-800 dark:border-gray-700" bodyStyle={{ padding: 0 }}>
           <Menu
             mode="inline"
             selectedKeys={[selectedUser || ""]}
             style={{ height: "100%", borderRight: 0 }}
-            onSelect={({ key }) => {
-              setSelectedUser(key);
-            }}
+            onSelect={({ key }) => setSelectedUser(key)}
             className="bg-white dark:bg-gray-800 dark:text-white"
           >
             {feedbackUserList.map((user: FeedbackUserList) => (
               <Menu.Item key={user.email} className="dark:text-white">
-                {user.email}
+                <div className="truncate" title={user.email}>
+                  {user.email}
+                </div>
               </Menu.Item>
             ))}
           </Menu>
-        </Sider>
+        </Card>
+      </div>
 
-        <Content className="overflow-hidden bg-transparent">
-          <div className="h-full flex flex-col p-4 md:p-6 w-full max-w-3xl mx-auto">
-            {/* Feedback message list */}
-            <Card
-              className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 mb-4"
-              title={selectedUser || t("feedbackHistory")}
-              bodyStyle={{ height: "calc(100% - 57px)", padding: 0 }}
-              extra={
-                <Button
-                  type="primary"
-                  onClick={fetchFeedbacks}
-                  icon={<ReloadOutlined />}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Feedback message list */}
+        <Card
+          className="flex-grow overflow-hidden shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 mb-4"
+          title={
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <span className="text-sm sm:text-base truncate" title={selectedUser}>
+                {selectedUser ? 
+                  (selectedUser.length > 30 ? `${selectedUser.substring(0, 30)}...` : selectedUser) 
+                  : t("feedbackHistory")
+                }
+              </span>
+              <Button
+                type="primary"
+                onClick={fetchFeedbacks}
+                icon={<ReloadOutlined />}
+                size="small"
+                className="w-full sm:w-auto"
+              >
+                {t("refresh")}
+              </Button>
+            </div>
+          }
+          bodyStyle={{ height: "calc(100% - 65px)", padding: 0 }}
+        >
+          <div className="h-full overflow-auto p-2 sm:p-4">
+            <List
+              loading={feedbackLoading}
+              dataSource={feedbackMessages}
+              renderItem={(item) => (
+                <List.Item
+                  className={
+                    item.senderType === "admin"
+                      ? "justify-end"
+                      : "justify-start"
+                  }
+                  style={{
+                    display: "flex",
+                    flexDirection:
+                      item.senderType === "admin" ? "row-reverse" : "row",
+                  }}
                 >
-                  {t("refresh")}
-                </Button>
-              }
-            >
-              <div className="h-full overflow-auto p-4">
-                <List
-                  loading={feedbackLoading}
-                  dataSource={feedbackMessages}
-                  renderItem={(item) => (
-                    <List.Item
-                      className={
+                  <div
+                    className={`max-w-[85%] sm:max-w-[70%] p-2 sm:p-3 rounded-lg ${
+                      item.senderType === "admin" 
+                        ? "bg-blue-50 dark:bg-blue-900/30" 
+                        : "bg-gray-100 dark:bg-gray-800"
+                    }`}
+                    style={{
+                      alignSelf:
                         item.senderType === "admin"
-                          ? "justify-end"
-                          : "justify-start"
-                      }
-                      style={{
-                        display: "flex",
-                        flexDirection:
-                          item.senderType === "admin" ? "row-reverse" : "row",
-                      }}
-                    >
-                      <div
-                        className={`max-w-[70%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800`}
-                        style={{
-                          alignSelf:
-                            item.senderType === "admin"
-                              ? "flex-end"
-                              : "flex-start",
-                        }}
-                      >
-                        <div className="text-xs opacity-70 mt-1 dark:text-gray-400">
-                          {formatTimestamp(item.timestamp, "locale")}
-                          {item.senderType === "admin" ? " · Admin" : ""}
-                        </div>
-                        {item.message && (
-                          <div className="dark:text-gray-400">
-                            {item.message}
-                          </div>
-                        )}
-                        {/* Render images if present */}
-                        {Array.isArray(item.images) &&
-                          item.images.map((img: string, idx: number) => (
-                            <Image
-                              key={idx}
-                              src={img}
-                              alt="Feedback"
-                              className="mb-2 rounded"
-                              style={{ maxHeight: 200 }}
-                              preview={{
-                                mask: false,
-                              }}
-                            />
-                          ))}
+                          ? "flex-end"
+                          : "flex-start",
+                    }}
+                  >
+                    <div className="text-xs opacity-70 mb-1 dark:text-gray-400">
+                      {formatTimestamp(item.timestamp, "locale")}
+                      {item.senderType === "admin" ? " · Admin" : ""}
+                    </div>
+                    {item.message && (
+                      <div className="dark:text-gray-400 text-sm">
+                        {item.message}
                       </div>
-                    </List.Item>
-                  )}
-                />
-              </div>
-            </Card>
-
-            {/* Reply input area, only show if selectedUser and messages exist */}
-            {selectedUser && (
-              <Card className="shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
-                {/* Reply text area */}
-                <TextArea
-                  rows={2}
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  placeholder={t("enterFeedback")}
-                  className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                />
-                {/* Button row: upload left, send right */}
-                <div className="flex justify-between items-center mt-2">
-                  <Upload
-                    beforeUpload={handleAdminUpload}
-                    fileList={adminFileList}
-                    onRemove={() => setAdminFileList([])}
-                    maxCount={1}
-                    accept="image/*"
-                    showUploadList={{ showPreviewIcon: false }}
-                  >
-                    <Button icon={<UploadOutlined />}>
-                      {t("uploadImage")}
-                    </Button>
-                  </Upload>
-                  <Button
-                    type="primary"
-                    onClick={() => handleReply(selectedUser)}
-                    loading={replyLoading}
-                    icon={<SendOutlined />}
-                  >
-                    {t("send")}
-                  </Button>
-                </div>
-              </Card>
-            )}
+                    )}
+                    {/* Render images if present */}
+                    {Array.isArray(item.images) &&
+                      item.images.map((img: string, idx: number) => (
+                        <Image
+                          key={idx}
+                          src={img}
+                          alt="Feedback"
+                          className="mb-2 rounded max-w-full"
+                          style={{ maxHeight: window.innerWidth < 640 ? 150 : 200 }}
+                          preview={{
+                            mask: false,
+                          }}
+                        />
+                      ))}
+                  </div>
+                </List.Item>
+              )}
+            />
           </div>
-        </Content>
-      </>
+        </Card>
+
+        {/* Reply input area, only show if selectedUser and messages exist */}
+        {selectedUser && (
+          <Card className="shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
+            {/* Reply text area */}
+            <TextArea
+              rows={window.innerWidth < 640 ? 3 : 4}
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              placeholder={t("enterFeedback")}
+              className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+            />
+            {/* Button row: upload left, send right */}
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 mt-2">
+              <Upload
+                beforeUpload={handleAdminUpload}
+                fileList={adminFileList}
+                onRemove={() => setAdminFileList([])}
+                maxCount={1}
+                accept="image/*"
+                showUploadList={{ showPreviewIcon: false }}
+              >
+                <Button icon={<UploadOutlined />} size="small" className="w-full sm:w-auto">
+                  {t("uploadImage")}
+                </Button>
+              </Upload>
+              <Button
+                type="primary"
+                onClick={() => handleReply(selectedUser)}
+                loading={replyLoading}
+                icon={<SendOutlined />}
+                size="small"
+                className="w-full sm:w-auto"
+              >
+                {t("send")}
+              </Button>
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

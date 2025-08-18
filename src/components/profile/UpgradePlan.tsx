@@ -103,12 +103,12 @@ const PlanCard: React.FC<PlanProps> = ({
   return (
     <div
       className={`
-        relative rounded-lg p-10
+        relative rounded-lg p-4 sm:p-6 md:p-10
         dark:bg-gray-800 bg-white
         transition-all duration-300
         hover:border-2 hover:border-green-500
         dark:hover:border-orange-500
-        hover:shadow-xl hover:scale-105
+        hover:shadow-xl md:hover:scale-105
       `}
     >
       {isCurrent && (

@@ -706,9 +706,10 @@ const ChannelManagement: React.FC = () => {
       onFilter: (value: any, record: Channel) =>
         record.name?.toString().toLowerCase().includes(value.toLowerCase()) ||
         false,
+      ellipsis: true,
       render: (text: string, record: Channel) => (
         <span
-          className={`font-medium ${
+          className={`font-medium text-xs sm:text-sm ${
             record.visibility === "private"
               ? "text-gray-400 dark:text-gray-500"
               : "text-gray-900 dark:text-gray-100"
@@ -722,6 +723,7 @@ const ChannelManagement: React.FC = () => {
       title: "ID",
       dataIndex: "id",
       key: "id",
+      width: 150,
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -775,13 +777,13 @@ const ChannelManagement: React.FC = () => {
         false,
       render: (text: string, record: Channel) => (
         <span
-          className={`font-mono text-sm ${
+          className={`font-mono text-xs ${
             record.visibility === "private"
               ? "text-gray-400 dark:text-gray-500"
               : "text-gray-700 dark:text-gray-300"
           }`}
         >
-          {text}
+          {text.substring(0, 8)}...
         </span>
       ),
     },
@@ -789,6 +791,7 @@ const ChannelManagement: React.FC = () => {
       title: "Link",
       dataIndex: "link",
       key: "link",
+      width: 120,
       render: (text: string, record: Channel) => (
         <a
           href={text}
@@ -808,6 +811,7 @@ const ChannelManagement: React.FC = () => {
       title: "Image",
       dataIndex: "image_url",
       key: "image",
+      width: 80,
       render: (text: string, record: Channel) => (
         <Image
           src={text}
@@ -822,12 +826,13 @@ const ChannelManagement: React.FC = () => {
       ),
     },
     {
-      title: "Videos Count",
+      title: "Videos",
       dataIndex: "videos",
       key: "videos",
+      width: 80,
       render: (videos: string[]) => (
-        <Tag color="blue" className="font-medium">
-          {videos ? videos.length : 0} videos
+        <Tag color="blue" className="font-medium text-xs">
+          {videos ? videos.length : 0}
         </Tag>
       ),
       sorter: (a: Channel, b: Channel) => {
@@ -840,10 +845,12 @@ const ChannelManagement: React.FC = () => {
       title: "Visibility",
       dataIndex: "visibility",
       key: "visibility",
+      width: 100,
       render: (visibility: string, record: Channel) => (
         <Select
           value={visibility}
-          style={{ width: 120 }}
+          size="small"
+          style={{ width: 80 }}
           onChange={(value) => updateChannelVisibility(record.id, value)}
           className="channel-visibility-select"
         >
@@ -868,10 +875,12 @@ const ChannelManagement: React.FC = () => {
       title: "Language",
       dataIndex: "language",
       key: "language",
+      width: 100,
       render: (language: string, record: Channel) => (
         <Select
           value={language}
-          style={{ width: 120 }}
+          size="small"
+          style={{ width: 80 }}
           onChange={(value) => updateChannelLanguage(record.id, value)}
           className="channel-language-select"
         >
@@ -895,12 +904,13 @@ const ChannelManagement: React.FC = () => {
     {
       title: "Actions",
       key: "actions",
+      width: 80,
       render: (_: any, record: Channel) => (
         <Button
           onClick={() => edit(record)}
           icon={<EditOutlined />}
           size="small"
-          className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600"
+          className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600 text-xs px-2"
         >
           Edit
         </Button>
@@ -909,97 +919,64 @@ const ChannelManagement: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-screen">
+    <div className="h-full flex flex-col p-2 sm:p-4 md:p-6">
       <Card
-        className="dark:bg-gray-800 dark:text-white shadow-lg border-0 dark:border-gray-700"
+        className="flex-grow overflow-hidden dark:bg-gray-800 dark:text-white shadow-sm border-0 dark:border-gray-700"
         title={
-          <div className="text-xl font-semibold dark:text-white">
-            Channel Management | Total: {channels.length}
-          </div>
-        }
-        extra={
-          <div className="w-full">
-            {/* Mobile Layout */}
-            <div className="block sm:hidden space-y-2">
-              <div className="grid grid-cols-1 gap-2">
-                <Button
-                  type="primary"
-                  onClick={() => setIsAddChannelModalVisible(true)}
-                  className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 w-full"
-                  size="small"
-                >
-                  Add Channel
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => fetchChannels()}
-                  className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 w-full"
-                  size="small"
-                >
-                  Refresh
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => setIsChannelRecommendationModalVisible(true)}
-                  className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 w-full"
-                  size="small"
-                >
-                  Recommendations
-                </Button>
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="text-base sm:text-lg font-semibold dark:text-white">
+              Channel Management | Total: {channels.length}
             </div>
-
-            {/* Desktop Layout */}
-            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
               <Button
                 type="primary"
                 onClick={() => setIsAddChannelModalVisible(true)}
-                className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600"
+                className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 text-xs sm:text-sm"
+                size="small"
               >
                 Add Channel
               </Button>
               <Button
                 type="primary"
                 onClick={() => fetchChannels()}
-                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600"
+                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 text-xs sm:text-sm"
+                size="small"
               >
                 Refresh
               </Button>
               <Button
                 type="primary"
                 onClick={() => setIsChannelRecommendationModalVisible(true)}
-                className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600"
+                className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 text-xs sm:text-sm"
+                size="small"
               >
-                Channel Recommendation
+                Recommendations
               </Button>
             </div>
           </div>
         }
+        bodyStyle={{ height: "calc(100% - 80px)", padding: 0 }}
       >
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={channels}
-              rowKey="id"
-              loading={isLoading}
-              scroll={{
-                y: window.innerWidth < 768 ? 400 : 500,
-                x: window.innerWidth < 768 ? 800 : 1200,
-              }}
-              size={window.innerWidth < 768 ? "small" : "middle"}
-              className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
-              pagination={{
-                showSizeChanger: true,
-                showQuickJumper: window.innerWidth >= 768,
-                showTotal: (total, range) =>
-                  window.innerWidth >= 768
-                    ? `${range[0]}-${range[1]} of ${total} items`
-                    : `${total} total`,
-                responsive: true,
-              }}
-            />
-          </div>
+        <div className="h-full overflow-auto p-2 sm:p-4">
+          <Table
+            columns={columns}
+            dataSource={channels}
+            rowKey="id"
+            loading={isLoading}
+            scroll={{ x: 1200 }}
+            size="small"
+            className="[&_.ant-table-thead>tr>th]:text-xs [&_.ant-table-tbody>tr>td]:text-xs"
+            pagination={{
+              responsive: true,
+              showSizeChanger: false,
+              showQuickJumper: false,
+              showTotal: (total, range) => 
+                window.innerWidth > 640 
+                  ? `${range[0]}-${range[1]} of ${total} items`
+                  : `${range[0]}-${range[1]}/${total}`,
+              pageSize: window.innerWidth > 640 ? 10 : 5,
+            }}
+          />
         </div>
       </Card>
       {/* Add Channel Modal */}

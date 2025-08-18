@@ -16,6 +16,7 @@ import { RootState } from "@/redux/store";
 import { DEFAULT_LANGUAGE } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import PaymentSuccess from "@/components/PaymentSuccess";
+import MobileBottomNavigation from "@/components/MobileBottomNavigation";
 
 const { Header, Content, Footer } = Layout;
 
@@ -103,7 +104,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col`}>
+    <div className={`${isDarkMode ? "dark" : ""} h-screen flex flex-col overflow-hidden`}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/signup-confirmation" element={<HomePage />} />
@@ -112,8 +113,8 @@ const App: React.FC = () => {
         <Route
           path="*"
           element={
-            <Layout className="flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
-              <Header className="flex-shrink-0 p-0 h-auto leading-normal bg-transparent">
+            <Layout className="flex flex-col h-full overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
+              <Header className="flex-shrink-0 p-0 h-auto leading-normal bg-transparent md:block hidden">
                 <AppHeader
                   showLoginModal={() => dispatch(setIsLoginModalVisible(true))}
                   isDarkMode={isDarkMode}
@@ -129,9 +130,15 @@ const App: React.FC = () => {
                   isMobile={isMobile}
                 />
               </Content>
-              <Footer className="flex-shrink-0 p-0 bg-transparent">
+              {/* 大屏幕显示Footer */}
+              <Footer className="flex-shrink-0 p-0 bg-transparent md:block hidden">
                 <AppFooter />
               </Footer>
+              {/* 小屏幕底部导航 - 始终显示 */}
+              <div className="md:hidden flex-shrink-0">
+                <MobileBottomNavigation />
+              </div>
+              
               <LoginModal
                 visible={isLoginModalVisible}
                 onClose={() => dispatch(setIsLoginModalVisible(false))}
