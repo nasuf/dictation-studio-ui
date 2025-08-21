@@ -655,6 +655,7 @@ const ChannelManagement: React.FC = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
+      width: 150,
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -783,7 +784,7 @@ const ChannelManagement: React.FC = () => {
               : "text-gray-700 dark:text-gray-300"
           }`}
         >
-          {text.substring(0, 8)}...
+          {text}
         </span>
       ),
     },
@@ -880,7 +881,7 @@ const ChannelManagement: React.FC = () => {
         <Select
           value={language}
           size="small"
-          style={{ width: 80 }}
+          style={{ width: 100 }}
           onChange={(value) => updateChannelLanguage(record.id, value)}
           className="channel-language-select"
         >
@@ -970,8 +971,8 @@ const ChannelManagement: React.FC = () => {
               responsive: true,
               showSizeChanger: false,
               showQuickJumper: false,
-              showTotal: (total, range) => 
-                window.innerWidth > 640 
+              showTotal: (total, range) =>
+                window.innerWidth > 640
                   ? `${range[0]}-${range[1]} of ${total} items`
                   : `${range[0]}-${range[1]}/${total}`,
               pageSize: window.innerWidth > 640 ? 10 : 5,

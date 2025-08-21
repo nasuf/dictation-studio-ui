@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   Input,
@@ -25,6 +26,7 @@ import { ChannelRecommendationItem } from "@/utils/type";
 
 const ChannelRecommendation = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [channelLink, setChannelLink] = useState("");
@@ -120,7 +122,124 @@ const ChannelRecommendation = () => {
       value,
     }));
 
-  return (
+  // 移动端渲染函数
+  const renderMobileView = () => (
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* 移动端标题栏 */}
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <button 
+              onClick={() => navigate(-1)}
+              className="mr-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex items-center">
+              <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500 text-lg" />
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t("channelRecommendation")}
+              </h1>
+            </div>
+          </div>
+          <button
+            onClick={fetchChannelRecommendations}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <ReloadOutlined className="text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* 移动端内容区域 */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* 添加频道按钮 */}
+        <div className="mb-4">
+          <button
+            onClick={() => setModalVisible(true)}
+            className="w-full flex items-center justify-center py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors shadow-sm"
+          >
+            <YoutubeOutlined className="mr-2" />
+            {t("recommendYoutubeChannel")}
+          </button>
+        </div>
+
+        {/* 推荐列表 */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spin size="large" />
+            </div>
+          ) : recommendations.length > 0 ? (
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {recommendations.map((item, index) => (
+                <div key={index} className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center mb-1">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            {item.name}
+                          </a>
+                        </h3>
+                        {item.language && (
+                          <span className="ml-2 inline-block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                            {Object.keys(LANGUAGES).find(
+                              (key) => LANGUAGES[key as keyof typeof LANGUAGES] === item.language
+                            ) || item.language}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                        <div className="truncate">{item.link}</div>
+                        <div>
+                          {t("submitted")}: {new Date(item.submittedAt).toLocaleDateString()}
+                        </div>
+                        {item.status === "rejected" && item.reason && (
+                          <div className="text-red-500 dark:text-red-400">
+                            {t("rejectedReason")}: {item.reason}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className={`px-2 py-1 rounded text-xs font-medium ml-2 ${
+                      item.status === "approved"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                        : item.status === "rejected"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                        : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                    }`}>
+                      {t(item.status)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <YoutubeOutlined className="text-4xl text-gray-400 mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 text-center">
+                {t("noRecommendedChannelsYet")}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-1">
+                {t("helpUsGrowByRecommending")}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 桌面端渲染函数
+  const renderDesktopView = () => (
     <div className="h-full flex flex-col p-4 md:p-6">
       {/* Centered container with maximum width */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-full">
@@ -229,44 +348,91 @@ const ChannelRecommendation = () => {
             )}
           </div>
         </Card>
-        <Modal
-          open={modalVisible}
-          onCancel={() => setModalVisible(false)}
-          footer={null}
-          title={t("recommendYoutubeChannel")}
-          destroyOnClose
-          maskClosable={false}
-        >
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* 大屏幕版本 - 768px及以上 */}
+      <div className="hidden md:block h-full">
+        {renderDesktopView()}
+      </div>
+      
+      {/* 小屏幕版本 - 768px以下 */}
+      <div className="block md:hidden h-full">
+        {renderMobileView()}
+      </div>
+
+      {/* 共用的Modal - 移动端优化 */}
+      <Modal
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        title={
+          <div className="flex items-center">
+            <YoutubeOutlined className="mr-2 text-red-600 dark:text-red-500" />
+            <span>{t("recommendYoutubeChannel")}</span>
+          </div>
+        }
+        destroyOnClose
+        maskClosable={false}
+        width="90%"
+        style={{ maxWidth: 500 }}
+        className="mobile-modal"
+      >
+        <div className="pt-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
             {t("helpUsGrowByRecommending")}
           </p>
-          <div className="flex flex-col gap-4">
-            <Input
-              placeholder={t("enterYoutubeChannelLink")}
-              value={channelLink}
-              onChange={(e) => setChannelLink(e.target.value)}
-              prefix={<LinkOutlined className="text-gray-400" />}
-              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-              onPressEnter={submitChannelRecommendation}
-            />
-            <Input
-              placeholder={t("enterChannelName")}
-              value={channelName}
-              onChange={(e) => setChannelName(e.target.value)}
-              className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-              onPressEnter={submitChannelRecommendation}
-            />
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex flex-1 items-center">
-                <TranslationOutlined className="mr-2 text-gray-400" />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("youtubeChannelLink")}
+              </label>
+              <Input
+                placeholder={t("enterYoutubeChannelLink")}
+                value={channelLink}
+                onChange={(e) => setChannelLink(e.target.value)}
+                prefix={<LinkOutlined className="text-gray-400" />}
+                className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                size="large"
+                onPressEnter={submitChannelRecommendation}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("channelName")}
+              </label>
+              <Input
+                placeholder={t("enterChannelName")}
+                value={channelName}
+                onChange={(e) => setChannelName(e.target.value)}
+                className="w-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                size="large"
+                onPressEnter={submitChannelRecommendation}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("language")}
+              </label>
+              <div className="flex items-center">
+                <TranslationOutlined className="mr-3 text-gray-400" />
                 <Select
                   value={selectedLanguage}
                   onChange={setSelectedLanguage}
                   options={languageOptions}
-                  className="w-full min-w-[120px] dark:bg-gray-700 dark:text-gray-200"
+                  className="flex-1 dark:bg-gray-700 dark:text-gray-200"
                   placeholder={t("selectLanguage")}
+                  size="large"
                 />
               </div>
+            </div>
+
+            <div className="pt-4 space-y-3">
               <Button
                 type="primary"
                 onClick={async () => {
@@ -274,15 +440,23 @@ const ChannelRecommendation = () => {
                   setModalVisible(false);
                 }}
                 loading={submitting}
-                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                className="w-full h-12 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-base font-medium"
+                size="large"
               >
-                {t("submit")}
+                {submitting ? t("submitting") : t("submit")}
+              </Button>
+              <Button
+                onClick={() => setModalVisible(false)}
+                className="w-full h-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                size="large"
+              >
+                {t("cancel")}
               </Button>
             </div>
           </div>
-        </Modal>
-      </div>
-    </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 

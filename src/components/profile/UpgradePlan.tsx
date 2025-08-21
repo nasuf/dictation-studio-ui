@@ -1058,7 +1058,301 @@ export const UpgradePlan: React.FC = () => {
     fetchUserPlan();
   }, [userInfo, dispatch]);
 
-  return (
+  // 移动端渲染函数
+  const renderMobileView = () => (
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* 移动端标题栏 */}
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex items-center">
+          <button 
+            onClick={() => navigate(-1)}
+            className="mr-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {t("choosePlanTitle")}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("choosePlanDescription")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 移动端标签页 */}
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab("code")}
+            className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "code"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <KeyOutlined className="text-base" />
+              <span>{t("activateWithCode")}</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("plans")}
+            className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "plans"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <CreditCardOutlined className="text-base" />
+              <span>{t("purchasePlans")}</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "history"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <CreditCardOutlined className="text-base" />
+              <span className="hidden xs:inline">{t("paymentHistory")}</span>
+              <span className="xs:hidden">{t("history")}</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 移动端内容区域 */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* 激活码标签页 */}
+        {activeTab === "code" && (
+          <div className="max-w-sm mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                  <KeyOutlined className="text-2xl text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {t("redeemMembershipCode")}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t("enterVerificationCodeBelow")}
+                </p>
+              </div>
+
+              <Form form={verifyForm} layout="vertical">
+                <Form.Item
+                  name="code"
+                  label={<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("verificationCode")}</span>}
+                  rules={[{ required: true, message: t("pleaseEnterVerificationCode") }]}
+                >
+                  <Input
+                    placeholder={t("enterVerificationCode")}
+                    className="dark:bg-gray-700 dark:text-white"
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item className="mb-4">
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleVerifyCode}
+                    loading={isVerifying}
+                    className="w-full h-12 text-base font-medium"
+                  >
+                    {t("activateMembership")}
+                  </Button>
+                </Form.Item>
+              </Form>
+
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                {t("verificationCodeDescription")}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 套餐选择标签页 */}
+        {activeTab === "plans" && (
+          <div>
+            {!selectedPlan ? (
+              <div className="space-y-4">
+                {ZPAY_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className={`relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50 ${
+                      currentPlan?.name === plan.id ? 'border-blue-500 dark:border-blue-400' : ''
+                    }`}
+                  >
+                    {currentPlan?.name === plan.id && (
+                      <div className="absolute -top-2 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                        {t("current")}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {t(plan.title)}
+                        </h3>
+                        <div className="flex items-baseline mt-1">
+                          <span className="text-2xl font-bold text-gray-900 dark:text-white">¥{plan.price}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/{t(plan.duration)}</span>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {plan.id !== USER_PLAN.FREE && currentPlan?.name !== plan.id && (
+                          <button
+                            onClick={() => handleSelectPlan(plan.id)}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+                          >
+                            {t("selectPlan")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {currentPlan?.name === plan.id && (currentPlan?.nextPaymentTime || currentPlan?.expireTime) && (
+                      <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div className="flex items-center text-sm text-orange-700 dark:text-orange-400">
+                          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span>
+                            {currentPlan?.nextPaymentTime ? t("nextPayment") : t("expireTime")}: {" "}
+                            {formatTimestamp(currentPlan.nextPaymentTime || currentPlan.expireTime!, "date")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      {plan.features.map((feature, index) => (
+                        <div key={index} className="flex items-start space-x-3">
+                          {feature.included ? (
+                            <CheckIcon className="h-4 w-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <XMarkIcon className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          )}
+                          <span className={`text-sm ${
+                            feature.included
+                              ? "text-gray-900 dark:text-gray-100"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}>
+                            {t(feature.feature)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* 选中的套餐卡片 */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-blue-500 dark:border-blue-400">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {t(ZPAY_PLANS.find((p) => p.id === selectedPlan)?.title || "")}
+                      </h3>
+                      <div className="flex items-baseline mt-1">
+                        <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                          ¥{ZPAY_PLANS.find((p) => p.id === selectedPlan)?.price}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                          /{t(ZPAY_PLANS.find((p) => p.id === selectedPlan)?.duration || "")}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedPlan(null)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 支付选项 */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                  <PaymentOptions
+                    onSelect={handleSelectPayment}
+                    planPrice={ZPAY_PLANS.find((p) => p.id === selectedPlan)?.price || 0}
+                    zpayPrice={ZPAY_PLANS.find((p) => p.id === selectedPlan)?.price || 0}
+                    isLoading={isLoading}
+                    selectedPayment={selectedPayment}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 支付历史标签页 */}
+        {activeTab === "history" && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              {t("paymentHistory")}
+            </h3>
+            {paymentHistoryLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <LoadingOutlined className="text-2xl text-blue-500" />
+              </div>
+            ) : paymentHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400 mb-2">
+                  <CreditCardOutlined className="text-3xl" />
+                </div>
+                <p className="text-gray-500 dark:text-gray-400">{t("noPaymentHistory")}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {paymentHistory.map((order) => (
+                  <div key={order.orderId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">{order.planName}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {t("orderId")}: {order.orderId}
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${
+                        order.status === 'paid' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                      }`}>
+                        {order.status}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">¥{order.amount}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {order.paidAt ? formatTimestamp(order.paidAt, "date") : formatTimestamp(order.createdAt, "date")}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // 桌面端渲染函数
+  const renderDesktopView = () => (
     <ScrollableContainer>
       <div className="text-center mb-8 mt-8">
         <h2 className="text-3xl font-bold mb-2 dark:text-white">
@@ -1069,7 +1363,7 @@ export const UpgradePlan: React.FC = () => {
         </p>
       </div>
 
-      <div className="w-full px-2 md:px-8 mb-8">
+        <div className="w-full px-2 md:px-8 mb-8">
         {/* Custom tab component with better dark mode support */}
         <div className="flex justify-center mb-6">
           <div className="relative flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 shadow-md">
@@ -1454,5 +1748,19 @@ export const UpgradePlan: React.FC = () => {
         </div>
       </Modal>
     </ScrollableContainer>
+  );
+
+  return (
+    <>
+      {/* 大屏幕版本 - 768px及以上 */}
+      <div className="hidden md:block h-full">
+        {renderDesktopView()}
+      </div>
+      
+      {/* 小屏幕版本 - 768px以下 */}
+      <div className="block md:hidden h-full">
+        {renderMobileView()}
+      </div>
+    </>
   );
 };

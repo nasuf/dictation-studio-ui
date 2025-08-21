@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { RootState } from "@/redux/store";
 import { api } from "@/api/api";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,7 @@ import { formatTimestamp } from "../../utils/util";
 
 const Information: React.FC = () => {
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
   const [dailyDurations, setDailyDurations] = useState<DailyDuration[]>([]);
@@ -361,6 +363,145 @@ const Information: React.FC = () => {
                 ))}
               </div>
               <span className="text-gray-500 dark:text-gray-400 ml-2">{t("more")}</span>
+            </div>
+          </div>
+
+          {/* 移动端菜单选项 */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex items-center mb-4">
+              <div className="w-6 h-6 mr-2 flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 rounded">
+                <span className="text-indigo-600 dark:text-indigo-400 text-sm">⚙️</span>
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                {t("profileSettings")}
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              {/* 套餐升级 */}
+              <button
+                onClick={() => navigate("/profile/upgrade-plan")}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50 hover:from-purple-100 hover:to-indigo-100 dark:hover:from-purple-900/30 dark:hover:to-indigo-900/30 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 mr-3 flex items-center justify-center bg-purple-100 dark:bg-purple-900/40 rounded-xl">
+                    <span className="text-purple-600 dark:text-purple-400 text-lg">💎</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("upgradePlan")}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t("upgradePlanDesc")}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-purple-600 dark:text-purple-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* 频道推荐 */}
+              <button
+                onClick={() => navigate("/profile/channel-recommendation")}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-900/30 dark:hover:to-cyan-900/30 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 mr-3 flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 rounded-xl">
+                    <span className="text-blue-600 dark:text-blue-400 text-lg">📺</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("channelRecommendation")}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t("channelRecommendationDesc")}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-blue-600 dark:text-blue-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* 问题反馈 */}
+              <button
+                onClick={() => navigate("/profile/feedback")}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200/50 dark:border-green-700/50 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 mr-3 flex items-center justify-center bg-green-100 dark:bg-green-900/40 rounded-xl">
+                    <span className="text-green-600 dark:text-green-400 text-lg">💬</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("feedback")}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t("feedbackDesc")}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-green-600 dark:text-green-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* 错误报告 */}
+              <button
+                onClick={() => navigate("/profile/video-error-reports")}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl border border-orange-200/50 dark:border-orange-700/50 hover:from-orange-100 hover:to-yellow-100 dark:hover:from-orange-900/30 dark:hover:to-yellow-900/30 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 mr-3 flex items-center justify-center bg-orange-100 dark:bg-orange-900/40 rounded-xl">
+                    <span className="text-orange-600 dark:text-orange-400 text-lg">⚠️</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("videoErrorReports")}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t("videoErrorReportsDesc")}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-orange-600 dark:text-orange-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* 赞赏开发者 */}
+              <button
+                onClick={() => navigate("/profile/reward-developer")}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-xl border border-pink-200/50 dark:border-pink-700/50 hover:from-pink-100 hover:to-rose-100 dark:hover:from-pink-900/30 dark:hover:to-rose-900/30 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <div className="w-10 h-10 mr-3 flex items-center justify-center bg-pink-100 dark:bg-pink-900/40 rounded-xl">
+                    <span className="text-pink-600 dark:text-pink-400 text-lg">❤️</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("rewardDeveloper")}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t("rewardDeveloperDesc")}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-pink-600 dark:text-pink-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
             </div>
           </div>
         </div>
