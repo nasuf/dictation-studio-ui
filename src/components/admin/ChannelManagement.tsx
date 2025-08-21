@@ -920,64 +920,68 @@ const ChannelManagement: React.FC = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col p-2 sm:p-4 md:p-6">
+    <div className="p-4 sm:p-6 lg:p-8">
       <Card
-        className="flex-grow overflow-hidden dark:bg-gray-800 dark:text-white shadow-sm border-0 dark:border-gray-700"
+        className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <div className="text-base sm:text-lg font-semibold dark:text-white">
-              Channel Management | Total: {channels.length}
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
-              <Button
-                type="primary"
-                onClick={() => setIsAddChannelModalVisible(true)}
-                className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 text-xs sm:text-sm"
-                size="small"
-              >
-                Add Channel
-              </Button>
-              <Button
-                type="primary"
-                onClick={() => fetchChannels()}
-                className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 text-xs sm:text-sm"
-                size="small"
-              >
-                Refresh
-              </Button>
-              <Button
-                type="primary"
-                onClick={() => setIsChannelRecommendationModalVisible(true)}
-                className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 text-xs sm:text-sm"
-                size="small"
-              >
-                Recommendations
-              </Button>
-            </div>
+          <div className="text-xl font-semibold dark:text-white">
+            Channel Management | Total: {channels.length}
           </div>
         }
-        bodyStyle={{ height: "calc(100% - 80px)", padding: 0 }}
+        extra={
+          <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
+            <Button
+              type="primary"
+              onClick={() => setIsAddChannelModalVisible(true)}
+              className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 text-xs sm:text-sm"
+              size="small"
+            >
+              Add Channel
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => fetchChannels()}
+              className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 text-xs sm:text-sm"
+              size="small"
+            >
+              Refresh
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => setIsChannelRecommendationModalVisible(true)}
+              className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 text-xs sm:text-sm"
+              size="small"
+            >
+              Recommendations
+            </Button>
+          </div>
+        }
       >
-        <div className="h-full overflow-auto p-2 sm:p-4">
-          <Table
-            columns={columns}
-            dataSource={channels}
-            rowKey="id"
-            loading={isLoading}
-            scroll={{ x: 1200 }}
-            size="small"
-            className="[&_.ant-table-thead>tr>th]:text-xs [&_.ant-table-tbody>tr>td]:text-xs"
-            pagination={{
-              responsive: true,
-              showSizeChanger: false,
-              showQuickJumper: false,
-              showTotal: (total, range) =>
-                window.innerWidth > 640
-                  ? `${range[0]}-${range[1]} of ${total} items`
-                  : `${range[0]}-${range[1]}/${total}`,
-              pageSize: window.innerWidth > 640 ? 10 : 5,
-            }}
-          />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={channels}
+              rowKey="id"
+              loading={isLoading}
+              scroll={{
+                y: window.innerWidth < 768 ? 400 : 500,
+                x: window.innerWidth < 768 ? 800 : 1200,
+              }}
+              size={window.innerWidth < 768 ? "small" : "middle"}
+              className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
+              pagination={{
+                responsive: true,
+                showSizeChanger: false,
+                showQuickJumper: false,
+                showTotal: (total, range) =>
+                  window.innerWidth > 640
+                    ? `${range[0]}-${range[1]} of ${total} items`
+                    : `${range[0]}-${range[1]}/${total}`,
+                pageSize: window.innerWidth > 640 ? 10 : 5,
+              }}
+            />
+          </div>
         </div>
       </Card>
       {/* Add Channel Modal */}

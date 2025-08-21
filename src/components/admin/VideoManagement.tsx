@@ -1217,7 +1217,7 @@ const VideoManagement: React.FC = () => {
             // 播放完成
             setCurrentPlayingIndex(null);
             setIsContinuousPlay(false);
-                  return;
+            return;
           }
 
           const segment = currentTranscript[index];
@@ -1242,7 +1242,7 @@ const VideoManagement: React.FC = () => {
         message.error("Failed to start continuous playback");
         setCurrentPlayingIndex(null);
         setIsContinuousPlay(false);
-        }
+      }
     },
     [playbackController, youtubePlayer, currentTranscript, isContinuousPlay]
   );
@@ -4024,7 +4024,7 @@ const VideoManagement: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      
+
                       <Typography.Text className="text-gray-700 dark:text-gray-300 text-xs">
                         Speed:
                       </Typography.Text>
