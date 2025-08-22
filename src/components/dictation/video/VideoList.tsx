@@ -39,6 +39,11 @@ const VideoList: React.FC<VideoListProps> = ({ progressFilter = "all" }) => {
   const [searchValue, setSearchValue] = useState("");
   const [progressFilterState, setProgressFilterState] = useState(progressFilter);
 
+  // Update local filter state when prop changes
+  useEffect(() => {
+    setProgressFilterState(progressFilter);
+  }, [progressFilter]);
+
   // Get channel name from Redux state
   const channelName = useSelector((state: RootState) => state.navigation.channelName) || location.state?.name;
 

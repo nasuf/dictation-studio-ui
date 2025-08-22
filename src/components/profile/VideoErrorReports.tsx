@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Tag,
-  Button,
-  Modal,
-  message,
-  Card,
-  Descriptions,
-  Empty,
-  List,
-} from "antd";
+import { Table, Tag, Button, Modal, message, Card, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   ExclamationCircleOutlined,
@@ -152,12 +142,22 @@ const UserVideoErrorReports: React.FC = () => {
           <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <button 
+                <button
                   onClick={() => navigate(-1)}
                   className="mr-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <div className="flex items-center">
@@ -198,12 +198,22 @@ const UserVideoErrorReports: React.FC = () => {
         <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <button 
+              <button
                 onClick={() => navigate(-1)}
                 className="mr-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
               <div className="flex items-center">
@@ -255,18 +265,26 @@ const UserVideoErrorReports: React.FC = () => {
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                         <div className="flex items-center">
-                          <span className="w-16 inline-block">{t("channel")}:</span>
+                          <span className="w-16 inline-block">
+                            {t("channel")}:
+                          </span>
                           <span className="truncate">{report.channelName}</span>
                         </div>
                         <div className="flex items-center">
-                          <span className="w-16 inline-block">{t("type")}:</span>
+                          <span className="w-16 inline-block">
+                            {t("type")}:
+                          </span>
                           <Tag color="blue" className="text-xs">
                             {getErrorTypeLabel(report.errorType)}
                           </Tag>
                         </div>
                         <div className="flex items-center">
-                          <span className="w-16 inline-block">{t("time")}:</span>
-                          <span>{formatTimestamp(report.timestamp, "date")}</span>
+                          <span className="w-16 inline-block">
+                            {t("time")}:
+                          </span>
+                          <span>
+                            {formatTimestamp(report.timestamp, "date")}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -277,7 +295,7 @@ const UserVideoErrorReports: React.FC = () => {
                       <EyeOutlined />
                     </button>
                   </div>
-                  
+
                   {report.description && (
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mt-3">
                       <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -374,14 +392,10 @@ const UserVideoErrorReports: React.FC = () => {
   return (
     <>
       {/* 大屏幕版本 - 768px及以上 */}
-      <div className="hidden md:block h-full">
-        {renderDesktopView()}
-      </div>
-      
+      <div className="hidden md:block h-full">{renderDesktopView()}</div>
+
       {/* 小屏幕版本 - 768px以下 */}
-      <div className="block md:hidden h-full">
-        {renderMobileView()}
-      </div>
+      <div className="block md:hidden h-full">{renderMobileView()}</div>
 
       {/* Detail Modal - 移动端优化 */}
       <Modal
@@ -394,8 +408,8 @@ const UserVideoErrorReports: React.FC = () => {
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={[
-          <Button 
-            key="close" 
+          <Button
+            key="close"
             onClick={() => setDetailModalVisible(false)}
             className="w-full md:w-auto"
             size="large"
@@ -417,23 +431,36 @@ const UserVideoErrorReports: React.FC = () => {
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("reportId")}:</span>
-                    <span className="text-gray-900 dark:text-white font-mono text-xs">{selectedReport.id}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("reportId")}:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-mono text-xs">
+                      {selectedReport.id}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("status")}:</span>
-                    <Tag color={getStatusColor(selectedReport.status)} className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("status")}:
+                    </span>
+                    <Tag
+                      color={getStatusColor(selectedReport.status)}
+                      className="text-xs"
+                    >
                       {t(selectedReport.status)}
                     </Tag>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("errorType")}:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("errorType")}:
+                    </span>
                     <Tag color="blue" className="text-xs">
                       {getErrorTypeLabel(selectedReport.errorType)}
                     </Tag>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("reportTime")}:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("reportTime")}:
+                    </span>
                     <span className="text-gray-900 dark:text-white text-xs">
                       {formatTimestamp(selectedReport.timestamp, "locale")}
                     </span>
@@ -447,21 +474,37 @@ const UserVideoErrorReports: React.FC = () => {
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400">{t("channelName")}:</span>
-                    <p className="text-gray-900 dark:text-white mt-1">{selectedReport.channelName}</p>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("channelName")}:
+                    </span>
+                    <p className="text-gray-900 dark:text-white mt-1">
+                      {selectedReport.channelName}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400">{t("videoTitle")}:</span>
-                    <p className="text-gray-900 dark:text-white mt-1">{selectedReport.videoTitle}</p>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("videoTitle")}:
+                    </span>
+                    <p className="text-gray-900 dark:text-white mt-1">
+                      {selectedReport.videoTitle}
+                    </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400 text-xs">{t("channelId")}:</span>
-                      <p className="text-gray-900 dark:text-white font-mono text-xs mt-1">{selectedReport.channelId}</p>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs">
+                        {t("channelId")}:
+                      </span>
+                      <p className="text-gray-900 dark:text-white font-mono text-xs mt-1">
+                        {selectedReport.channelId}
+                      </p>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400 text-xs">{t("videoId")}:</span>
-                      <p className="text-gray-900 dark:text-white font-mono text-xs mt-1">{selectedReport.videoId}</p>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs">
+                        {t("videoId")}:
+                      </span>
+                      <p className="text-gray-900 dark:text-white font-mono text-xs mt-1">
+                        {selectedReport.videoId}
+                      </p>
                     </div>
                   </div>
                 </div>
