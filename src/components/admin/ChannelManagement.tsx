@@ -929,31 +929,30 @@ const ChannelManagement: React.FC = () => {
           </div>
         }
         extra={
-          <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
-            <Button
-              type="primary"
-              onClick={() => setIsAddChannelModalVisible(true)}
-              className="bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600 text-xs sm:text-sm"
-              size="small"
-            >
-              Add Channel
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => fetchChannels()}
-              className="bg-blue-500 hover:bg-blue-600 border-blue-500 hover:border-blue-600 text-xs sm:text-sm"
-              size="small"
-            >
-              Refresh
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => setIsChannelRecommendationModalVisible(true)}
-              className="bg-purple-500 hover:bg-purple-600 border-purple-500 hover:border-purple-600 text-xs sm:text-sm"
-              size="small"
-            >
-              Recommendations
-            </Button>
+          <div className="w-full">
+            <div className="hidden lg:flex items-center gap-2 flex-wrap">
+              <Button
+                type="primary"
+                onClick={() => setIsAddChannelModalVisible(true)}
+                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+              >
+                Add Channel
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => fetchChannels()}
+                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+              >
+                Refresh
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => setIsChannelRecommendationModalVisible(true)}
+                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
+              >
+                Recommendations
+              </Button>
+            </div>
           </div>
         }
       >

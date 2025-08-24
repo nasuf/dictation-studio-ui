@@ -1817,7 +1817,7 @@ const UserManagement: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
+
             {/* Desktop Layout */}
             <div className="hidden lg:flex items-center gap-2 flex-wrap">
               <Button
@@ -1826,7 +1826,7 @@ const UserManagement: React.FC = () => {
                 loading={isRefreshing}
                 className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:border-blue-600"
               >
-                Refresh User List
+                Refresh
               </Button>
               <Button
                 type="primary"
@@ -1885,13 +1885,13 @@ const UserManagement: React.FC = () => {
                 y: window.innerWidth < 768 ? 400 : 500,
                 x: window.innerWidth < 768 ? 800 : 1200,
               }}
-              size={window.innerWidth < 768 ? 'small' : 'middle'}
+              size={window.innerWidth < 768 ? "small" : "middle"}
               className="w-full min-w-full dark:text-white [&_.ant-table]:dark:bg-gray-800 [&_.ant-table-thead>tr>th]:dark:bg-gray-700 [&_.ant-table-thead>tr>th]:dark:text-white [&_.ant-table-tbody>tr>td]:dark:bg-gray-800 [&_.ant-table-tbody>tr>td]:dark:text-white [&_.ant-table-tbody>tr:hover>td]:dark:bg-gray-700 [&_.ant-pagination]:dark:text-white [&_.ant-pagination-item]:dark:bg-gray-700 [&_.ant-pagination-item]:dark:border-gray-600 [&_.ant-pagination-item>a]:dark:text-white [&_.ant-pagination-item-active]:dark:bg-blue-600 [&_.ant-pagination-item-active]:dark:border-blue-600 [&_.ant-select-selector]:dark:bg-gray-700 [&_.ant-select-selector]:dark:border-gray-600 [&_.ant-select-selector]:dark:text-white [&_.ant-checkbox-wrapper]:dark:text-white [&_.ant-checkbox]:dark:border-gray-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:bg-blue-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:dark:border-blue-600"
               pagination={{
                 showSizeChanger: true,
                 showQuickJumper: window.innerWidth >= 768,
-                showTotal: (total, range) => 
-                  window.innerWidth >= 768 
+                showTotal: (total, range) =>
+                  window.innerWidth >= 768
                     ? `${range[0]}-${range[1]} of ${total} items`
                     : `${total} total`,
                 responsive: true,

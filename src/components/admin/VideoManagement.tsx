@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Form,
   Select,
@@ -13,7 +13,9 @@ import {
   Progress,
   Typography,
   Tag,
+  FormInstance,
 } from "antd";
+import type { ColumnType } from "antd/es/table";
 import {
   MinusCircleOutlined,
   PlusOutlined,
@@ -39,6 +41,7 @@ import {
   CloseOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
@@ -62,6 +65,68 @@ import {
 
 const { Option } = Select;
 
+interface VideoFormValues {
+  video_links: Array<{
+    link: string;
+    title: string;
+  }>;
+}
+
+interface AnalyticsData {
+  channels: Array<{
+    channel_id: string;
+    channel_name: string;
+    video_count: number;
+    refined_count: number;
+    total_videos: number;
+    public_videos: number;
+    private_videos: number;
+    refined_videos: number;
+  }>;
+  summary?: {
+    total_videos: number;
+    public_videos: number;
+    private_videos: number;
+    refined_videos: number;
+  };
+  timestamp?: string;
+}
+
+interface FilterDropdownProps {
+  setSelectedKeys: (keys: React.Key[]) => void;
+  selectedKeys: React.Key[];
+  confirm: () => void;
+  clearFilters?: () => void;
+}
+
+interface BatchResult {
+  video_id: string;
+  title: string;
+  status: "pending" | "processing" | "success" | "error";
+  message?: string;
+  originalCount?: number;
+  mergedCount?: number;
+  totalChanges?: number;
+  filterStats?: { [filterText: string]: number };
+}
+
+interface TranscriptSummary {
+  video_id: string;
+  title: string;
+  transcript_count: number;
+  has_original: boolean;
+  last_updated?: string;
+  is_refined?: boolean;
+  refined_at?: number;
+}
+
+interface VideoUploadData {
+  channel_id: string;
+  video_link: string;
+  title: string;
+  visibility: string;
+}
+
 const extractVideoId = (url: string): string => {
   if (!url) return "";
   try {
@@ -78,11 +143,11 @@ const extractVideoId = (url: string): string => {
 const fetchVideoTitle = async (
   videoLink: string,
   fieldIndex: number,
-  form: any,
+  form: FormInstance,
   setLoadingStates?: React.Dispatch<
     React.SetStateAction<{ [key: string]: boolean }>
   >,
-  translateFn?: Function
+  translateFn?: (key: string) => string
 ) => {
   if (!videoLink) {
     return;
@@ -130,9 +195,9 @@ const fetchVideoTitle = async (
 };
 
 const AddVideosForm: React.FC<{
-  onFinish: (values: any) => void;
+  onFinish: (values: VideoFormValues) => void;
   isLoading: boolean;
-  form: any;
+  form: FormInstance<VideoFormValues>;
   handleSrtUpload: (videoLink: string, file: File) => void;
   srtFiles: { [key: string]: File };
   setSrtFiles: React.Dispatch<React.SetStateAction<{ [key: string]: File }>>;
@@ -152,13 +217,13 @@ const AddVideosForm: React.FC<{
     [key: string]: "success" | "error" | "loading" | null;
   }>({});
 
-  const debouncedFetchTitle = useCallback(
-    _.debounce((videoLink: string, fieldIndex: number) => {
+  const debouncedFetchTitle = useMemo(
+    () => _.debounce((videoLink: string, fieldIndex: number) => {
       if (videoLink) {
         fetchVideoTitle(videoLink, fieldIndex, form, setTitleLoadingStates, t);
       }
     }, 1000),
-    [form, t]
+    [form, t, setTitleLoadingStates]
   );
 
   const openSubtitleDownloader = (videoLink: string) => {
@@ -981,6 +1046,11 @@ const VideoManagement: React.FC = () => {
     useState<string>("private");
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
 
+  // Video analytics related state
+  const [isAnalyticsModalVisible, setIsAnalyticsModalVisible] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+
   useEffect(() => {
     fetchChannels();
   }, []);
@@ -991,12 +1061,33 @@ const VideoManagement: React.FC = () => {
     }
   }, [selectedChannel, selectedLanguage]);
 
+  const loadFilters = useCallback(async () => {
+    if (!selectedChannel) {
+      return;
+    }
+
+    try {
+      const response = await api.getTranscriptFilters(selectedChannel);
+
+      // API function already returns response.data, so response = {channel_id: "...", filters: [...]}
+      let filtersData = [];
+      if (response && Array.isArray(response.filters)) {
+        filtersData = response.filters;
+      }
+
+      setFilters(filtersData);
+    } catch (error) {
+      console.error("Error loading filters:", error);
+      setFilters([]); // Set empty array on error
+    }
+  }, [selectedChannel]);
+
   // Load filters when modal opens (only one useEffect needed)
   useEffect(() => {
     if (isModalVisible && selectedChannel) {
       loadFilters();
     }
-  }, [isModalVisible, selectedChannel]);
+  }, [isModalVisible, selectedChannel, loadFilters]);
 
   const fetchChannels = async () => {
     try {
@@ -1013,6 +1104,25 @@ const VideoManagement: React.FC = () => {
     } catch (error) {
       console.error("Error fetching channels:", error);
       message.error("Failed to fetch channels");
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    // 先显示modal
+    setIsAnalyticsModalVisible(true);
+    setIsLoadingAnalytics(true);
+    setAnalyticsData(null); // 清空之前的数据
+    
+    try {
+      const response = await api.getVideoAnalytics();
+      setAnalyticsData(response.data);
+      message.success("Analytics loaded successfully");
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      message.error("Failed to fetch analytics");
+      setIsAnalyticsModalVisible(false); // 如果失败，关闭modal
+    } finally {
+      setIsLoadingAnalytics(false);
     }
   };
 
@@ -1867,9 +1977,9 @@ const VideoManagement: React.FC = () => {
 
   const isEditing = (record: Video | TranscriptItem): boolean => {
     if ("video_id" in record) {
-      return record.video_id === editingKey;
+      return record.video_id === String(editingKey);
     } else {
-      return `${record.start}-${record.end}` === editingKey;
+      return `${record.start}-${record.end}` === String(editingKey);
     }
   };
 
@@ -1898,9 +2008,10 @@ const VideoManagement: React.FC = () => {
       setIsUpdatingVideo(true);
 
       const updatedFields: Partial<Video> = {};
-      (Object.keys(values) as Array<keyof Video>).forEach((field) => {
-        if (values[field] !== editingVideo[field]) {
-          (updatedFields as any)[field] = values[field];
+      (Object.keys(values) as Array<keyof Partial<Video>>).forEach((field) => {
+        const key = field as keyof Video;
+        if (values[field] !== editingVideo[key]) {
+          (updatedFields as Record<string, unknown>)[key] = values[field];
         }
       });
 
@@ -2187,7 +2298,7 @@ const VideoManagement: React.FC = () => {
     });
   };
 
-  const columns = [
+  const columns: ColumnType<Video>[] = [
     {
       title: "Video ID",
       dataIndex: "video_id",
@@ -2198,7 +2309,7 @@ const VideoManagement: React.FC = () => {
         selectedKeys,
         confirm,
         clearFilters,
-      }: any) => (
+      }: FilterDropdownProps) => (
         <div
           className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
           onKeyDown={(e) => e.stopPropagation()}
@@ -2223,7 +2334,7 @@ const VideoManagement: React.FC = () => {
               Search
             </Button>
             <Button
-              onClick={() => clearFilters()}
+              onClick={() => clearFilters?.()}
               size="small"
               className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
             >
@@ -2241,11 +2352,11 @@ const VideoManagement: React.FC = () => {
           }`}
         />
       ),
-      onFilter: (value: any, record: Video) =>
+      onFilter: (value: string | number | boolean | bigint, record: Video) =>
         record.video_id
           ?.toString()
           .toLowerCase()
-          .includes(value.toLowerCase()) || false,
+          .includes(String(value).toLowerCase()) || false,
       render: (text: string, record: Video) => (
         <span
           className={`font-mono text-sm ${
@@ -2268,7 +2379,7 @@ const VideoManagement: React.FC = () => {
         selectedKeys,
         confirm,
         clearFilters,
-      }: any) => (
+      }: FilterDropdownProps) => (
         <div
           className="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600"
           onKeyDown={(e) => e.stopPropagation()}
@@ -2293,7 +2404,7 @@ const VideoManagement: React.FC = () => {
               Search
             </Button>
             <Button
-              onClick={() => clearFilters()}
+              onClick={() => clearFilters?.()}
               size="small"
               className="w-20 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
             >
@@ -2311,8 +2422,8 @@ const VideoManagement: React.FC = () => {
           }`}
         />
       ),
-      onFilter: (value: any, record: Video) =>
-        record.title?.toString().toLowerCase().includes(value.toLowerCase()) ||
+      onFilter: (value: string | number | boolean | bigint, record: Video) =>
+        record.title?.toString().toLowerCase().includes(String(value).toLowerCase()) ||
         false,
       render: (text: string, record: Video) => (
         <span
@@ -2394,7 +2505,7 @@ const VideoManagement: React.FC = () => {
         { text: "Yes", value: true },
         { text: "No", value: false },
       ],
-      onFilter: (value: any, record: Video) => record.is_refined === value,
+      onFilter: (value: boolean | string | number | bigint, record: Video) => record.is_refined === Boolean(value),
     },
     {
       title: "Refined At",
@@ -2419,12 +2530,12 @@ const VideoManagement: React.FC = () => {
       key: "visibility",
       width: "15%",
       filters: Object.entries(VISIBILITY_OPTIONS)
-        .filter(([_, value]) => value !== "all")
+        .filter(([, value]) => value !== "all")
         .map(([key, value]) => ({
           text: key,
           value: value,
         })),
-      onFilter: (value: any, record: Video) => record.visibility === value,
+      onFilter: (value: string | number | boolean | bigint, record: Video) => record.visibility === String(value),
       render: (visibility: string, record: Video) => (
         <Select
           value={visibility}
@@ -2451,7 +2562,7 @@ const VideoManagement: React.FC = () => {
           className="video-visibility-select"
         >
           {Object.entries(VISIBILITY_OPTIONS)
-            .filter(([_, value]) => value !== "all")
+            .filter(([, value]) => value !== "all")
             .map(([key, value]) => (
               <Option key={value} value={value} className="visibility-option">
                 {key}
@@ -2771,7 +2882,7 @@ const VideoManagement: React.FC = () => {
             ...prev,
             results: prev.results.map((progressResult) => {
               const updateResult = result.results?.find(
-                (r: any) => r.video_id === progressResult.video_id
+                (r: BatchResult) => r.video_id === progressResult.video_id
               );
               const needsUpdate = videosToUpdate.some(
                 (v) => v.video_id === progressResult.video_id
@@ -2849,7 +2960,7 @@ const VideoManagement: React.FC = () => {
       const summaries = summaryResponse.summaries || [];
 
       // Transform the data to match our component's expected format
-      const transformedSummary = summaries.map((summary: any) => ({
+      const transformedSummary = summaries.map((summary: TranscriptSummary) => ({
         video_id: summary.video_id,
         title: summary.title,
         transcriptCount: summary.transcript_count,
@@ -2928,7 +3039,7 @@ const VideoManagement: React.FC = () => {
             processing: 0,
             results: prev.results.map((progressResult) => {
               const restoreResult = result.results?.find(
-                (r: any) => r.video_id === progressResult.video_id
+                (r: BatchResult) => r.video_id === progressResult.video_id
               );
 
               if (restoreResult) {
@@ -3039,7 +3150,7 @@ const VideoManagement: React.FC = () => {
             processing: 0,
             results: prev.results.map((progressResult) => {
               const apiResult = result.results?.find(
-                (r: any) => r.video_id === progressResult.video_id
+                (r: BatchResult) => r.video_id === progressResult.video_id
               );
 
               if (apiResult) {
@@ -3151,26 +3262,6 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-  const loadFilters = async () => {
-    if (!selectedChannel) {
-      return;
-    }
-
-    try {
-      const response = await api.getTranscriptFilters(selectedChannel);
-
-      // API function already returns response.data, so response = {channel_id: "...", filters: [...]}
-      let filtersData = [];
-      if (response && Array.isArray(response.filters)) {
-        filtersData = response.filters;
-      }
-
-      setFilters(filtersData);
-    } catch (error) {
-      console.error("Error loading filters:", error);
-      setFilters([]); // Set empty array on error
-    }
-  };
 
   const applyAllFilters = async () => {
     if (filters.length === 0) {
@@ -3275,7 +3366,6 @@ const VideoManagement: React.FC = () => {
         });
 
         try {
-          let processedCount = 0;
           let successCount = 0;
           let errorCount = 0;
           const BATCH_SIZE = 5; // Process 5 videos at a time as requested
@@ -3314,7 +3404,7 @@ const VideoManagement: React.FC = () => {
                 processing: 0,
                 results: prev.results.map((progressResult) => {
                   const apiResult = response.results?.find(
-                    (r: any) => r.video_id === progressResult.video_id
+                    (r: BatchResult) => r.video_id === progressResult.video_id
                   );
 
                   if (apiResult) {
@@ -3338,7 +3428,6 @@ const VideoManagement: React.FC = () => {
                 }),
               }));
 
-              processedCount += batch.length;
 
               // Small delay between batches to prevent overwhelming the server
               if (i + BATCH_SIZE < videosWithTranscripts.length) {
@@ -3373,7 +3462,6 @@ const VideoManagement: React.FC = () => {
                 }),
               }));
 
-              processedCount += batch.length;
             }
           }
 
@@ -3475,7 +3563,7 @@ const VideoManagement: React.FC = () => {
 
   // Helper function to create FormData for a batch of videos
   const createBatchFormData = (
-    videoBatch: any[],
+    videoBatch: VideoUploadData[],
     batchSrtFiles: { [key: string]: File }
   ) => {
     const formData = new FormData();
@@ -3495,7 +3583,7 @@ const VideoManagement: React.FC = () => {
 
   // Helper function to upload a single batch
   const uploadBatch = async (
-    videoBatch: any[],
+    videoBatch: VideoUploadData[],
     batchIndex: number,
     batchSrtFiles: { [key: string]: File }
   ) => {
@@ -3525,7 +3613,7 @@ const VideoManagement: React.FC = () => {
         processing: prev.processing - videoBatch.length,
         results: prev.results.map((result) => {
           const apiResult = res.results?.find(
-            (r: any) => r.video_id === result.video_id
+            (r: BatchResult) => r.video_id === result.video_id
           );
           if (apiResult) {
             return {
@@ -3639,7 +3727,7 @@ const VideoManagement: React.FC = () => {
 
       // Split videos into batches of 5
       const BATCH_SIZE = 5;
-      const batches: any[][] = [];
+      const batches: VideoUploadData[][] = [];
       for (let i = 0; i < videoData.length; i += BATCH_SIZE) {
         batches.push(videoData.slice(i, i + BATCH_SIZE));
       }
@@ -3649,7 +3737,7 @@ const VideoManagement: React.FC = () => {
       );
 
       // Process batches sequentially to avoid overwhelming the server
-      const allResults: any[] = [];
+      const allResults: BatchResult[] = [];
       const allDuplicateIds: string[] = [];
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
@@ -3824,9 +3912,23 @@ const VideoManagement: React.FC = () => {
                   disabled={!selectedChannel || videos.length === 0}
                   icon={<EditOutlined />}
                   size="small"
-                  className="w-full sm:col-span-2"
+                  className="w-full"
                 >
                   Batch Visibility
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={fetchAnalytics}
+                  loading={isLoadingAnalytics}
+                  icon={<BarChartOutlined />}
+                  size="small"
+                  className="w-full"
+                  style={{
+                    backgroundColor: '#722ed1',
+                    borderColor: '#722ed1'
+                  }}
+                >
+                  Video Analytics
                 </Button>
               </div>
             </div>
@@ -3917,6 +4019,19 @@ const VideoManagement: React.FC = () => {
                 className="ml-2"
               >
                 Batch Visibility Update
+              </Button>
+              <Button
+                type="primary"
+                onClick={fetchAnalytics}
+                loading={isLoadingAnalytics}
+                icon={<BarChartOutlined />}
+                className="ml-2"
+                style={{
+                  backgroundColor: '#722ed1',
+                  borderColor: '#722ed1'
+                }}
+              >
+                Video Analytics
               </Button>
             </div>
           </div>
@@ -4471,7 +4586,7 @@ const VideoManagement: React.FC = () => {
           )}
         </div>
 
-        <Table
+        <Table<TranscriptSummaryItem>
           dataSource={transcriptSummary}
           loading={isLoadingTranscriptSummary}
           rowKey="video_id"
@@ -4547,7 +4662,7 @@ const VideoManagement: React.FC = () => {
               key: "action",
               width: "10%",
               align: "center",
-              render: (_: any, record: any) => (
+              render: (_: unknown, record: TranscriptSummaryItem) => (
                 <Button
                   type="primary"
                   size="small"
@@ -5024,7 +5139,7 @@ const VideoManagement: React.FC = () => {
           size="large"
         >
           {Object.entries(VISIBILITY_OPTIONS)
-            .filter(([_, value]) => value !== "all")
+            .filter(([, value]) => value !== "all")
             .map(([key, value]) => (
               <Option key={value} value={value}>
                 {key}
@@ -5090,7 +5205,7 @@ const VideoManagement: React.FC = () => {
               >
                 <Select className="dark:bg-gray-700">
                   {Object.entries(VISIBILITY_OPTIONS)
-                    .filter(([_, value]) => value !== "all")
+                    .filter(([, value]) => value !== "all")
                     .map(([key, value]) => (
                       <Option key={value} value={value}>
                         {key}
@@ -5146,6 +5261,256 @@ const VideoManagement: React.FC = () => {
             </div>
           </Form>
         </div>
+      </Modal>
+
+      {/* Video Analytics Modal */}
+      <Modal
+        title={
+          <div className="text-lg font-semibold dark:text-white flex items-center">
+            <BarChartOutlined className="mr-2 text-purple-600" />
+            Video Status Analytics
+          </div>
+        }
+        open={isAnalyticsModalVisible}
+        onCancel={() => setIsAnalyticsModalVisible(false)}
+        footer={null}
+        width={800}
+        className="dark:bg-gray-800"
+        style={{ top: 20 }}
+        bodyStyle={{ 
+          maxHeight: '70vh', 
+          overflow: 'auto',
+          paddingRight: '20px' // 给scrollbar留出间距
+        }}
+      >
+        <div className="dark:bg-gray-800 dark:text-white">
+          {isLoadingAnalytics ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center space-y-4">
+                <LoadingOutlined className="text-4xl text-purple-600 animate-spin" />
+                <div className="text-gray-600 dark:text-gray-300">Loading analytics data...</div>
+              </div>
+            </div>
+          ) : analyticsData ? (
+            <div className="space-y-6 pr-2">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {analyticsData.summary?.total_videos || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      Total Videos
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {analyticsData.summary?.public_videos || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      Public Videos
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {analyticsData.summary?.private_videos || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      Private Videos
+                    </div>
+                  </div>
+                </Card>
+                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {analyticsData.summary?.refined_videos || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      Refined Videos
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Progress Bars */}
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium dark:text-white">
+                      Refined Progress
+                    </span>
+                    <span className="text-sm font-semibold dark:text-white">
+                      {analyticsData.summary?.refined_videos || 0} / {analyticsData.summary?.total_videos || 0}
+                      <span className="ml-2 text-purple-600 dark:text-purple-400">
+                        {analyticsData.summary?.total_videos
+                          ? Math.round((analyticsData.summary.refined_videos / analyticsData.summary.total_videos) * 100)
+                          : 0}%
+                      </span>
+                    </span>
+                  </div>
+                  <Progress
+                    percent={
+                      analyticsData.summary?.total_videos
+                        ? Math.round((analyticsData.summary.refined_videos / analyticsData.summary.total_videos) * 100)
+                        : 0
+                    }
+                    strokeColor="#722ed1"
+                    trailColor="transparent"
+                    showInfo={false}
+                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium dark:text-white">
+                      Public Visibility
+                    </span>
+                    <span className="text-sm font-semibold dark:text-white">
+                      {analyticsData.summary?.public_videos || 0} / {analyticsData.summary?.total_videos || 0}
+                      <span className="ml-2 text-green-600 dark:text-green-400">
+                        {analyticsData.summary?.total_videos
+                          ? Math.round((analyticsData.summary.public_videos / analyticsData.summary.total_videos) * 100)
+                          : 0}%
+                      </span>
+                    </span>
+                  </div>
+                  <Progress
+                    percent={
+                      analyticsData.summary?.total_videos
+                        ? Math.round((analyticsData.summary.public_videos / analyticsData.summary.total_videos) * 100)
+                        : 0
+                    }
+                    strokeColor="#52c41a"
+                    trailColor="transparent"
+                    showInfo={false}
+                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
+                  />
+                </div>
+              </div>
+
+              {/* Channel Breakdown */}
+              {analyticsData.channels && analyticsData.channels.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white">
+                    Channel Breakdown
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm dark:text-white">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-600">
+                          <th className="text-left py-2 px-3">Channel</th>
+                          <th className="text-center py-2 px-3 w-16">Total</th>
+                          <th className="text-center py-2 px-3 w-16">Public</th>
+                          <th className="text-center py-2 px-3 w-16">Private</th>
+                          <th className="text-center py-2 px-3 w-16">Refined</th>
+                          <th className="text-center py-2 px-3 w-20">Progress</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analyticsData.channels.map((channel, index: number) => (
+                          <tr
+                            key={channel.channel_id || index}
+                            className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                          >
+                            <td className="py-2 px-3 font-medium">
+                              {channel.channel_name || channel.channel_id}
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="inline-block min-w-[44px]">
+                                <Tag color="blue" className="text-center">{channel.total_videos || 0}</Tag>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="inline-block min-w-[44px]">
+                                <Tag color="green" className="text-center">{channel.public_videos || 0}</Tag>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="inline-block min-w-[44px]">
+                                <Tag color="orange" className="text-center">{channel.private_videos || 0}</Tag>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="inline-block min-w-[44px]">
+                                <Tag color="purple" className="text-center">{channel.refined_videos || 0}</Tag>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="w-16 mx-auto">
+                                <Progress
+                                  percent={
+                                    channel.total_videos
+                                      ? Math.round((channel.refined_videos / channel.total_videos) * 100)
+                                      : 0
+                                  }
+                                  size="small"
+                                  strokeColor="#722ed1"
+                                  trailColor="transparent"
+                                  showInfo={false}
+                                  className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamp */}
+              <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-600">
+                Last updated: {analyticsData.timestamp ? new Date(analyticsData.timestamp).toLocaleString() : 'Unknown'}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-500 dark:text-gray-400">No analytics data available</div>
+            </div>
+          )}
+        </div>
+        
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            /* 深色模式下的scrollbar样式 */
+            .dark .ant-modal-body::-webkit-scrollbar {
+              width: 8px;
+            }
+            .dark .ant-modal-body::-webkit-scrollbar-track {
+              background: #374151;
+              border-radius: 4px;
+            }
+            .dark .ant-modal-body::-webkit-scrollbar-thumb {
+              background: #6b7280;
+              border-radius: 4px;
+            }
+            .dark .ant-modal-body::-webkit-scrollbar-thumb:hover {
+              background: #9ca3af;
+            }
+            
+            /* 浅色模式下的scrollbar样式 */
+            .ant-modal-body::-webkit-scrollbar {
+              width: 8px;
+            }
+            .ant-modal-body::-webkit-scrollbar-track {
+              background: #f3f4f6;
+              border-radius: 4px;
+            }
+            .ant-modal-body::-webkit-scrollbar-thumb {
+              background: #d1d5db;
+              border-radius: 4px;
+            }
+            .ant-modal-body::-webkit-scrollbar-thumb:hover {
+              background: #9ca3af;
+            }
+          `
+        }} />
       </Modal>
     </div>
   );
