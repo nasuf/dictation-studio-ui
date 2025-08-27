@@ -121,6 +121,8 @@ const AppContent: React.FC<AppContentProps> = ({
     location.pathname.includes("/dictation/video/") &&
     location.pathname.split("/").length === 4;
 
+  const isProfilePage = location.pathname.startsWith("/profile");
+
   const isVideoPage =
     location.pathname.includes("/dictation/video/") &&
     location.pathname.split("/").length > 4;
@@ -386,8 +388,8 @@ const AppContent: React.FC<AppContentProps> = ({
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-700">
-      {/* Hide Content header on mobile for channel list and video list */}
-      <div className={`flex-shrink-0 p-4 sm:p-6 ${isMobile && (isChannelListPage || isVideoListPage) ? 'hidden' : ''}`}>
+      {/* Hide Content header on mobile for channel list, video list and profile pages */}
+      <div className={`flex-shrink-0 p-4 sm:p-6 ${isMobile && (isChannelListPage || isVideoListPage || isProfilePage) ? 'hidden' : ''}`}>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex items-center gap-2 w-full md:w-auto">
             <button
