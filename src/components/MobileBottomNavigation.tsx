@@ -1,7 +1,9 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { RootState } from "@/redux/store";
 
 interface MobileBottomNavigationProps {
   className?: string;
@@ -11,6 +13,7 @@ const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({ classNa
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
   const navItems = [
     {
@@ -37,6 +40,11 @@ const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({ classNa
   };
 
   const handleNavigation = (path: string) => {
+    // Check if trying to access profile without login
+    if (path.startsWith("/profile") && !userInfo) {
+      navigate("/mobile-login");
+      return;
+    }
     navigate(path);
   };
 

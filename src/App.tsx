@@ -17,6 +17,7 @@ import { DEFAULT_LANGUAGE } from "@/utils/const";
 import { supabase } from "@/utils/supabaseClient";
 import PaymentSuccess from "@/components/PaymentSuccess";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
+import MobileLoginPage from "@/components/MobileLoginPage";
 
 const { Header, Content, Footer } = Layout;
 
@@ -110,6 +111,7 @@ const App: React.FC = () => {
         <Route path="/signup-confirmation" element={<HomePage />} />
         <Route path="/signup-success" element={<HomePage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/mobile-login" element={<MobileLoginPage />} />
         <Route
           path="*"
           element={
