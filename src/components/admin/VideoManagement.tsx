@@ -218,11 +218,18 @@ const AddVideosForm: React.FC<{
   }>({});
 
   const debouncedFetchTitle = useMemo(
-    () => _.debounce((videoLink: string, fieldIndex: number) => {
-      if (videoLink) {
-        fetchVideoTitle(videoLink, fieldIndex, form, setTitleLoadingStates, t);
-      }
-    }, 1000),
+    () =>
+      _.debounce((videoLink: string, fieldIndex: number) => {
+        if (videoLink) {
+          fetchVideoTitle(
+            videoLink,
+            fieldIndex,
+            form,
+            setTitleLoadingStates,
+            t
+          );
+        }
+      }, 1000),
     [form, t, setTitleLoadingStates]
   );
 
@@ -1048,7 +1055,9 @@ const VideoManagement: React.FC = () => {
 
   // Video analytics related state
   const [isAnalyticsModalVisible, setIsAnalyticsModalVisible] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
   useEffect(() => {
@@ -1112,11 +1121,10 @@ const VideoManagement: React.FC = () => {
     setIsAnalyticsModalVisible(true);
     setIsLoadingAnalytics(true);
     setAnalyticsData(null); // 清空之前的数据
-    
+
     try {
       const response = await api.getVideoAnalytics();
       setAnalyticsData(response.data);
-      message.success("Analytics loaded successfully");
     } catch (error) {
       console.error("Error fetching analytics:", error);
       message.error("Failed to fetch analytics");
@@ -2423,8 +2431,10 @@ const VideoManagement: React.FC = () => {
         />
       ),
       onFilter: (value: string | number | boolean | bigint, record: Video) =>
-        record.title?.toString().toLowerCase().includes(String(value).toLowerCase()) ||
-        false,
+        record.title
+          ?.toString()
+          .toLowerCase()
+          .includes(String(value).toLowerCase()) || false,
       render: (text: string, record: Video) => (
         <span
           className={`font-mono text-sm ${
@@ -2505,7 +2515,8 @@ const VideoManagement: React.FC = () => {
         { text: "Yes", value: true },
         { text: "No", value: false },
       ],
-      onFilter: (value: boolean | string | number | bigint, record: Video) => record.is_refined === Boolean(value),
+      onFilter: (value: boolean | string | number | bigint, record: Video) =>
+        record.is_refined === Boolean(value),
     },
     {
       title: "Refined At",
@@ -2535,7 +2546,8 @@ const VideoManagement: React.FC = () => {
           text: key,
           value: value,
         })),
-      onFilter: (value: string | number | boolean | bigint, record: Video) => record.visibility === String(value),
+      onFilter: (value: string | number | boolean | bigint, record: Video) =>
+        record.visibility === String(value),
       render: (visibility: string, record: Video) => (
         <Select
           value={visibility}
@@ -2960,15 +2972,17 @@ const VideoManagement: React.FC = () => {
       const summaries = summaryResponse.summaries || [];
 
       // Transform the data to match our component's expected format
-      const transformedSummary = summaries.map((summary: TranscriptSummary) => ({
-        video_id: summary.video_id,
-        title: summary.title,
-        transcriptCount: summary.transcript_count,
-        hasOriginal: summary.has_original,
-        lastUpdated: summary.last_updated,
-        is_refined: summary.is_refined,
-        refined_at: summary.refined_at,
-      }));
+      const transformedSummary = summaries.map(
+        (summary: TranscriptSummary) => ({
+          video_id: summary.video_id,
+          title: summary.title,
+          transcriptCount: summary.transcript_count,
+          hasOriginal: summary.has_original,
+          lastUpdated: summary.last_updated,
+          is_refined: summary.is_refined,
+          refined_at: summary.refined_at,
+        })
+      );
 
       setTranscriptSummary(transformedSummary);
       setFilters(filtersResponse.filters || []);
@@ -3262,7 +3276,6 @@ const VideoManagement: React.FC = () => {
     }
   };
 
-
   const applyAllFilters = async () => {
     if (filters.length === 0) {
       message.warning("No filters to apply");
@@ -3428,7 +3441,6 @@ const VideoManagement: React.FC = () => {
                 }),
               }));
 
-
               // Small delay between batches to prevent overwhelming the server
               if (i + BATCH_SIZE < videosWithTranscripts.length) {
                 await new Promise((resolve) => setTimeout(resolve, 500));
@@ -3461,7 +3473,6 @@ const VideoManagement: React.FC = () => {
                   return result;
                 }),
               }));
-
             }
           }
 
@@ -3808,7 +3819,7 @@ const VideoManagement: React.FC = () => {
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
-            Video Management | Total: {videos.length}
+            Video Management
           </div>
         }
         extra={
@@ -3924,8 +3935,8 @@ const VideoManagement: React.FC = () => {
                   size="small"
                   className="w-full"
                   style={{
-                    backgroundColor: '#722ed1',
-                    borderColor: '#722ed1'
+                    backgroundColor: "#722ed1",
+                    borderColor: "#722ed1",
                   }}
                 >
                   Video Analytics
@@ -4006,7 +4017,6 @@ const VideoManagement: React.FC = () => {
                 type="primary"
                 onClick={showTranscriptManagement}
                 disabled={!selectedChannel || videos.length === 0}
-                icon={<MergeCellsOutlined />}
                 className="ml-2"
               >
                 Transcript Management
@@ -4015,23 +4025,21 @@ const VideoManagement: React.FC = () => {
                 type="primary"
                 onClick={showBatchVisibilityModal}
                 disabled={!selectedChannel || videos.length === 0}
-                icon={<EditOutlined />}
                 className="ml-2"
               >
-                Batch Visibility Update
+                Visibility
               </Button>
               <Button
                 type="primary"
                 onClick={fetchAnalytics}
                 loading={isLoadingAnalytics}
-                icon={<BarChartOutlined />}
                 className="ml-2"
                 style={{
-                  backgroundColor: '#722ed1',
-                  borderColor: '#722ed1'
+                  backgroundColor: "#722ed1",
+                  borderColor: "#722ed1",
                 }}
               >
-                Video Analytics
+                Analytics
               </Button>
             </div>
           </div>
@@ -5277,10 +5285,10 @@ const VideoManagement: React.FC = () => {
         width={800}
         className="dark:bg-gray-800"
         style={{ top: 20 }}
-        bodyStyle={{ 
-          maxHeight: '70vh', 
-          overflow: 'auto',
-          paddingRight: '20px' // 给scrollbar留出间距
+        bodyStyle={{
+          maxHeight: "70vh",
+          overflow: "auto",
+          paddingRight: "20px", // 给scrollbar留出间距
         }}
       >
         <div className="dark:bg-gray-800 dark:text-white">
@@ -5288,7 +5296,9 @@ const VideoManagement: React.FC = () => {
             <div className="flex items-center justify-center py-16">
               <div className="flex flex-col items-center space-y-4">
                 <LoadingOutlined className="text-4xl text-purple-600 animate-spin" />
-                <div className="text-gray-600 dark:text-gray-300">Loading analytics data...</div>
+                <div className="text-gray-600 dark:text-gray-300">
+                  Loading analytics data...
+                </div>
               </div>
             </div>
           ) : analyticsData ? (
@@ -5345,18 +5355,28 @@ const VideoManagement: React.FC = () => {
                       Refined Progress
                     </span>
                     <span className="text-sm font-semibold dark:text-white">
-                      {analyticsData.summary?.refined_videos || 0} / {analyticsData.summary?.total_videos || 0}
+                      {analyticsData.summary?.refined_videos || 0} /{" "}
+                      {analyticsData.summary?.total_videos || 0}
                       <span className="ml-2 text-purple-600 dark:text-purple-400">
                         {analyticsData.summary?.total_videos
-                          ? Math.round((analyticsData.summary.refined_videos / analyticsData.summary.total_videos) * 100)
-                          : 0}%
+                          ? Math.round(
+                              (analyticsData.summary.refined_videos /
+                                analyticsData.summary.total_videos) *
+                                100
+                            )
+                          : 0}
+                        %
                       </span>
                     </span>
                   </div>
                   <Progress
                     percent={
                       analyticsData.summary?.total_videos
-                        ? Math.round((analyticsData.summary.refined_videos / analyticsData.summary.total_videos) * 100)
+                        ? Math.round(
+                            (analyticsData.summary.refined_videos /
+                              analyticsData.summary.total_videos) *
+                              100
+                          )
                         : 0
                     }
                     strokeColor="#722ed1"
@@ -5371,18 +5391,28 @@ const VideoManagement: React.FC = () => {
                       Public Visibility
                     </span>
                     <span className="text-sm font-semibold dark:text-white">
-                      {analyticsData.summary?.public_videos || 0} / {analyticsData.summary?.total_videos || 0}
+                      {analyticsData.summary?.public_videos || 0} /{" "}
+                      {analyticsData.summary?.total_videos || 0}
                       <span className="ml-2 text-green-600 dark:text-green-400">
                         {analyticsData.summary?.total_videos
-                          ? Math.round((analyticsData.summary.public_videos / analyticsData.summary.total_videos) * 100)
-                          : 0}%
+                          ? Math.round(
+                              (analyticsData.summary.public_videos /
+                                analyticsData.summary.total_videos) *
+                                100
+                            )
+                          : 0}
+                        %
                       </span>
                     </span>
                   </div>
                   <Progress
                     percent={
                       analyticsData.summary?.total_videos
-                        ? Math.round((analyticsData.summary.public_videos / analyticsData.summary.total_videos) * 100)
+                        ? Math.round(
+                            (analyticsData.summary.public_videos /
+                              analyticsData.summary.total_videos) *
+                              100
+                          )
                         : 0
                     }
                     strokeColor="#52c41a"
@@ -5406,58 +5436,78 @@ const VideoManagement: React.FC = () => {
                           <th className="text-left py-2 px-3">Channel</th>
                           <th className="text-center py-2 px-3 w-16">Total</th>
                           <th className="text-center py-2 px-3 w-16">Public</th>
-                          <th className="text-center py-2 px-3 w-16">Private</th>
-                          <th className="text-center py-2 px-3 w-16">Refined</th>
-                          <th className="text-center py-2 px-3 w-20">Progress</th>
+                          <th className="text-center py-2 px-3 w-16">
+                            Private
+                          </th>
+                          <th className="text-center py-2 px-3 w-16">
+                            Refined
+                          </th>
+                          <th className="text-center py-2 px-3 w-20">
+                            Progress
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {analyticsData.channels.map((channel, index: number) => (
-                          <tr
-                            key={channel.channel_id || index}
-                            className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                          >
-                            <td className="py-2 px-3 font-medium">
-                              {channel.channel_name || channel.channel_id}
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <div className="inline-block min-w-[44px]">
-                                <Tag color="blue" className="text-center">{channel.total_videos || 0}</Tag>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <div className="inline-block min-w-[44px]">
-                                <Tag color="green" className="text-center">{channel.public_videos || 0}</Tag>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <div className="inline-block min-w-[44px]">
-                                <Tag color="orange" className="text-center">{channel.private_videos || 0}</Tag>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <div className="inline-block min-w-[44px]">
-                                <Tag color="purple" className="text-center">{channel.refined_videos || 0}</Tag>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <div className="w-16 mx-auto">
-                                <Progress
-                                  percent={
-                                    channel.total_videos
-                                      ? Math.round((channel.refined_videos / channel.total_videos) * 100)
-                                      : 0
-                                  }
-                                  size="small"
-                                  strokeColor="#722ed1"
-                                  trailColor="transparent"
-                                  showInfo={false}
-                                  className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                        {analyticsData.channels.map(
+                          (channel, index: number) => (
+                            <tr
+                              key={channel.channel_id || index}
+                              className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                              <td className="py-2 px-3 font-medium">
+                                {channel.channel_name || channel.channel_id}
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="inline-block min-w-[44px]">
+                                  <Tag color="blue" className="text-center">
+                                    {channel.total_videos || 0}
+                                  </Tag>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="inline-block min-w-[44px]">
+                                  <Tag color="green" className="text-center">
+                                    {channel.public_videos || 0}
+                                  </Tag>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="inline-block min-w-[44px]">
+                                  <Tag color="orange" className="text-center">
+                                    {channel.private_videos || 0}
+                                  </Tag>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="inline-block min-w-[44px]">
+                                  <Tag color="purple" className="text-center">
+                                    {channel.refined_videos || 0}
+                                  </Tag>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="w-16 mx-auto">
+                                  <Progress
+                                    percent={
+                                      channel.total_videos
+                                        ? Math.round(
+                                            (channel.refined_videos /
+                                              channel.total_videos) *
+                                              100
+                                          )
+                                        : 0
+                                    }
+                                    size="small"
+                                    strokeColor="#722ed1"
+                                    trailColor="transparent"
+                                    showInfo={false}
+                                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
+                                  />
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -5466,18 +5516,24 @@ const VideoManagement: React.FC = () => {
 
               {/* Timestamp */}
               <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-600">
-                Last updated: {analyticsData.timestamp ? new Date(analyticsData.timestamp).toLocaleString() : 'Unknown'}
+                Last updated:{" "}
+                {analyticsData.timestamp
+                  ? new Date(analyticsData.timestamp).toLocaleString()
+                  : "Unknown"}
               </div>
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="text-gray-500 dark:text-gray-400">No analytics data available</div>
+              <div className="text-gray-500 dark:text-gray-400">
+                No analytics data available
+              </div>
             </div>
           )}
         </div>
-        
-        <style dangerouslySetInnerHTML={{
-          __html: `
+
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
             /* 深色模式下的scrollbar样式 */
             .dark .ant-modal-body::-webkit-scrollbar {
               width: 8px;
@@ -5509,8 +5565,9 @@ const VideoManagement: React.FC = () => {
             .ant-modal-body::-webkit-scrollbar-thumb:hover {
               background: #9ca3af;
             }
-          `
-        }} />
+          `,
+          }}
+        />
       </Modal>
     </div>
   );
