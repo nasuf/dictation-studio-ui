@@ -1028,7 +1028,7 @@ const ChannelManagement: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="h-full">
       {renderContent()}
       
       {/* Add Channel Modal */}

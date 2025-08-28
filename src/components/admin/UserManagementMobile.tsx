@@ -128,7 +128,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
   const renderUserCard = (user: UserInfo) => (
     <Card
       key={user.email}
-      className="mb-3 border border-gray-200 dark:border-gray-700 shadow-sm"
+      className="mb-3 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
       bodyStyle={{ padding: "16px" }}
     >
       <div className="flex items-start space-x-3">
@@ -193,90 +193,92 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
   );
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       <MobileBackButton title={t("userManagement")} />
 
-      {/* Search and Filter Section */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 space-y-3">
-        <Search
-          placeholder={t("searchUsers")}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          prefix={<SearchOutlined />}
-          allowClear
-        />
+      {/* Content Container */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Search and Filter Section */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 space-y-3">
+          <Search
+            placeholder={t("searchUsers")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            prefix={<SearchOutlined />}
+            allowClear
+          />
 
-        <div className="flex items-center justify-between">
-          <Button
-            type="text"
-            icon={<FilterOutlined />}
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-blue-600 dark:text-blue-400"
-          >
-            {t("filters")}
-          </Button>
-          
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {filteredUsers.length} {t("users")}
+          <div className="flex items-center justify-between">
+            <Button
+              type="text"
+              icon={<FilterOutlined />}
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-blue-600 dark:text-blue-400"
+            >
+              {t("filters")}
+            </Button>
+            
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {filteredUsers.length} {t("users")}
+            </div>
           </div>
+
+          {showFilters && (
+            <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t("role")}
+                </label>
+                <Select
+                  value={selectedRole}
+                  onChange={setSelectedRole}
+                  className="w-full"
+                  size="small"
+                >
+                  <Option value="All">{t("allRoles")}</Option>
+                  <Option value={USER_ROLE.ADMIN}>{t("admin")}</Option>
+                  <Option value={USER_ROLE.USER}>{t("user")}</Option>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t("membership")}
+                </label>
+                <Select
+                  value={selectedMembership}
+                  onChange={setSelectedMembership}
+                  className="w-full"
+                  size="small"
+                >
+                  <Option value="All">{t("allMemberships")}</Option>
+                  <Option value="Premium">{t("premium")}</Option>
+                  <Option value="Free">{t("free")}</Option>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t("sortBy")}
+                </label>
+                <Select
+                  value={sortBy}
+                  onChange={setSortBy}
+                  className="w-full"
+                  size="small"
+                >
+                  <Option value="lastActive">{t("lastActive")}</Option>
+                  <Option value="username">{t("username")}</Option>
+                  <Option value="email">{t("email")}</Option>
+                  <Option value="createdAt">{t("joinDate")}</Option>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
 
-        {showFilters && (
-          <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("role")}
-              </label>
-              <Select
-                value={selectedRole}
-                onChange={setSelectedRole}
-                className="w-full"
-                size="small"
-              >
-                <Option value="All">{t("allRoles")}</Option>
-                <Option value={USER_ROLE.ADMIN}>{t("admin")}</Option>
-                <Option value={USER_ROLE.USER}>{t("user")}</Option>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("membership")}
-              </label>
-              <Select
-                value={selectedMembership}
-                onChange={setSelectedMembership}
-                className="w-full"
-                size="small"
-              >
-                <Option value="All">{t("allMemberships")}</Option>
-                <Option value="Premium">{t("premium")}</Option>
-                <Option value="Free">{t("free")}</Option>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("sortBy")}
-              </label>
-              <Select
-                value={sortBy}
-                onChange={setSortBy}
-                className="w-full"
-                size="small"
-              >
-                <Option value="lastActive">{t("lastActive")}</Option>
-                <Option value="username">{t("username")}</Option>
-                <Option value="email">{t("email")}</Option>
-                <Option value="createdAt">{t("joinDate")}</Option>
-              </Select>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* User List */}
-      <div className="flex-1 p-4 pb-20" style={{ height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+        {/* User List */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-20">
         {isLoading ? (
           <div className="flex justify-center items-center h-32">
             <Spin size="large" />
@@ -291,6 +293,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
             {filteredUsers.map(renderUserCard)}
           </div>
         )}
+        </div>
       </div>
 
       {/* Floating Action Button */}

@@ -116,7 +116,7 @@ const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
   const renderChannelCard = (channel: Channel) => (
     <Card
       key={channel.id}
-      className="mb-3 border border-gray-200 dark:border-gray-700 shadow-sm"
+      className="mb-3 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
       bodyStyle={{ padding: "16px" }}
     >
       <div className="flex items-start space-x-3">
@@ -202,7 +202,7 @@ const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
   ];
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       <MobileBackButton title={t("channelManagement")} />
 
       {/* Tab Navigation */}
@@ -281,7 +281,7 @@ const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
       </div>
 
       {/* Channel List */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-20">
         {isLoading ? (
           <div className="flex justify-center items-center h-32">
             <Spin size="large" />

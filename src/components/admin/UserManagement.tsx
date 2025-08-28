@@ -1950,7 +1950,7 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="h-full">
       {renderContent()}
       
       {/* Edit Membership Modal */}
