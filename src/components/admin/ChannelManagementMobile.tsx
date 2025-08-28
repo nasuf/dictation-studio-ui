@@ -20,7 +20,9 @@ import {
   DeleteOutlined,
   FilterOutlined,
   LinkOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  ReloadOutlined,
+  HeartOutlined
 } from "@ant-design/icons";
 import { Channel } from "@/utils/type";
 import MobileBackButton from "./MobileBackButton";
@@ -35,14 +37,17 @@ interface ChannelManagementMobileProps {
   onEditChannel: (channel: Channel) => void;
   onDeleteChannel: (channel: Channel) => void;
   onAddChannel: () => void;
+  onChannelRecommendation: () => void;
 }
 
 const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
   channels,
   isLoading,
+  onRefresh,
   onEditChannel,
   onDeleteChannel,
-  onAddChannel
+  onAddChannel,
+  onChannelRecommendation
 }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -236,8 +241,37 @@ const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
             {t("filters")}
           </Button>
           
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {filteredChannels.length} {t("channels")}
+          <div className="flex items-center space-x-2">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {filteredChannels.length} {t("channels")}
+            </div>
+            
+            <div className="flex space-x-1">
+              <Button
+                type="text"
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={onRefresh}
+                className="text-blue-600 dark:text-blue-400 p-1"
+                title={t("refreshChannels")}
+              />
+              <Button
+                type="text"
+                size="small"
+                icon={<HeartOutlined />}
+                onClick={onChannelRecommendation}
+                className="text-pink-600 dark:text-pink-400 p-1"
+                title={t("channelRecommendations")}
+              />
+              <Button
+                type="text"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={onAddChannel}
+                className="text-green-600 dark:text-green-400 p-1"
+                title={t("addChannel")}
+              />
+            </div>
           </div>
         </div>
 
@@ -298,17 +332,6 @@ const ChannelManagementMobile: React.FC<ChannelManagementMobileProps> = ({
         )}
       </div>
 
-      {/* Floating Action Button */}
-      <div className="absolute bottom-6 right-6">
-        <Button
-          type="primary"
-          shape="circle"
-          size="large"
-          icon={<PlusOutlined />}
-          className="shadow-lg"
-          onClick={onAddChannel}
-        />
-      </div>
     </div>
   );
 };

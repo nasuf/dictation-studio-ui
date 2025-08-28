@@ -955,6 +955,7 @@ const ChannelManagement: React.FC = () => {
             }
           }}
           onAddChannel={() => setIsAddChannelModalVisible(true)}
+          onChannelRecommendation={() => setIsChannelRecommendationModalVisible(true)}
         />
       );
     }

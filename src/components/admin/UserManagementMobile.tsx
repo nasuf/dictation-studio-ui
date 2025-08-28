@@ -26,6 +26,7 @@ import {
   FileTextOutlined,
   KeyOutlined,
   EyeOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { UserInfo, ProgressData } from "@/utils/type";
 import { USER_ROLE } from "@/utils/const";
@@ -52,6 +53,7 @@ interface UserManagementMobileProps {
 const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
   users,
   isLoading,
+  onRefresh,
   onEditUser,
   onGenerateCode,
   onViewCodes,
@@ -315,6 +317,14 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
                   onClick={onViewStats}
                   className="text-emerald-600 dark:text-emerald-400 p-1"
                   title={t("usageStatistics")}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  onClick={onRefresh}
+                  className="text-blue-600 dark:text-blue-400 p-1"
+                  title={t("refreshUsers")}
                 />
               </div>
             </div>
