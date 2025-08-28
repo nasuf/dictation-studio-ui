@@ -45,6 +45,7 @@ import {
 } from "@ant-design/icons";
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
+import VideoManagementMobile from "./VideoManagementMobile";
 import {
   Channel,
   TranscriptItem,
@@ -910,6 +911,15 @@ const VideoManagement: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  interface Analytics {
+    totalVideos: number;
+    totalChannels: number;
+    totalDuration?: number;
+    averageDuration?: number;
+  }
+  
+  const [analytics, setAnalytics] = useState<Analytics | undefined>(undefined);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [selectedChannelLink, setSelectedChannelLink] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
@@ -1060,8 +1070,36 @@ const VideoManagement: React.FC = () => {
   );
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
+  // Update analytics when videos or channels change
+  useEffect(() => {
+    if (videos.length > 0 || channels.length > 0) {
+      const totalVideos = videos.length;
+      const totalChannels = channels.length;
+      // Calculate total duration (assuming some default duration per video if not available)
+      const totalDuration = videos.length * 300; // 5 minutes average per video as placeholder
+      const averageDuration = totalVideos > 0 ? totalDuration / totalVideos : 0;
+      
+      setAnalytics({
+        totalVideos,
+        totalChannels,
+        totalDuration,
+        averageDuration
+      });
+    }
+  }, [videos, channels]);
+
   useEffect(() => {
     fetchChannels();
+    
+    // Check if mobile device
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   useEffect(() => {
@@ -3812,6 +3850,55 @@ const VideoManagement: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // If mobile, render mobile version
+  if (isMobile) {
+    return (
+      <VideoManagementMobile
+        videos={videos}
+        channels={channels}
+        analytics={analytics}
+        isLoading={isLoading}
+        selectedChannel={selectedChannel}
+        selectedLanguage={selectedLanguage}
+        onRefresh={() => {
+          fetchChannels();
+          if (selectedChannel) {
+            fetchVideos(selectedChannel, selectedLanguage);
+          }
+        }}
+        onChannelChange={(channelId) => {
+          setSelectedChannel(channelId);
+          fetchVideos(channelId, selectedLanguage);
+        }}
+        onLanguageChange={(language) => {
+          setSelectedLanguage(language);
+          if (selectedChannel) {
+            fetchVideos(selectedChannel, language);
+          }
+        }}
+        onEditVideo={() => {
+          // Handle edit video - could open edit modal
+          message.info("Edit video functionality to be implemented");
+        }}
+        onDeleteVideo={async (video) => {
+          try {
+            await api.deleteVideo(selectedChannel, video.video_id);
+            message.success("Video deleted successfully");
+            fetchVideos(selectedChannel, selectedLanguage);
+          } catch (error) {
+            console.error("Error deleting video:", error);
+            message.error("Failed to delete video");
+          }
+        }}
+        onAddVideo={() => setIsAddVideoModalVisible(true)}
+        onEditTranscript={() => {
+          // Handle transcript editing
+          message.info("Transcript editing functionality to be implemented");
+        }}
+      />
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">

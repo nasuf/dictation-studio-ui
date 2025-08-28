@@ -155,7 +155,7 @@ const Information: React.FC<InformationProps> = ({
       } else {
         message.error(t("logoutFailed"));
       }
-    } catch (error) {
+    } catch {
       message.error(t("logoutFailed"));
     } finally {
       dispatch(clearUser());

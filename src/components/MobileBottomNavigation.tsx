@@ -2,8 +2,9 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { HomeOutlined, UserOutlined, SettingOutlined } from "@ant-design/icons";
 import { RootState } from "@/redux/store";
+import { USER_ROLE } from "@/utils/const";
 
 interface MobileBottomNavigationProps {
   className?: string;
@@ -15,7 +16,8 @@ const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({ classNa
   const { t } = useTranslation();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
-  const navItems = [
+  // Base navigation items
+  const baseNavItems = [
     {
       key: "home",
       label: t("home"),
@@ -32,6 +34,18 @@ const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({ classNa
     },
   ];
 
+  // Add admin tab if user is admin
+  const navItems = [
+    ...baseNavItems,
+    ...(userInfo?.role === USER_ROLE.ADMIN ? [{
+      key: "admin",
+      label: t("admin"),
+      icon: <SettingOutlined className="text-lg" />,
+      path: "/admin/portal",
+      activeIcon: <SettingOutlined className="text-lg" />,
+    }] : [])
+  ];
+
   const isActive = (path: string) => {
     if (path === "/dictation") {
       return location.pathname === "/" || location.pathname.startsWith("/dictation");
@@ -40,11 +54,17 @@ const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({ classNa
   };
 
   const handleNavigation = (path: string) => {
-    // Check if trying to access profile without login
-    if (path.startsWith("/profile") && !userInfo) {
+    // Check if trying to access profile or admin without login
+    if ((path.startsWith("/profile") || path.startsWith("/admin")) && !userInfo) {
       navigate("/mobile-login");
       return;
     }
+    
+    // Check if trying to access admin without admin role
+    if (path.startsWith("/admin") && userInfo?.role !== USER_ROLE.ADMIN) {
+      return; // Silently ignore if not admin
+    }
+    
     navigate(path);
   };
 

@@ -25,6 +25,7 @@ import {
 import { api } from "@/api/api";
 import { Channel, ChannelRecommendationItem } from "@/utils/type";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
+import ChannelManagementMobile from "./ChannelManagementMobile";
 
 const { Option } = Select;
 
@@ -512,6 +513,7 @@ const ChannelManagement: React.FC = () => {
   const [editForm] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   const [isAddChannelModalVisible, setIsAddChannelModalVisible] =
     useState(false);
   const [
@@ -526,6 +528,16 @@ const ChannelManagement: React.FC = () => {
 
   useEffect(() => {
     fetchChannels();
+    
+    // Check if mobile device
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   const fetchChannels = async (
@@ -919,9 +931,37 @@ const ChannelManagement: React.FC = () => {
     },
   ];
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <Card
+  // Render mobile or desktop view
+  const renderContent = () => {
+    if (isMobile) {
+      return (
+        <ChannelManagementMobile
+          channels={channels}
+          isLoading={isLoading}
+          onRefresh={() => fetchChannels()}
+          onEditChannel={(channel) => {
+            setEditingChannel(channel);
+            editForm.setFieldsValue(channel);
+            setIsEditChannelModalVisible(true);
+          }}
+          onDeleteChannel={async (channel) => {
+            try {
+              // TODO: Implement deleteChannel API
+              message.info("Delete channel functionality to be implemented");
+              console.log("Delete channel:", channel.id);
+            } catch (error) {
+              console.error("Error deleting channel:", error);
+              message.error("Failed to delete channel");
+            }
+          }}
+          onAddChannel={() => setIsAddChannelModalVisible(true)}
+        />
+      );
+    }
+
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <Card
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
@@ -982,7 +1022,15 @@ const ChannelManagement: React.FC = () => {
             />
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {renderContent()}
+      
       {/* Add Channel Modal */}
       <Modal
         title={

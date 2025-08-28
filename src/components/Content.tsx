@@ -21,6 +21,7 @@ import ChannelList from "@/components/dictation/video/ChannelList";
 import VideoList from "@/components/dictation/video/VideoList";
 import ChannelManagement from "@/components/admin/ChannelManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
+import AdminPortal from "@/components/admin/AdminPortal";
 import { useTranslation } from "react-i18next";
 import UserManagement from "@/components/admin/UserManagement";
 import UserProgress from "@/components/profile/Progress";
@@ -632,6 +633,7 @@ const AppContent: React.FC<AppContentProps> = ({
                 path="/radio"
                 element={<Radio style={COMPONENT_STYLE} />}
               />
+              <Route path="/admin/portal" element={<AdminPortal />} />
               <Route path="/admin/channel" element={<ChannelManagement />} />
               <Route path="/admin/video" element={<VideoManagement />} />
               <Route path="/admin/user" element={<UserManagement />} />

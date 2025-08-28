@@ -37,6 +37,7 @@ import { formatTimestamp } from "../../utils/util";
 import html2canvas from "html2canvas";
 import { useTranslation } from "react-i18next";
 import i18n from "../../utils/i18n";
+import UserManagementMobile from "./UserManagementMobile";
 
 const { Option } = Select;
 const { Text, Paragraph } = Typography;
@@ -1748,9 +1749,53 @@ const UserManagement: React.FC = () => {
     return formatTimestamp(timestamp, "locale");
   };
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <Card
+  // Check if mobile device
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  // Render mobile or desktop view
+  const renderContent = () => {
+    if (isMobile) {
+      return (
+        <UserManagementMobile
+          users={users}
+          isLoading={isLoading}
+          onRefresh={fetchUsers}
+          onEditUser={(user, changes) => {
+            setSelectedUsers([user]);
+            
+            // Handle combined edit for both role and membership
+            if (changes.role) {
+              setIsRoleModalVisible(true);
+              roleForm.setFieldsValue({
+                role: changes.role,
+              });
+            }
+            
+            if (changes.membership) {
+              setIsEditModalVisible(true);
+              form.setFieldsValue({
+                durationOption: "30days", // Set default duration
+              });
+            }
+          }}
+        />
+      );
+    }
+    
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <Card
         className="dark:bg-gray-800 dark:text-white shadow-md"
         title={
           <div className="text-xl font-semibold dark:text-white">
@@ -1899,8 +1944,15 @@ const UserManagement: React.FC = () => {
             />
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
+    );
+  };
 
+  return (
+    <div>
+      {renderContent()}
+      
       {/* Edit Membership Modal */}
       <Modal
         title="Edit Membership"

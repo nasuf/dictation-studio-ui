@@ -121,7 +121,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       {userInfo?.role === USER_ROLE.ADMIN && (
         <Menu.Item
           key="admin"
-          onClick={() => navigate("/admin/user")}
+          onClick={() => {
+            // Check if mobile device (screen width < 768px)
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+              navigate("/admin/portal");
+            } else {
+              navigate("/admin/user");
+            }
+          }}
           className="header-menu-item"
         >
           {t("adminPanel")}
