@@ -56,8 +56,8 @@ import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
-import { autoMergeTranscriptItems, formatTimestamp } from "@/utils/util";
 import YouTube, { YouTubePlayer } from "react-youtube";
+import { autoMergeTranscriptItems, formatTimestamp } from "@/utils/util";
 import {
   VideoPlaybackController,
   VideoPlaybackState,
@@ -925,8 +925,8 @@ const VideoManagement: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
     LANGUAGES.All
   );
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddVideoModalVisible, setIsAddVideoModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<TranscriptItem[]>(
     []
   );
@@ -1229,6 +1229,7 @@ const VideoManagement: React.FC = () => {
     message.success(`SRT file uploaded for video ${videoId}`);
   };
 
+
   const showTranscript = async (
     channelId: string,
     videoId: string,
@@ -1264,6 +1265,7 @@ const VideoManagement: React.FC = () => {
       setIsTranscriptLoading(false);
     }
   };
+
 
   // YouTube Player Functions
   const onYouTubeReady = (event: { target: YouTubePlayer }) => {
@@ -3892,10 +3894,6 @@ const VideoManagement: React.FC = () => {
           }
         }}
         onAddVideo={() => setIsAddVideoModalVisible(true)}
-        onEditTranscript={() => {
-          // Handle transcript editing
-          message.info("Transcript editing functionality to be implemented");
-        }}
       />
     );
   }
@@ -4176,6 +4174,7 @@ const VideoManagement: React.FC = () => {
           setSrtFiles={setSrtFiles}
         />
       </Modal>
+      {/* Main Transcript Editor Modal */}
       <Modal
         maskClosable={false}
         title={`Video Transcript - ${currentVideoTitle} [${currentVideoId}]`}
@@ -4199,10 +4198,9 @@ const VideoManagement: React.FC = () => {
         width="95vw"
         style={{
           top: 10,
-          maxHeight: "98vh",
         }}
         bodyStyle={{
-          height: "calc(98vh - 100px)",
+          height: "85vh",
           padding: 0,
           overflow: "hidden",
         }}
@@ -4480,10 +4478,10 @@ const VideoManagement: React.FC = () => {
               component={false}
               className="flex-1 flex flex-col"
             >
-              {/* New Card-Based Transcript Editor */}
+              {/* Card-Based Transcript Editor */}
               <div
                 className="flex-1 overflow-y-auto px-4 py-2 space-y-4"
-                style={{ maxHeight: "calc(98vh - 480px)" }}
+                style={{ maxHeight: "calc(85vh - 320px)" }}
               >
                 {isTranscriptLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -5656,6 +5654,7 @@ const VideoManagement: React.FC = () => {
           }}
         />
       </Modal>
+
     </div>
   );
 };
