@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  Input, 
-  Select, 
-  Button, 
-  Card, 
-  Avatar, 
+import {
+  Input,
+  Select,
+  Button,
+  Card,
+  Avatar,
   Tag,
   Spin,
   Empty,
   Modal,
   Form,
-  message
+  message,
+  Progress,
 } from "antd";
 import {
   SearchOutlined,
@@ -20,11 +21,16 @@ import {
   FilterOutlined,
   PlusOutlined,
   CalendarOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  KeyOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
-import { UserInfo } from "@/utils/type";
+import { UserInfo, ProgressData } from "@/utils/type";
 import { USER_ROLE } from "@/utils/const";
 import { formatTimestamp } from "../../utils/util";
+import { api } from "@/api/api";
 import MobileBackButton from "./MobileBackButton";
 
 const { Option } = Select;
@@ -34,13 +40,22 @@ interface UserManagementMobileProps {
   users: UserInfo[];
   isLoading: boolean;
   onRefresh: () => void;
-  onEditUser: (user: UserInfo, changes: {role?: string, membership?: string}) => void;
+  onEditUser: (
+    user: UserInfo,
+    changes: { role?: string; membership?: string }
+  ) => void;
+  onGenerateCode: () => void;
+  onViewCodes: () => void;
+  onViewStats: () => void;
 }
 
 const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
   users,
   isLoading,
-  onEditUser
+  onEditUser,
+  onGenerateCode,
+  onViewCodes,
+  onViewStats,
 }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,18 +68,31 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
   const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const [form] = Form.useForm();
 
+  // User progress modal states
+  const [isProgressModalVisible, setIsProgressModalVisible] = useState(false);
+  const [selectedUserProgress, setSelectedUserProgress] = useState<
+    ProgressData[]
+  >([]);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string>("");
+  const [isLoadingUserProgress, setIsLoadingUserProgress] = useState(false);
+
   // Filter and sort users
   useEffect(() => {
     let filtered = users.filter((user) => {
       const username = user.username || "";
       const email = user.email || "";
-      const matchesSearch = 
-        (typeof username === 'string' ? username.toLowerCase() : "").includes(searchQuery.toLowerCase()) ||
-        (typeof email === 'string' ? email.toLowerCase() : "").includes(searchQuery.toLowerCase());
-      
+      const matchesSearch =
+        (typeof username === "string" ? username.toLowerCase() : "").includes(
+          searchQuery.toLowerCase()
+        ) ||
+        (typeof email === "string" ? email.toLowerCase() : "").includes(
+          searchQuery.toLowerCase()
+        );
+
       const matchesRole = selectedRole === "All" || user.role === selectedRole;
-      
-      const matchesMembership = selectedMembership === "All" || 
+
+      const matchesMembership =
+        selectedMembership === "All" ||
         (selectedMembership === "Premium" && user.plan?.name !== "FREE") ||
         (selectedMembership === "Free" && user.plan?.name === "FREE");
 
@@ -75,7 +103,9 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "username":
-          return String(a.username || "").localeCompare(String(b.username || ""));
+          return String(a.username || "").localeCompare(
+            String(b.username || "")
+          );
         case "email":
           return String(a.email || "").localeCompare(String(b.email || ""));
         case "createdAt":
@@ -106,7 +136,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
     setEditingUser(user);
     form.setFieldsValue({
       role: user.role,
-      membership: user.plan?.name === "FREE" ? "Free" : "Premium"
+      membership: user.plan?.name === "FREE" ? "Free" : "Premium",
     });
     setEditModalVisible(true);
   };
@@ -125,6 +155,34 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
     }
   };
 
+  // Show user progress modal and fetch data
+  const showUserProgressModal = (userEmail: string) => {
+    // Immediately show modal with loading state
+    setSelectedUserEmail(userEmail);
+    setSelectedUserProgress([]);
+    setIsProgressModalVisible(true);
+    setIsLoadingUserProgress(true);
+
+    // Then fetch the data
+    fetchUserProgressData(userEmail);
+  };
+
+  // Fetch user progress data
+  const fetchUserProgressData = async (userEmail: string) => {
+    try {
+      const response = await api.getUserProgressByEmail(userEmail);
+      const progressData = response.data.progress || [];
+      setSelectedUserProgress(progressData);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+      message.error("Failed to fetch user progress");
+      // If error occurs, close the modal
+      setIsProgressModalVisible(false);
+    } finally {
+      setIsLoadingUserProgress(false);
+    }
+  };
+
   const renderUserCard = (user: UserInfo) => (
     <Card
       key={user.email}
@@ -138,7 +196,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
           icon={<UserOutlined />}
           className="flex-shrink-0"
         />
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -149,8 +207,16 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
                 {user.email}
               </p>
             </div>
-            
+
             <div className="flex space-x-1">
+              <Button
+                type="text"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => showUserProgressModal(user.email)}
+                className="flex-shrink-0 text-green-600 dark:text-green-400"
+                title={t("viewProgress")}
+              />
               <Button
                 type="text"
                 size="small"
@@ -163,9 +229,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
           </div>
 
           <div className="flex flex-wrap gap-2 mt-3">
-            <Tag color={getRoleColor(user.role)}>
-              {user.role || "User"}
-            </Tag>
+            <Tag color={getRoleColor(user.role)}>{user.role || "User"}</Tag>
             <Tag color={getPlanColor(user.plan?.name)}>
               {user.plan?.name || "FREE"}
             </Tag>
@@ -174,11 +238,15 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
           <div className="grid grid-cols-2 gap-3 mt-3 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex items-center">
               <CalendarOutlined className="mr-1" />
-              <span>{t("joined")}: {formatTimestamp(user.created_at || 0, "date")}</span>
+              <span>
+                {t("joined")}: {formatTimestamp(user.created_at || 0, "date")}
+              </span>
             </div>
             <div className="flex items-center">
               <ClockCircleOutlined className="mr-1" />
-              <span>{t("active")}: {formatTimestamp(user.updated_at || 0, "date")}</span>
+              <span>
+                {t("active")}: {formatTimestamp(user.updated_at || 0, "date")}
+              </span>
             </div>
           </div>
 
@@ -217,9 +285,38 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
             >
               {t("filters")}
             </Button>
-            
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {filteredUsers.length} {t("users")}
+
+            <div className="flex items-center space-x-2">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {filteredUsers.length} {t("users")}
+              </div>
+
+              <div className="flex space-x-1">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<KeyOutlined />}
+                  onClick={onGenerateCode}
+                  className="text-purple-600 dark:text-purple-400 p-1"
+                  title={t("generateCode")}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<FileTextOutlined />}
+                  onClick={onViewCodes}
+                  className="text-cyan-600 dark:text-cyan-400 p-1"
+                  title={t("viewActiveCodes")}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<BarChartOutlined />}
+                  onClick={onViewStats}
+                  className="text-emerald-600 dark:text-emerald-400 p-1"
+                  title={t("usageStatistics")}
+                />
+              </div>
             </div>
           </div>
 
@@ -279,20 +376,18 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
 
         {/* User List */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-20">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-32">
-            <Spin size="large" />
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <Empty
-            description={t("noUsersFound")}
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        ) : (
-          <div>
-            {filteredUsers.map(renderUserCard)}
-          </div>
-        )}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <Spin size="large" />
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <Empty
+              description={t("noUsersFound")}
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          ) : (
+            <div>{filteredUsers.map(renderUserCard)}</div>
+          )}
         </div>
       </div>
 
@@ -325,11 +420,7 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
         cancelText={t("cancel")}
         className="dark:bg-gray-800"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          className="space-y-4"
-        >
+        <Form form={form} layout="vertical" className="space-y-4">
           <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="flex items-center space-x-3">
               <Avatar
@@ -370,6 +461,95 @@ const UserManagementMobile: React.FC<UserManagementMobileProps> = ({
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* User Progress Modal */}
+      <Modal
+        title={`${t("userProgress")} - ${selectedUserEmail}`}
+        open={isProgressModalVisible}
+        maskClosable={false}
+        onCancel={() => {
+          setIsProgressModalVisible(false);
+          setSelectedUserProgress([]);
+          setSelectedUserEmail("");
+        }}
+        footer={[
+          <Button
+            key="close"
+            type="primary"
+            onClick={() => {
+              setIsProgressModalVisible(false);
+              setSelectedUserProgress([]);
+              setSelectedUserEmail("");
+            }}
+            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
+          >
+            {t("close")}
+          </Button>,
+        ]}
+        width="90%"
+        className="max-w-2xl [&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
+      >
+        {isLoadingUserProgress ? (
+          <div className="flex justify-center items-center h-32">
+            <Spin size="large" className="dark:text-white" />
+          </div>
+        ) : selectedUserProgress.length === 0 ? (
+          <div className="flex items-center justify-center h-32">
+            <Empty
+              description={
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t("noProgressData")}
+                </span>
+              }
+            />
+          </div>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            {/* Group videos by channel */}
+            {Array.from(
+              new Set(selectedUserProgress.map((item) => item.channelId))
+            ).map((channelId) => {
+              const channelVideos = selectedUserProgress.filter(
+                (video) => video.channelId === channelId
+              );
+              const channelName = channelVideos[0]?.channelName || channelId;
+
+              return (
+                <div key={channelId} className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 pb-2 border-b border-gray-200 dark:border-gray-600">
+                    📺 {channelName}
+                  </h3>
+                  <div className="space-y-3">
+                    {channelVideos.map((video) => (
+                      <div
+                        key={video.videoId}
+                        className="flex flex-col p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0 mb-2">
+                          <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-2">
+                            {video.videoTitle}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1">
+                              <Progress
+                                percent={video.overallCompletion}
+                                size="small"
+                                status="active"
+                                strokeColor="#1890ff"
+                                className="[&_.ant-progress-text]:text-xs [&_.ant-progress-text]:dark:text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Modal>
     </div>
   );

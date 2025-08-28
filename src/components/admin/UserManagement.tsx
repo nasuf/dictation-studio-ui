@@ -1789,6 +1789,9 @@ const UserManagement: React.FC = () => {
               });
             }
           }}
+          onGenerateCode={showCodeGeneratorModal}
+          onViewCodes={showCodesModal}
+          onViewStats={showStatsModal}
         />
       );
     }
@@ -2467,53 +2470,57 @@ const UserManagement: React.FC = () => {
         maskClosable={false}
         onCancel={() => setIsStatsModalVisible(false)}
         footer={[
-          <Button
-            key="export"
-            type="default"
-            icon={<DownloadOutlined />}
-            onClick={showExportModal}
-            disabled={isLoadingStats}
-            className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500"
-          >
-            Export Report
-          </Button>,
-          <Button
-            key="exportCover"
-            type="default"
-            onClick={showCoverModal}
-            disabled={isLoadingStats}
-            className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white border-0"
-          >
-            {t("xiaohongshuCover")}
-          </Button>,
-          <Button
-            key="close"
-            type="primary"
-            onClick={() => setIsStatsModalVisible(false)}
-            className="bg-blue-500 hover:bg-blue-600 border-blue-500"
-          >
-            Close
-          </Button>,
+          <div key="footer" className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 w-full">
+            <Button
+              key="close"
+              type="primary"
+              onClick={() => setIsStatsModalVisible(false)}
+              className="bg-blue-500 hover:bg-blue-600 border-blue-500 w-full sm:w-auto order-1 sm:order-3"
+            >
+              Close
+            </Button>
+            <Button
+              key="exportCover"
+              type="default"
+              onClick={showCoverModal}
+              disabled={isLoadingStats}
+              className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white border-0 hidden sm:inline-flex order-2"
+            >
+              {t("xiaohongshuCover")}
+            </Button>
+            <Button
+              key="export"
+              type="default"
+              icon={<DownloadOutlined />}
+              onClick={showExportModal}
+              disabled={isLoadingStats}
+              className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-500 hidden sm:inline-flex order-1"
+            >
+              Export Report
+            </Button>
+          </div>
         ]}
-        width={900}
-        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600"
+        width="95%"
+        style={{ maxWidth: '900px' }}
+        className="[&_.ant-modal-content]:bg-white [&_.ant-modal-content]:dark:bg-gray-800 [&_.ant-modal-header]:bg-white [&_.ant-modal-header]:dark:bg-gray-800 [&_.ant-modal-title]:dark:text-white [&_.ant-modal-body]:bg-white [&_.ant-modal-body]:dark:bg-gray-800 [&_.ant-modal-footer]:bg-white [&_.ant-modal-footer]:dark:bg-gray-800 [&_.ant-modal-footer]:border-t [&_.ant-modal-footer]:border-gray-200 [&_.ant-modal-footer]:dark:border-gray-600 [&_.ant-modal-footer]:!p-4"
       >
         <div className="space-y-6" ref={reportRef}>
           {/* Period Selector */}
-          <div className="flex justify-center">
+          <div className="flex justify-center overflow-x-auto pb-2">
             <Segmented
               value={selectedStatsPeriod}
               onChange={(value) =>
                 handleStatsPeriodChange(value as 7 | 30 | 60)
               }
               options={[
-                { label: "Last 1 Day", value: 1 },
-                { label: "Last 3 Days", value: 3 },
-                { label: "Last 7 Days", value: 7 },
-                { label: "Last 30 Days", value: 30 },
-                { label: "Last 60 Days", value: 60 },
+                { label: <><span className="hidden sm:inline">Last 1 Day</span><span className="sm:hidden">1D</span></>, value: 1 },
+                { label: <><span className="hidden sm:inline">Last 3 Days</span><span className="sm:hidden">3D</span></>, value: 3 },
+                { label: <><span className="hidden sm:inline">Last 7 Days</span><span className="sm:hidden">7D</span></>, value: 7 },
+                { label: <><span className="hidden sm:inline">Last 30 Days</span><span className="sm:hidden">30D</span></>, value: 30 },
+                { label: <><span className="hidden sm:inline">Last 60 Days</span><span className="sm:hidden">60D</span></>, value: 60 },
               ]}
-              className="dark:bg-gray-700 [&_.ant-segmented-item]:dark:text-white [&_.ant-segmented-item-selected]:dark:bg-blue-600 [&_.ant-segmented-item-selected]:dark:text-white"
+              className="dark:bg-gray-700 [&_.ant-segmented-item]:dark:text-white [&_.ant-segmented-item-selected]:dark:bg-blue-600 [&_.ant-segmented-item-selected]:dark:text-white [&_.ant-segmented-item]:text-xs [&_.ant-segmented-item]:sm:text-sm [&_.ant-segmented-item]:px-2 [&_.ant-segmented-item]:sm:px-3"
+              size="small"
             />
           </div>
 
@@ -2528,44 +2535,44 @@ const UserManagement: React.FC = () => {
           {!isLoadingStats && statsData && (
             <div className="space-y-8">
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                <Card className="dark:bg-gray-700 dark:border-gray-600" size="small">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600 dark:text-orange-400">
                       {statsData.summary?.totalNewUsers || 0}
                     </div>
-                    <div className="text-gray-600 dark:text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                       New Users
                     </div>
                   </div>
                 </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                <Card className="dark:bg-gray-700 dark:border-gray-600" size="small">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {statsData.summary?.totalActiveUsers || 0}
                     </div>
-                    <div className="text-gray-600 dark:text-gray-300">
-                      Total Active Users
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      <span className="hidden sm:inline">Total </span>Active Users
                     </div>
                   </div>
                 </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                <Card className="dark:bg-gray-700 dark:border-gray-600" size="small">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <div className="text-sm sm:text-lg lg:text-2xl font-bold text-green-600 dark:text-green-400 break-words">
                       {formatDuration(statsData.summary?.totalDuration || 0)}
                     </div>
-                    <div className="text-gray-600 dark:text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                       Total Duration
                     </div>
                   </div>
                 </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
+                <Card className="dark:bg-gray-700 dark:border-gray-600" size="small">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-sm sm:text-lg lg:text-2xl font-bold text-purple-600 dark:text-purple-400 break-words">
                       {formatDuration(statsData.summary?.avgDailyDuration || 0)}
                     </div>
-                    <div className="text-gray-600 dark:text-gray-300">
-                      Avg Daily Duration
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      <span className="hidden sm:inline">Avg Daily</span><span className="sm:hidden">Avg</span> Duration
                     </div>
                   </div>
                 </Card>
@@ -2574,13 +2581,15 @@ const UserManagement: React.FC = () => {
               {/* New Users Chart */}
               <Card
                 title={
-                  <span className="dark:text-white">
-                    Daily New User Registrations
+                  <span className="dark:text-white text-sm sm:text-base">
+                    <span className="hidden sm:inline">Daily New User Registrations</span>
+                    <span className="sm:hidden">New Users</span>
                   </span>
                 }
                 className="dark:bg-gray-700 dark:border-gray-600"
+                size="small"
               >
-                <div className="h-40">
+                <div className="h-32 sm:h-40 lg:h-48">
                   <Line
                     data={statsData.dailyNewUsers || []}
                     xField="date"
@@ -2646,11 +2655,14 @@ const UserManagement: React.FC = () => {
               {/* Active Users Chart */}
               <Card
                 title={
-                  <span className="dark:text-white">Daily Active Users</span>
+                  <span className="dark:text-white text-sm sm:text-base">
+                    <span className="hidden sm:inline">Daily Active Users</span>
+                    <span className="sm:hidden">Active Users</span>
+                  </span>
                 }
                 className="dark:bg-gray-700 dark:border-gray-600"
               >
-                <div className="h-40">
+                <div className="h-32 sm:h-40 lg:h-48">
                   <Line
                     data={statsData.dailyActiveUsers || []}
                     xField="date"
@@ -2716,13 +2728,14 @@ const UserManagement: React.FC = () => {
               {/* Total Duration Chart */}
               <Card
                 title={
-                  <span className="dark:text-white">
-                    Daily Total Duration (Minutes)
+                  <span className="dark:text-white text-sm sm:text-base">
+                    <span className="hidden sm:inline">Daily Total Duration (Minutes)</span>
+                    <span className="sm:hidden">Duration (Min)</span>
                   </span>
                 }
                 className="dark:bg-gray-700 dark:border-gray-600"
               >
-                <div className="h-40">
+                <div className="h-32 sm:h-40 lg:h-48">
                   <Line
                     data={(statsData.dailyDuration || []).map((item: any) => ({
                       ...item,
