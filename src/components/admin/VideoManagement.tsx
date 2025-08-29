@@ -46,6 +46,7 @@ import {
 import { api } from "@/api/api";
 import getYoutubeId from "get-youtube-id";
 import VideoManagementMobile from "./VideoManagementMobile";
+import AnalyticsDisplay from "./AnalyticsDisplay";
 import {
   Channel,
   TranscriptItem,
@@ -89,6 +90,9 @@ interface AnalyticsData {
     public_videos: number;
     private_videos: number;
     refined_videos: number;
+    total_channels: number;
+    total_duration?: number;
+    average_duration?: number;
   };
   timestamp?: string;
 }
@@ -912,14 +916,6 @@ const VideoManagement: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  interface Analytics {
-    totalVideos: number;
-    totalChannels: number;
-    totalDuration?: number;
-    averageDuration?: number;
-  }
-  
-  const [analytics, setAnalytics] = useState<Analytics | undefined>(undefined);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [selectedChannelLink, setSelectedChannelLink] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
@@ -1070,23 +1066,6 @@ const VideoManagement: React.FC = () => {
   );
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
-  // Update analytics when videos or channels change
-  useEffect(() => {
-    if (videos.length > 0 || channels.length > 0) {
-      const totalVideos = videos.length;
-      const totalChannels = channels.length;
-      // Calculate total duration (assuming some default duration per video if not available)
-      const totalDuration = videos.length * 300; // 5 minutes average per video as placeholder
-      const averageDuration = totalVideos > 0 ? totalDuration / totalVideos : 0;
-      
-      setAnalytics({
-        totalVideos,
-        totalChannels,
-        totalDuration,
-        averageDuration
-      });
-    }
-  }, [videos, channels]);
 
   useEffect(() => {
     fetchChannels();
@@ -3859,7 +3838,6 @@ const VideoManagement: React.FC = () => {
       <VideoManagementMobile
         videos={videos}
         channels={channels}
-        analytics={analytics}
         isLoading={isLoading}
         selectedChannel={selectedChannel}
         selectedLanguage={selectedLanguage}
@@ -5377,243 +5355,11 @@ const VideoManagement: React.FC = () => {
         }}
       >
         <div className="dark:bg-gray-800 dark:text-white">
-          {isLoadingAnalytics ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="flex flex-col items-center space-y-4">
-                <LoadingOutlined className="text-4xl text-purple-600 animate-spin" />
-                <div className="text-gray-600 dark:text-gray-300">
-                  Loading analytics data...
-                </div>
-              </div>
-            </div>
-          ) : analyticsData ? (
-            <div className="space-y-6 pr-2">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {analyticsData.summary?.total_videos || 0}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      Total Videos
-                    </div>
-                  </div>
-                </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {analyticsData.summary?.public_videos || 0}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      Public Videos
-                    </div>
-                  </div>
-                </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                      {analyticsData.summary?.private_videos || 0}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      Private Videos
-                    </div>
-                  </div>
-                </Card>
-                <Card className="dark:bg-gray-700 dark:border-gray-600">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {analyticsData.summary?.refined_videos || 0}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      Refined Videos
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Progress Bars */}
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium dark:text-white">
-                      Refined Progress
-                    </span>
-                    <span className="text-sm font-semibold dark:text-white">
-                      {analyticsData.summary?.refined_videos || 0} /{" "}
-                      {analyticsData.summary?.total_videos || 0}
-                      <span className="ml-2 text-purple-600 dark:text-purple-400">
-                        {analyticsData.summary?.total_videos
-                          ? Math.round(
-                              (analyticsData.summary.refined_videos /
-                                analyticsData.summary.total_videos) *
-                                100
-                            )
-                          : 0}
-                        %
-                      </span>
-                    </span>
-                  </div>
-                  <Progress
-                    percent={
-                      analyticsData.summary?.total_videos
-                        ? Math.round(
-                            (analyticsData.summary.refined_videos /
-                              analyticsData.summary.total_videos) *
-                              100
-                          )
-                        : 0
-                    }
-                    strokeColor="#722ed1"
-                    trailColor="transparent"
-                    showInfo={false}
-                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium dark:text-white">
-                      Public Visibility
-                    </span>
-                    <span className="text-sm font-semibold dark:text-white">
-                      {analyticsData.summary?.public_videos || 0} /{" "}
-                      {analyticsData.summary?.total_videos || 0}
-                      <span className="ml-2 text-green-600 dark:text-green-400">
-                        {analyticsData.summary?.total_videos
-                          ? Math.round(
-                              (analyticsData.summary.public_videos /
-                                analyticsData.summary.total_videos) *
-                                100
-                            )
-                          : 0}
-                        %
-                      </span>
-                    </span>
-                  </div>
-                  <Progress
-                    percent={
-                      analyticsData.summary?.total_videos
-                        ? Math.round(
-                            (analyticsData.summary.public_videos /
-                              analyticsData.summary.total_videos) *
-                              100
-                          )
-                        : 0
-                    }
-                    strokeColor="#52c41a"
-                    trailColor="transparent"
-                    showInfo={false}
-                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
-                  />
-                </div>
-              </div>
-
-              {/* Channel Breakdown */}
-              {analyticsData.channels && analyticsData.channels.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 dark:text-white">
-                    Channel Breakdown
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm dark:text-white">
-                      <thead>
-                        <tr className="border-b border-gray-200 dark:border-gray-600">
-                          <th className="text-left py-2 px-3">Channel</th>
-                          <th className="text-center py-2 px-3 w-16">Total</th>
-                          <th className="text-center py-2 px-3 w-16">Public</th>
-                          <th className="text-center py-2 px-3 w-16">
-                            Private
-                          </th>
-                          <th className="text-center py-2 px-3 w-16">
-                            Refined
-                          </th>
-                          <th className="text-center py-2 px-3 w-20">
-                            Progress
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {analyticsData.channels.map(
-                          (channel, index: number) => (
-                            <tr
-                              key={channel.channel_id || index}
-                              className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                              <td className="py-2 px-3 font-medium">
-                                {channel.channel_name || channel.channel_id}
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="inline-block min-w-[44px]">
-                                  <Tag color="blue" className="text-center">
-                                    {channel.total_videos || 0}
-                                  </Tag>
-                                </div>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="inline-block min-w-[44px]">
-                                  <Tag color="green" className="text-center">
-                                    {channel.public_videos || 0}
-                                  </Tag>
-                                </div>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="inline-block min-w-[44px]">
-                                  <Tag color="orange" className="text-center">
-                                    {channel.private_videos || 0}
-                                  </Tag>
-                                </div>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="inline-block min-w-[44px]">
-                                  <Tag color="purple" className="text-center">
-                                    {channel.refined_videos || 0}
-                                  </Tag>
-                                </div>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="w-16 mx-auto">
-                                  <Progress
-                                    percent={
-                                      channel.total_videos
-                                        ? Math.round(
-                                            (channel.refined_videos /
-                                              channel.total_videos) *
-                                              100
-                                          )
-                                        : 0
-                                    }
-                                    size="small"
-                                    strokeColor="#722ed1"
-                                    trailColor="transparent"
-                                    showInfo={false}
-                                    className="[&_.ant-progress-bg]:!bg-transparent [&_.ant-progress-inner]:!bg-gray-200 [&_.ant-progress-inner]:dark:!bg-gray-600"
-                                  />
-                                </div>
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Timestamp */}
-              <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-600">
-                Last updated:{" "}
-                {analyticsData.timestamp
-                  ? new Date(analyticsData.timestamp).toLocaleString()
-                  : "Unknown"}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500 dark:text-gray-400">
-                No analytics data available
-              </div>
-            </div>
-          )}
+          <AnalyticsDisplay
+            data={analyticsData}
+            isLoading={isLoadingAnalytics}
+            isMobile={false}
+          />
         </div>
 
         <style

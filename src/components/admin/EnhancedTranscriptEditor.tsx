@@ -700,11 +700,11 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
   const renderContent = () => (
     <div className="h-full flex flex-col">
       {/* Top Section: Player + Controls */}
-      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-600">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className={`flex-shrink-0 border-b border-gray-200 dark:border-gray-600 ${isMobile ? 'p-2' : 'p-4'}`}>
+        <div className={`grid grid-cols-1 gap-2 ${isMobile ? '' : 'lg:grid-cols-2 gap-4'}`}>
           {/* Left Column: YouTube Player */}
           {state.video && (
-            <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+            <div className={`bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg ${isMobile ? 'p-2' : 'p-3'}`}>
               <div className="mb-2 flex justify-between items-center">
                 {isMobile ? (
                   <Button
@@ -758,13 +758,13 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
                   )}
                 </Space>
               </div>
-              <div className="relative w-full h-[180px] overflow-hidden rounded-lg">
+              <div className={`relative w-full overflow-hidden rounded-lg ${isMobile ? 'h-[120px]' : 'h-[180px]'}`}>
                 <YouTube
                   videoId={extractVideoId(state.video.link)}
                   onReady={onYouTubeReady}
                   opts={{
                     width: "100%",
-                    height: "180",
+                    height: isMobile ? "120" : "180",
                     playerVars: {
                       autoplay: 0,
                       controls: 1,
@@ -783,7 +783,8 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
             </div>
           )}
 
-          {/* Right Column: Filters and Controls */}
+          {/* Right Column: Filters and Controls - Hidden on mobile */}
+          {!isMobile && (
           <div className="space-y-3">
             {/* Filter Status */}
             <div className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
@@ -835,12 +836,13 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-4 flex flex-wrap gap-2 justify-between items-center">
+        <div className={`flex flex-wrap justify-between items-center ${isMobile ? 'mt-2 gap-1' : 'mt-4 gap-2'}`}>
           {/* Left Side: Transcript Operations */}
-          <Space wrap>
+          <Space wrap size={isMobile ? "small" : "middle"}>
             <Button
               onClick={loadOriginalTranscript}
               icon={<CloudDownloadOutlined />}
@@ -874,7 +876,7 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
           </Space>
 
           {/* Right Side: Filter Operations & Update */}
-          <Space wrap>
+          <Space wrap size={isMobile ? "small" : "middle"}>
             <Button
               onClick={addToFilters}
               disabled={!state.selectedText}
@@ -961,10 +963,10 @@ const EnhancedTranscriptEditor: React.FC<EnhancedTranscriptEditorProps> = ({
         <Form form={form} component={false} className="flex-1 flex flex-col">
           {/* Card-Based Transcript Editor */}
           <div
-            className="flex-1 overflow-y-auto px-4 py-2 space-y-4"
+            className={`flex-1 overflow-y-auto py-2 space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}
             style={{
               maxHeight: isMobile
-                ? "calc(100vh - 320px)"
+                ? "calc(100vh - 220px)"
                 : "calc(85vh - 320px)",
             }}
           >

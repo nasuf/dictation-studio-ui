@@ -18,23 +18,13 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  PlayCircleOutlined,
   FileTextOutlined,
-  VideoCameraOutlined,
-  ClockCircleOutlined,
-  BarChartOutlined,
-  GlobalOutlined
+  VideoCameraOutlined
 } from "@ant-design/icons";
 import { Video, Channel } from "@/utils/type";
 import EnhancedTranscriptEditor, { EnhancedTranscriptEditorState } from "./EnhancedTranscriptEditor";
+import AnalyticsDisplay, { AnalyticsData } from "./AnalyticsDisplay";
 import { api } from "@/api/api";
-
-interface Analytics {
-  totalVideos: number;
-  totalChannels: number;
-  totalDuration?: number;
-  averageDuration?: number;
-}
 
 interface VideoEditState {
   isVisible: boolean;
@@ -54,7 +44,6 @@ const { Search } = Input;
 interface VideoManagementMobileProps {
   videos: Video[];
   channels: Channel[];
-  analytics?: Analytics;
   isLoading: boolean;
   selectedChannel: string;
   selectedLanguage: string;
@@ -69,7 +58,6 @@ interface VideoManagementMobileProps {
 const VideoManagementMobile: React.FC<VideoManagementMobileProps> = ({
   videos,
   channels,
-  analytics,
   isLoading,
   selectedChannel,
   selectedLanguage,
@@ -120,6 +108,10 @@ const VideoManagementMobile: React.FC<VideoManagementMobileProps> = ({
     },
   });
 
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+
   // Filter channels by language
   useEffect(() => {
     let filtered = channels;
@@ -149,6 +141,13 @@ const VideoManagementMobile: React.FC<VideoManagementMobileProps> = ({
 
     setFilteredVideos(filtered);
   }, [videos, searchQuery, selectedChannel, selectedLanguage]);
+
+  // Load analytics data when analytics tab is active
+  useEffect(() => {
+    if (activeTab === 'analytics' && !analyticsData && !isLoadingAnalytics) {
+      fetchAnalytics();
+    }
+  }, [activeTab, analyticsData, isLoadingAnalytics]);
 
   // const getLanguageFlag = (language: string) => {
   //   switch (language) {
@@ -270,6 +269,19 @@ const VideoManagementMobile: React.FC<VideoManagementMobileProps> = ({
     }
   };
 
+  // Analytics Functions
+  const fetchAnalytics = async () => {
+    setIsLoadingAnalytics(true);
+    try {
+      const response = await api.getVideoAnalytics();
+      setAnalyticsData(response.data);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      message.error(t("failedToFetchAnalytics"));
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
 
   // Video Edit Functions
   const openVideoEditModal = (video: Video) => {
@@ -396,196 +408,12 @@ const VideoManagementMobile: React.FC<VideoManagementMobileProps> = ({
   );
 
   const renderAnalyticsTab = () => (
-    <div className="flex-1 overflow-y-auto p-4 pb-20">
-      <div className="space-y-6">
-        {analytics ? (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <Card size="small" className="dark:bg-gray-700 dark:border-gray-600">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {analytics.totalVideos || 0}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">
-                    {t("totalVideos")}
-                  </div>
-                </div>
-              </Card>
-              <Card size="small" className="dark:bg-gray-700 dark:border-gray-600">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {Math.round(analytics.totalVideos * 0.7) || 0}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">
-                    {t("publicVideos")}
-                  </div>
-                </div>
-              </Card>
-              <Card size="small" className="dark:bg-gray-700 dark:border-gray-600">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                    {Math.round(analytics.totalVideos * 0.3) || 0}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">
-                    {t("privateVideos")}
-                  </div>
-                </div>
-              </Card>
-              <Card size="small" className="dark:bg-gray-700 dark:border-gray-600">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {Math.round(analytics.totalVideos * 0.8) || 0}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">
-                    {t("refinedVideos")}
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Channel Statistics */}
-            <Card 
-              title={
-                <div className="flex items-center">
-                  <PlayCircleOutlined className="mr-2 text-blue-600" />
-                  <span className="text-sm">{t("channelStatistics")}</span>
-                </div>
-              }
-              size="small"
-              className="dark:bg-gray-700 dark:border-gray-600"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">{t("totalChannels")}</span>
-                  <span className="font-semibold">{analytics.totalChannels || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">{t("avgVideosPerChannel")}</span>
-                  <span className="font-semibold">
-                    {analytics.totalChannels > 0 ? Math.round(analytics.totalVideos / analytics.totalChannels) : 0}
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Duration Statistics */}
-            <Card 
-              title={
-                <div className="flex items-center">
-                  <ClockCircleOutlined className="mr-2 text-green-600" />
-                  <span className="text-sm">{t("durationStatistics")}</span>
-                </div>
-              }
-              size="small"
-              className="dark:bg-gray-700 dark:border-gray-600"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">{t("totalDuration")}</span>
-                  <span className="font-semibold">
-                    {Math.round((analytics.totalDuration || 0) / 3600)}h {Math.round(((analytics.totalDuration || 0) % 3600) / 60)}m
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">{t("avgDuration")}</span>
-                  <span className="font-semibold">
-                    {Math.round((analytics.averageDuration || 0) / 60)}m {Math.round((analytics.averageDuration || 0) % 60)}s
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Status Breakdown */}
-            <Card 
-              title={
-                <div className="flex items-center">
-                  <BarChartOutlined className="mr-2 text-purple-600" />
-                  <span className="text-sm">{t("statusBreakdown")}</span>
-                </div>
-              }
-              size="small"
-              className="dark:bg-gray-700 dark:border-gray-600"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("public")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.7)} ({Math.round(70)}%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("private")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.3)} ({Math.round(30)}%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("refined")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.8)} ({Math.round(80)}%)</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Language Distribution */}
-            <Card 
-              title={
-                <div className="flex items-center">
-                  <GlobalOutlined className="mr-2 text-blue-600" />
-                  <span className="text-sm">{t("languageDistribution")}</span>
-                </div>
-              }
-              size="small"
-              className="dark:bg-gray-700 dark:border-gray-600"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="mr-2">🇺🇸</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("english")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.5)} ({Math.round(50)}%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="mr-2">🇨🇳</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("chinese")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.3)} ({Math.round(30)}%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="mr-2">🇯🇵</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("japanese")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.15)} ({Math.round(15)}%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="mr-2">🇰🇷</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{t("korean")}</span>
-                  </div>
-                  <span className="font-semibold">{Math.round(analytics.totalVideos * 0.05)} ({Math.round(5)}%)</span>
-                </div>
-              </div>
-            </Card>
-          </>
-        ) : (
-          <div className="flex items-center justify-center py-16">
-            <div className="flex flex-col items-center space-y-4">
-              <Spin size="large" className="text-purple-600" />
-              <div className="text-gray-600 dark:text-gray-300 text-sm">
-                {t("loadingAnalytics")}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="flex-1 overflow-y-auto p-4">
+      <AnalyticsDisplay
+        data={analyticsData}
+        isLoading={isLoadingAnalytics}
+        isMobile={true}
+      />
     </div>
   );
 
