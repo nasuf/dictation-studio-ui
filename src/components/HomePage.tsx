@@ -136,39 +136,36 @@ const SciFiAudioBackground = () => {
         ))}
       </div>
 
-      {/* Floating microphone icons */}
-      <div className="absolute inset-0">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute text-indigo-400/20 text-6xl"
-            style={{
-              left: `${Math.random() * 80 + 10}%`,
-              top: `${Math.random() * 80 + 10}%`,
-              animation: `float-icon ${8 + i * 2}s ease-in-out infinite`,
-              animationDelay: `${i * 1.5}s`
-            }}
-          >
-            🎤
-          </div>
-        ))}
-      </div>
 
-      {/* Digital rain effect */}
-      <div className="absolute inset-0 opacity-10">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute text-cyan-400 text-sm font-mono"
-            style={{
-              left: `${i * 5}%`,
-              animation: `digital-rain ${3 + Math.random() * 4}s linear infinite`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          >
-            01010101
-          </div>
-        ))}
+      {/* Multilingual word rain effect */}
+      <div className="absolute inset-0 opacity-15">
+        {[...Array(20)].map((_, i) => {
+          const words = {
+            english: ['voice', 'speech', 'audio', 'sound', 'listen', 'speak', 'word', 'text'],
+            chinese: ['语音', '听写', '声音', '文字', '说话', '录音', '转换', '识别'],
+            japanese: ['音声', '聴写', '録音', '文字', '話す', '聞く', '変換', '認識'],
+            korean: ['음성', '듣기', '녹음', '문자', '말하기', '소리', '변환', '인식']
+          };
+          
+          const languages = Object.keys(words);
+          const randomLang = languages[Math.floor(Math.random() * languages.length)];
+          const randomWord = words[randomLang as keyof typeof words][Math.floor(Math.random() * words[randomLang as keyof typeof words].length)];
+          
+          return (
+            <div
+              key={i}
+              className="absolute text-cyan-400/60 text-sm font-medium"
+              style={{
+                left: `${i * 5}%`,
+                animation: `word-rain ${3 + Math.random() * 4}s linear infinite`,
+                animationDelay: `${Math.random() * 2}s`,
+                fontFamily: randomLang === 'chinese' || randomLang === 'japanese' ? 'system-ui' : 'Inter, system-ui'
+              }}
+            >
+              {randomWord}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -200,12 +197,12 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: -(e.clientY / window.innerHeight) * 2 + 1
+        x: e.clientX,
+        y: e.clientY
       });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
@@ -255,10 +252,10 @@ const HomePage: React.FC = () => {
       
       {/* Interactive cursor glow */}
       <div 
-        className="absolute pointer-events-none z-20 w-96 h-96 rounded-full bg-gradient-to-r from-purple-500/30 to-blue-500/30 blur-3xl transition-all duration-300"
+        className="absolute pointer-events-none z-20 w-96 h-96 rounded-full bg-gradient-to-r from-purple-500/30 to-blue-500/30 blur-3xl"
         style={{
-          left: `${(mousePosition.x + 1) * 50}%`,
-          top: `${(-mousePosition.y + 1) * 50}%`,
+          left: `${mousePosition.x}px`,
+          top: `${mousePosition.y}px`,
           transform: 'translate(-50%, -50%)'
         }}
       ></div>
@@ -312,178 +309,6 @@ const HomePage: React.FC = () => {
 
       </div>
 
-      {/* Custom CSS animations */}
-      <style>{`
-        @keyframes gradient-x {
-          0%, 100% {
-            background-size: 200% 200%;
-            background-position: left center;
-          }
-          50% {
-            background-size: 200% 200%;
-            background-position: right center;
-          }
-        }
-        
-        @keyframes circuit-pulse {
-          0%, 100% {
-            opacity: 0.15;
-          }
-          50% {
-            opacity: 0.25;
-          }
-        }
-        
-        @keyframes circuit-move {
-          0% {
-            transform: translate(0, 0);
-          }
-          100% {
-            transform: translate(30px, 30px);
-          }
-        }
-        
-        @keyframes waveform {
-          0% {
-            height: 20%;
-            opacity: 0.6;
-          }
-          100% {
-            height: 80%;
-            opacity: 1;
-          }
-        }
-        
-        @keyframes float-icon {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-            opacity: 0.1;
-          }
-          50% {
-            transform: translateY(-20px) rotate(180deg);
-            opacity: 0.3;
-          }
-        }
-        
-        @keyframes digital-rain {
-          0% {
-            transform: translateY(-100vh);
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-gradient-x {
-          animation: gradient-x 3s ease infinite;
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out forwards;
-        }
-        
-        /* Glowing border effect */
-        .glow-border {
-          position: relative;
-        }
-        
-        .glow-border::before {
-          content: '';
-          position: absolute;
-          inset: -2px;
-          padding: 2px;
-          background: linear-gradient(45deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
-          border-radius: inherit;
-          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          mask-composite: exclude;
-          animation: border-rotate 3s linear infinite;
-        }
-        
-        @keyframes border-rotate {
-          0% {
-            background: linear-gradient(45deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
-          }
-          25% {
-            background: linear-gradient(45deg, #3B82F6, #06B6D4, #8B5CF6, #3B82F6);
-          }
-          50% {
-            background: linear-gradient(45deg, #06B6D4, #8B5CF6, #3B82F6, #06B6D4);
-          }
-          75% {
-            background: linear-gradient(45deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
-          }
-          100% {
-            background: linear-gradient(45deg, #3B82F6, #06B6D4, #8B5CF6, #3B82F6);
-          }
-        }
-
-        /* Holographic text effect */
-        .holographic-text {
-          background: linear-gradient(
-            45deg,
-            #ff006e,
-            #fb5607,
-            #ffbe0b,
-            #8338ec,
-            #3a86ff
-          );
-          background-size: 300% 300%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: holographic 3s ease-in-out infinite;
-        }
-        
-        @keyframes holographic {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-
-        /* Particle trail effect */
-        .particle-trail {
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: radial-gradient(circle, #8B5CF6 0%, transparent 70%);
-          border-radius: 50%;
-          pointer-events: none;
-          animation: particle-float 2s ease-out forwards;
-        }
-        
-        @keyframes particle-float {
-          from {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          to {
-            opacity: 0;
-            transform: translateY(-100px);
-          }
-        }
-      `}</style>
     </div>
   );
 };
