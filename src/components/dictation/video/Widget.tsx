@@ -146,13 +146,32 @@ export const ScrollableContainer = styled.div`
 
 export const VideoCardGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
   align-content: start;
   width: 100%;
   box-sizing: border-box;
 
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
   @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 0;
@@ -161,18 +180,9 @@ export const VideoCardGrid = styled.div`
     overflow: hidden;
   }
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 0;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
   @media (max-width: 360px) {
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
+    gap: 6px;
     padding: 0;
     width: 100%;
     max-width: 100%;
@@ -355,13 +365,32 @@ export const CustomHoverCard = styled(Card)`
 
 export const ChannelGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
   padding: 0px;
   width: 100%;
   box-sizing: border-box;
 
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
   @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 0;
@@ -370,18 +399,9 @@ export const ChannelGrid = styled.div`
     overflow: hidden;
   }
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 0;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
   @media (max-width: 360px) {
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
+    gap: 6px;
     padding: 0;
     width: 100%;
     max-width: 100%;

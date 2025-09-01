@@ -3,15 +3,12 @@ import { Link } from "react-router-dom";
 import { Channel } from "@/utils/type";
 import {
   ChannelGrid,
-  UniversalCard,
-  UniversalContentInfo,
-  UniversalContentTitle,
   ScrollableContainer,
 } from "@/components/dictation/video/Widget";
 import { useDispatch } from "react-redux";
 import { setChannelName } from "@/redux/navigationSlice";
 import { useTranslation } from "react-i18next";
-import { Empty, Tag } from "antd";
+import { Empty } from "antd";
 import MobileHeader from "@/components/MobileHeader";
 
 interface ChannelListProps {
@@ -91,55 +88,59 @@ const ChannelList: React.FC<ChannelListProps> = ({
                   to={`/dictation/video/${channel.id}`}
                   onClick={() => dispatch(setChannelName(channel.name))}
                   state={{ name: channel.name }}
+                  className="group block transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
                 >
-                  <UniversalCard
-                    contentType="channel"
-                    hoverable
-                    cover={
-                      <div
-                        style={{ position: "relative", paddingTop: "56.25%" }}
-                      >
-                        <img
-                          alt={channel.name}
-                          src={channel.image_url}
-                          onError={(e) => {
-                            e.currentTarget.src = "/404.jpg";
-                          }}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            borderRadius: "8px 8px 0 0",
-                          }}
-                        />
-                        {/* Video count badge in top-right corner */}
-                        {/* <div className="absolute top-2 right-2">
-                          <div className="bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-lg">
-                            {channel.videos?.length || 0}
-                          </div>
-                        </div> */}
-                        {/* Language tag in bottom-left corner */}
-                        <div className="absolute bottom-2 left-2">
-                          <Tag
-                            color={getLanguageColor()}
-                            className="text-xs font-medium border-0 shadow-md"
-                          >
-                            {getLanguageDisplay(channel.language)}
-                          </Tag>
+                  <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:border-blue-500/30 dark:group-hover:border-blue-400/30">
+                    {/* Main image container */}
+                    <div className="relative overflow-hidden" style={{ paddingTop: "56.25%" }}>
+                      <img
+                        alt={channel.name}
+                        src={channel.image_url}
+                        onError={(e) => {
+                          e.currentTarget.src = "/404.jpg";
+                        }}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      
+                      {/* Gradient overlay for better text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Modern language tag */}
+                      <div className="absolute bottom-3 left-3">
+                        <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10 text-white text-xs font-semibold shadow-lg">
+                          <div 
+                            className="w-2 h-2 rounded-full mr-2 animate-pulse" 
+                            style={{ backgroundColor: getLanguageColor() }}
+                          />
+                          {getLanguageDisplay(channel.language)}
                         </div>
                       </div>
-                    }
-                    styles={{ body: { padding: 0 } }}
-                  >
-                    <UniversalContentInfo contentType="channel">
-                      <UniversalContentTitle level={5} contentType="channel">
-                        {channel.name}
-                      </UniversalContentTitle>
-                    </UniversalContentInfo>
-                  </UniversalCard>
+                      
+                      {/* Hover effect overlay */}
+                      <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    
+                    {/* Content section with fixed height */}
+                    <div className="relative h-20 p-4 bg-gradient-to-b from-transparent to-gray-50/50 dark:to-gray-800/50">
+                      {/* Title with fixed height for exactly 2 lines */}
+                      <div className="h-10 mb-1 flex items-center justify-center">
+                        <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 leading-5 text-center">
+                          {channel.name}
+                        </h3>
+                      </div>
+                      
+                      {/* Action indicator at bottom-right */}
+                      <div className="absolute bottom-3 right-4">
+                        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 dark:bg-blue-400 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               ))}
           </ChannelGrid>

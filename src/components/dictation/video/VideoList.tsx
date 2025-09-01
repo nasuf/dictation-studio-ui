@@ -7,10 +7,6 @@ import { Video } from "@/utils/type";
 import {
   ScrollableContainer,
   VideoCardGrid,
-  UniversalCard,
-  UniversalContentInfo,
-  UniversalContentTitle,
-  StatusIndicator,
   SkeletonImage,
 } from "./Widget";
 import { useDispatch, useSelector } from "react-redux";
@@ -256,89 +252,106 @@ const VideoList: React.FC<VideoListProps> = ({ progressFilter = "all" }) => {
                   to={`/dictation/video/${channelId}/${video.video_id}`}
                   onClick={() => dispatch(setVideoName(video.title))}
                   state={{ name: video.title }}
+                  className="group block transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
                 >
-                  <UniversalCard
-                    contentType="video"
-                    hoverable
-                    cover={
-                      <div
-                        style={{ position: "relative", paddingTop: "56.25%" }}
-                      >
-                        {!loadedImages[video.video_id] && (
-                          <SkeletonImage active />
-                        )}
-                        <img
-                          alt={video.title}
-                          src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
-                          onLoad={() => handleImageLoad(video.video_id)}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            display: loadedImages[video.video_id]
-                              ? "block"
-                              : "none",
-                            borderRadius: "8px 8px 0 0",
-                          }}
-                        />
-                        {/* Progress bar at bottom of image */}
-                        {(progress[video.video_id] || 0) > 0 && (
-                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-                            <div
-                              className="h-full transition-all duration-300"
-                              style={{
-                                width: `${progress[video.video_id] || 0}%`,
-                                backgroundColor: getStatusColor(video.video_id),
-                              }}
-                            />
-                          </div>
-                        )}
-                        {/* Play button */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-9 h-9 bg-black/70 rounded-full flex items-center justify-center">
-                            <PlayCircleOutlined className="text-white text-lg" />
+                  <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:border-blue-500/30 dark:group-hover:border-blue-400/30">
+                    {/* Main video thumbnail container */}
+                    <div className="relative overflow-hidden" style={{ paddingTop: "56.25%" }}>
+                      {!loadedImages[video.video_id] && (
+                        <SkeletonImage active />
+                      )}
+                      <img
+                        alt={video.title}
+                        src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
+                        onLoad={() => handleImageLoad(video.video_id)}
+                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                          loadedImages[video.video_id] ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+                      
+                      {/* Modern progress bar */}
+                      {(progress[video.video_id] || 0) > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 backdrop-blur-sm">
+                          <div
+                            className="h-full transition-all duration-500 relative overflow-hidden"
+                            style={{
+                              width: `${progress[video.video_id] || 0}%`,
+                              backgroundColor: getStatusColor(video.video_id),
+                            }}
+                          >
+                            {/* Animated shimmer effect for progress */}
+                            <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
                           </div>
                         </div>
-                        {/* Progress percentage badge in top-right corner */}
-                        {(progress[video.video_id] || 0) > 0 && (
-                          <div className="absolute top-2 right-2">
-                            <div
-                              className="text-white text-xs font-medium px-1.5 py-0.5 rounded"
-                              style={{
-                                backgroundColor: getStatusColor(video.video_id),
-                              }}
-                            >
-                              {Math.round(progress[video.video_id] || 0)}%
-                            </div>
-                          </div>
-                        )}
+                      )}
+                      
+                      {/* Enhanced play button */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-white/10 dark:bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20 dark:group-hover:bg-black/30">
+                          <PlayCircleOutlined className="text-white text-xl md:text-2xl drop-shadow-lg" />
+                        </div>
                       </div>
-                    }
-                    styles={{ body: { padding: 0 } }}
-                  >
-                    <UniversalContentInfo contentType="video">
-                      <UniversalContentTitle level={5} contentType="video">
-                        {video.title}
-                      </UniversalContentTitle>
-                      <StatusIndicator>
-                        <div
-                          className="status-dot"
-                          style={{
-                            backgroundColor: getStatusColor(video.video_id),
-                          }}
-                        />
-                        <span
-                          className="status-text"
-                          style={{ color: getStatusColor(video.video_id) }}
-                        >
-                          {getStatusText(video.video_id)}
-                        </span>
-                      </StatusIndicator>
-                    </UniversalContentInfo>
-                  </UniversalCard>
+                      
+                      {/* Modern progress percentage badge */}
+                      {(progress[video.video_id] || 0) > 0 && (
+                        <div className="absolute top-3 right-3">
+                          <div className="inline-flex items-center px-2.5 py-1.5 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg">
+                            <div 
+                              className="w-2 h-2 rounded-full mr-2 animate-pulse" 
+                              style={{ backgroundColor: getStatusColor(video.video_id) }}
+                            />
+                            <span className="text-white text-xs font-semibold">
+                              {Math.round(progress[video.video_id] || 0)}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Hover effect overlay */}
+                      <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    
+                    {/* Content section with fixed height */}
+                    <div className="relative h-24 p-4 bg-gradient-to-b from-transparent to-gray-50/50 dark:to-gray-800/50">
+                      {/* Title with fixed height for exactly 2 lines */}
+                      <div className="h-10 mb-1">
+                        <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 leading-5">
+                          {video.title}
+                        </h3>
+                      </div>
+                      
+                      {/* Status indicator fixed at bottom-left */}
+                      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div
+                            className="w-2 h-2 rounded-full animate-pulse shadow-lg"
+                            style={{
+                              backgroundColor: getStatusColor(video.video_id),
+                              boxShadow: `0 0 4px ${getStatusColor(video.video_id)}40`
+                            }}
+                          />
+                          <span
+                            className="text-[10px] md:text-xs font-medium transition-colors duration-300"
+                            style={{ color: getStatusColor(video.video_id) }}
+                          >
+                            {getStatusText(video.video_id)}
+                          </span>
+                        </div>
+                        
+                        {/* Action indicator */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                          <div className="w-5 h-5 rounded-full bg-blue-500 dark:bg-blue-400 flex items-center justify-center shadow-lg">
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               ))}
           </VideoCardGrid>
