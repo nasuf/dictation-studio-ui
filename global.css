@@ -1971,6 +1971,256 @@ html.dark .ant-table-filter-dropdown .ant-checkbox-wrapper > span {
   color: inherit !important;
 }
 
+/* Modern Mobile Header */
+.modern-mobile-header {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(239, 246, 255, 0.9) 50%, 
+    rgba(219, 234, 254, 0.85) 100%);
+  box-shadow: 0 4px 25px -5px rgba(59, 130, 246, 0.1);
+}
+
+.dark .modern-mobile-header {
+  background: linear-gradient(135deg, 
+    rgba(15, 23, 42, 0.95) 0%, 
+    rgba(30, 41, 59, 0.9) 50%, 
+    rgba(51, 65, 85, 0.85) 100%);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+  box-shadow: 0 4px 25px -5px rgba(96, 165, 250, 0.2);
+}
+
+/* Mobile Header Background Pattern */
+.modern-mobile-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.02) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+.dark .modern-mobile-header::before {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(96, 165, 250, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.03) 50%, transparent 100%);
+}
+
+/* Mobile Header Floating Elements */
+.mobile-floating-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+    rgba(59, 130, 246, 0.3), 
+    rgba(96, 165, 250, 0.2));
+  animation: mobileFloat 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dark .mobile-floating-orb {
+  background: linear-gradient(45deg, 
+    rgba(96, 165, 250, 0.4), 
+    rgba(59, 130, 246, 0.3));
+}
+
+@keyframes mobileFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-10px) rotate(180deg); 
+    opacity: 0.8;
+  }
+}
+
+/* Mobile Header Content */
+.modern-mobile-header-content {
+  position: relative;
+  z-index: 10;
+  padding: 1rem;
+}
+
+/* Mobile Header Buttons */
+.modern-mobile-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.1);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.dark .modern-mobile-button {
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.modern-mobile-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.2), 
+    rgba(59, 130, 246, 0.05));
+  border-radius: inherit;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.dark .modern-mobile-button::before {
+  background: linear-gradient(135deg, 
+    rgba(96, 165, 250, 0.2), 
+    rgba(96, 165, 250, 0.05));
+}
+
+.modern-mobile-button:hover::before {
+  transform: translateX(0);
+}
+
+.modern-mobile-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.modern-mobile-button .anticon {
+  color: #1E40AF;
+  font-size: 1.1rem;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.dark .modern-mobile-button .anticon {
+  color: #CBD5E1;
+}
+
+/* Modern Mobile Input */
+.modern-mobile-input {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  border-radius: 16px !important;
+  color: #1E40AF !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.modern-mobile-input::placeholder {
+  color: rgba(30, 64, 175, 0.6) !important;
+}
+
+.dark .modern-mobile-input {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+  color: #CBD5E1 !important;
+}
+
+.dark .modern-mobile-input::placeholder {
+  color: rgba(203, 213, 225, 0.6) !important;
+}
+
+.modern-mobile-input:focus,
+.modern-mobile-input:hover {
+  border-color: rgba(96, 165, 250, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Modern Mobile Title */
+.modern-mobile-title {
+  color: #1E40AF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #1E40AF, #3B82F6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .modern-mobile-title {
+  color: #CBD5E1 !important;
+  background: linear-gradient(135deg, #CBD5E1, #93C5FD);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modern-mobile-subtitle {
+  color: rgba(30, 64, 175, 0.8) !important;
+  text-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
+}
+
+.dark .modern-mobile-subtitle {
+  color: rgba(203, 213, 225, 0.8) !important;
+}
+
+/* Modern Mobile Select */
+.modern-mobile-select .ant-select-selector {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  color: white !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.dark .modern-mobile-select .ant-select-selector {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+  color: #CBD5E1 !important;
+}
+
+.modern-mobile-select .ant-select-selection-item {
+  color: white !important;
+}
+
+.dark .modern-mobile-select .ant-select-selection-item {
+  color: #CBD5E1 !important;
+}
+
+/* Modern Mobile Modal */
+.mobile-modal .ant-modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .mobile-modal .ant-modal-content {
+  background: rgba(17, 24, 39, 0.95) !important;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+  box-shadow: 0 20px 40px rgba(96, 165, 250, 0.4) !important;
+}
+
+.mobile-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .mobile-modal .ant-modal-header {
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3) !important;
+}
+
+.mobile-modal .ant-modal-title {
+  color: #1E40AF !important;
+  font-weight: 600 !important;
+}
+
+.dark .mobile-modal .ant-modal-title {
+  color: #60A5FA !important;
+}
+
 /* Modern Avatar */
 .modern-avatar-button {
   position: relative;

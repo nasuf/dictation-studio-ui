@@ -10,7 +10,7 @@ import {
   SearchOutlined, 
   GlobalOutlined
 } from "@ant-design/icons";
-import { Input, Select, Button, Modal } from "antd";
+import { Input, Select, Modal } from "antd";
 import { LANGUAGES } from "@/utils/const";
 
 interface MobileHeaderProps {
@@ -63,57 +63,73 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 
 
   const renderChannelListHeader = () => (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-      <div className="px-4 py-3">
+    <div className="modern-mobile-header">
+      {/* Background Pattern */}
+      <div className="absolute inset-0">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="mobile-floating-orb"
+            style={{
+              width: `${12 + i * 4}px`,
+              height: `${12 + i * 4}px`,
+              left: `${15 + i * 25}%`,
+              top: `${30 + i * 10}%`,
+              animationDelay: `${i * 1.2}s`,
+              animationDuration: `${4 + i * 0.5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="modern-mobile-header-content">
         {/* Title and Actions Row */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl modern-mobile-title">
               Dictation Studio
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm modern-mobile-subtitle">
               {channelCount !== undefined ? `${channelCount} channels` : "Loading..."}
             </p>
           </div>
-          <div className="flex items-center space-x-1">
-            <Button
-              type="text"
-              icon={<GlobalOutlined className="text-gray-600 dark:text-gray-400" />}
-              size="small"
+          <div className="flex items-center space-x-2">
+            <button
               onClick={() => setShowLanguageModal(true)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-            />
-            <Button
-              type="text"
-              icon={<ReloadOutlined className={`text-gray-600 dark:text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />}
-              size="small"
+              className="modern-mobile-button"
+            >
+              <GlobalOutlined />
+            </button>
+            <button
               onClick={onRefresh}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-            />
+              className="modern-mobile-button"
+            >
+              <ReloadOutlined className={isLoading ? 'animate-spin' : ''} />
+            </button>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-2">
+        <div className="mb-3">
           <Input
             placeholder={t("searchChannels")}
-            prefix={<SearchOutlined className="text-gray-400" />}
+            prefix={<SearchOutlined className="text-blue-700 opacity-60" />}
             value={searchValue}
             onChange={(e) => onSearch?.(e.target.value)}
-            className="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+            className="modern-mobile-input"
             size="middle"
           />
         </div>
 
         {/* Language Filter */}
         {selectedLanguage !== LANGUAGES.All && (
-          <div className="mt-2">
+          <div className="mt-3">
             <Select
               value={selectedLanguage}
               onChange={handleLanguageChange}
               options={languageOptions}
               size="small"
-              className="min-w-[120px]"
+              className="min-w-[120px] modern-mobile-select"
               suffixIcon={<GlobalOutlined />}
             />
           </div>
@@ -123,35 +139,51 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   );
 
   const renderVideoListHeader = () => (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-      <div className="px-4 py-3">
+    <div className="modern-mobile-header">
+      {/* Background Pattern */}
+      <div className="absolute inset-0">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="mobile-floating-orb"
+            style={{
+              width: `${12 + i * 4}px`,
+              height: `${12 + i * 4}px`,
+              left: `${15 + i * 25}%`,
+              top: `${30 + i * 10}%`,
+              animationDelay: `${i * 1.2}s`,
+              animationDuration: `${4 + i * 0.5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="modern-mobile-header-content">
         {/* Header Row */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center flex-1">
-            <Button
-              type="text"
-              icon={<ArrowLeftOutlined />}
-              size="small"
+            <button
               onClick={handleBack}
-              className="mr-2 p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-            />
+              className="modern-mobile-button mr-3"
+            >
+              <ArrowLeftOutlined />
+            </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">
+              <h1 className="text-xl modern-mobile-title truncate">
                 {channelName || t("videos")}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm modern-mobile-subtitle">
                 {videoCount !== undefined ? `${videoCount} videos` : "Loading..."}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-1">
-            <Button
-              type="text"
-              icon={<ReloadOutlined className={`text-gray-600 dark:text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />}
-              size="small"
+          <div className="flex items-center space-x-2">
+            <button
               onClick={onRefresh}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-            />
+              className="modern-mobile-button"
+            >
+              <ReloadOutlined className={isLoading ? 'animate-spin' : ''} />
+            </button>
           </div>
         </div>
 
@@ -159,10 +191,10 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         <div className="mb-3">
           <Input
             placeholder={t("searchVideos")}
-            prefix={<SearchOutlined className="text-gray-400" />}
+            prefix={<SearchOutlined className="text-blue-700 opacity-60" />}
             value={searchValue}
             onChange={(e) => onSearch?.(e.target.value)}
-            className="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+            className="modern-mobile-input"
             size="middle"
           />
         </div>
@@ -184,21 +216,24 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         footer={null}
         className="mobile-modal"
       >
-        <div className="space-y-2">
+        <div className="space-y-3">
           {languageOptions.map((option) => (
             <div
               key={option.value}
               onClick={() => handleLanguageChange(option.value)}
-              className={`p-3 rounded-lg cursor-pointer transition-colors ${
+              className={`p-4 rounded-16 cursor-pointer transition-all duration-300 ${
                 selectedLanguage === option.value
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-600 shadow-lg transform scale-105'
+                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800/50 dark:hover:to-gray-700/30 hover:shadow-md hover:transform hover:scale-102'
               }`}
+              style={{
+                backdropFilter: 'blur(8px)',
+              }}
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">{option.label}</span>
+                <span className="font-semibold">{option.label}</span>
                 {selectedLanguage === option.value && (
-                  <span className="text-blue-600 dark:text-blue-400">✓</span>
+                  <span className="text-blue-600 dark:text-blue-400 text-lg">✓</span>
                 )}
               </div>
             </div>
