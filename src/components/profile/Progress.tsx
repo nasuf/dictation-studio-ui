@@ -2,16 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Layout, Menu, Empty } from "antd";
 import { api } from "@/api/api";
 import {
-  UniversalCard,
-  UniversalContentInfo,
-  UniversalContentTitle,
   ScrollableContainer,
   VideoCardGrid,
-  SkeletonImage,
-  StatusIndicator,
 } from "@/components/dictation/video/Widget";
+import VideoCard from "@/components/dictation/video/VideoCard";
 import { ProgressData } from "@/utils/type";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const { Content, Sider } = Layout;
@@ -73,36 +68,6 @@ const UserProgress: React.FC = () => {
     );
   }
 
-  const getVideoStatus = (overallCompletion: number) => {
-    const videoProgress = overallCompletion || 0;
-    if (videoProgress >= 100) return "completed";
-    if (videoProgress > 0) return "in_progress";
-    return "not_started";
-  };
-
-  const getStatusText = (overallCompletion: number) => {
-    const status = getVideoStatus(overallCompletion);
-    switch (status) {
-      case "completed":
-        return t("completed");
-      case "in_progress":
-        return t("inProgress");
-      default:
-        return t("notStarted");
-    }
-  };
-
-  const getStatusColor = (overallCompletion: number) => {
-    const status = getVideoStatus(overallCompletion);
-    switch (status) {
-      case "completed":
-        return "#52c41a"; // green
-      case "in_progress":
-        return "#1890ff"; // blue
-      default:
-        return "#9e9e9e"; // gray
-    }
-  };
 
   return (
     <Layout className="h-full bg-transparent">
@@ -172,82 +137,15 @@ const UserProgress: React.FC = () => {
             <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">
               <VideoCardGrid>
                 {filteredVideos.map((video) => (
-                  <Link
+                  <VideoCard
                     key={video.videoId}
-                    to={`/dictation/video/${selectedChannel}/${video.videoId}`}
-                  >
-                    <UniversalCard
-                      contentType="video"
-                      hoverable
-                      key={video.videoId}
-                      cover={
-                        <div
-                          style={{ position: "relative", paddingTop: "56.25%" }}
-                        >
-                          {!loadedImages[video.videoId] && (
-                            <SkeletonImage active />
-                          )}
-                          <img
-                            alt={video.videoTitle}
-                            src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
-                            onLoad={() => handleImageLoad(video.videoId)}
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              display: loadedImages[video.videoId]
-                                ? "block"
-                                : "none",
-                              borderRadius: "8px 8px 0 0",
-                            }}
-                          />
-                          {/* Progress percentage badge in top-right corner */}
-                          {(video.overallCompletion || 0) > 0 && (
-                            <div className="absolute top-2 right-2">
-                              <div
-                                className="text-white text-xs font-medium px-1.5 py-0.5 rounded"
-                                style={{
-                                  backgroundColor: getStatusColor(
-                                    video.overallCompletion
-                                  ),
-                                }}
-                              >
-                                {Math.round(video.overallCompletion || 0)}%
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      }
-                      styles={{ body: { padding: 0 } }}
-                    >
-                      <UniversalContentInfo contentType="video">
-                        <UniversalContentTitle level={5} contentType="video">
-                          {video.videoTitle}
-                        </UniversalContentTitle>
-                        <StatusIndicator>
-                          <div
-                            className="status-dot"
-                            style={{
-                              backgroundColor: getStatusColor(
-                                video.overallCompletion
-                              ),
-                            }}
-                          />
-                          <span
-                            className="status-text"
-                            style={{
-                              color: getStatusColor(video.overallCompletion),
-                            }}
-                          >
-                            {getStatusText(video.overallCompletion)}
-                          </span>
-                        </StatusIndicator>
-                      </UniversalContentInfo>
-                    </UniversalCard>
-                  </Link>
+                    videoId={video.videoId}
+                    videoTitle={video.videoTitle || ""}
+                    progress={video.overallCompletion || 0}
+                    isImageLoaded={loadedImages[video.videoId] || false}
+                    onImageLoad={handleImageLoad}
+                    linkPath={selectedChannel ? `/dictation/video/${selectedChannel}/${video.videoId}` : undefined}
+                  />
                 ))}
               </VideoCardGrid>
             </ScrollableContainer>
