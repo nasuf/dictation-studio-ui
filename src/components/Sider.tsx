@@ -1,15 +1,5 @@
 import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
-import {
-  ContainerTwoTone,
-  CustomerServiceOutlined,
-  HistoryOutlined,
-  IdcardTwoTone,
-  PlusCircleTwoTone,
-  RocketTwoTone,
-  ExclamationCircleTwoTone,
-  HeartTwoTone,
-} from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -48,7 +38,7 @@ const AppSider: React.FC<AppSiderProps> = ({
   const mainSiderItems: MenuItem[] = [
     {
       key: "Video Dictation",
-      icon: <CustomerServiceOutlined />,
+      // icon: <CustomerServiceOutlined />,
       label: t("videoDictation"),
       path: "/dictation/video",
     },
@@ -60,7 +50,7 @@ const AppSider: React.FC<AppSiderProps> = ({
     // },
     {
       key: "DictationProgress",
-      icon: <HistoryOutlined />,
+      // icon: <HistoryOutlined />,
       label: t("progress"),
       path: "/dictation/progress",
     },
@@ -69,7 +59,7 @@ const AppSider: React.FC<AppSiderProps> = ({
   const profileSiderItems: MenuItem[] = [
     {
       key: "Information",
-      icon: <IdcardTwoTone />,
+      // icon: <IdcardTwoTone />,
       label: t("information"),
       path: "/profile/information",
     },
@@ -81,31 +71,31 @@ const AppSider: React.FC<AppSiderProps> = ({
     // },
     {
       key: "UpgradePlan",
-      icon: <RocketTwoTone />,
+      // icon: <RocketTwoTone />,
       label: t("upgradePlan"),
       path: "/profile/upgrade-plan",
     },
     {
       key: "ChannelRecommendation",
-      icon: <ContainerTwoTone />,
+      // icon: <ContainerTwoTone />,
       label: t("channelRecommendation"),
       path: "/profile/channel-recommendation",
     },
     {
       key: "Feedback",
-      icon: <PlusCircleTwoTone />,
+      // icon: <PlusCircleTwoTone />,
       label: t("feedback"),
       path: "/profile/feedback",
     },
     {
       key: "VideoErrorReports",
-      icon: <ExclamationCircleTwoTone />,
+      // icon: <ExclamationCircleTwoTone />,
       label: t("videoErrorReports"),
       path: "/profile/video-error-reports",
     },
     {
       key: "SupportDeveloper",
-      icon: <HeartTwoTone />,
+      // icon: <HeartTwoTone />,
       label: t("supportDeveloper"),
       path: "/profile/reward-developer",
     },
@@ -175,7 +165,11 @@ const AppSider: React.FC<AppSiderProps> = ({
         );
       }
       return (
-        <Menu.Item key={item.key} icon={item.icon}>
+        <Menu.Item
+          key={item.key}
+          icon={item.icon}
+          className="modern-menu-item-sider"
+        >
           <Link to={item.path || ""}>{item.label}</Link>
         </Menu.Item>
       );
@@ -186,10 +180,10 @@ const AppSider: React.FC<AppSiderProps> = ({
 
   return (
     <Sider
-      className={`${
-        isMobile 
-          ? "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg" 
-          : "bg-white dark:bg-gray-800"
+      className={`modern-sider ${
+        isMobile
+          ? "shadow-xl border-r border-slate-300 dark:border-slate-600"
+          : ""
       }`}
       width={200}
       collapsedWidth={isMobile ? 0 : 80}
@@ -198,30 +192,60 @@ const AppSider: React.FC<AppSiderProps> = ({
       collapsible={false}
       trigger={null}
       style={{
-        overflow: "auto",
+        overflow: "hidden",
         height: isMobile ? "calc(100vh - 3rem)" : "100%", // 3rem = h-12 header height
         position: isMobile ? "fixed" : "relative",
         top: isMobile ? "3rem" : "auto", // Align with header bottom
         left: isMobile && collapsed ? -200 : 0,
         zIndex: isMobile ? 1000 : "auto",
-        transition: "all 0.2s",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      <Menu
-        mode="inline"
-        selectedKeys={selectedKeys}
-        defaultOpenKeys={defaultOpenKeys}
-        style={{ height: "100%" }}
-        className="bg-transparent"
-        inlineCollapsed={collapsed}
+      {/* Background Pattern */}
+      <div className="sider-pattern"></div>
+
+      {/* Floating Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(2)].map((_, i) => (
+          <div
+            key={i}
+            className="sider-floating-element"
+            style={{
+              width: `${8 + i * 3}px`,
+              height: `${8 + i * 3}px`,
+              left: `${20 + i * 50}%`,
+              top: `${20 + i * 40}%`,
+              animationDelay: `${i * 1.5}s`,
+              animationDuration: `${5 + i * 0.5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div
+        className="flex-1 overflow-y-auto custom-scrollbar relative z-10"
+        style={{ height: "calc(100% - 2rem)", padding: "1rem 0" }}
       >
-        {renderMenuItems(siderItems)}
-      </Menu>
-      
+        <Menu
+          mode="inline"
+          selectedKeys={selectedKeys}
+          defaultOpenKeys={defaultOpenKeys}
+          style={{
+            background: "transparent",
+            border: "none",
+            minHeight: "auto",
+          }}
+          className="bg-transparent"
+          inlineCollapsed={collapsed}
+        >
+          {renderMenuItems(siderItems)}
+        </Menu>
+      </div>
+
       {/* Mobile overlay to close sider when clicking outside */}
       {isMobile && !collapsed && (
         <div
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-[999]"
+          className="modern-sider-overlay"
           onClick={() => onCollapse?.(true)}
         />
       )}

@@ -119,23 +119,54 @@ const UserProgress: React.FC = () => {
       ) : (
         <>
           <Sider
-            className="bg-white dark:bg-gray-800 dark:text-white"
+            className="modern-sider shadow-xl border-r border-slate-300 dark:border-slate-600"
             width={200}
+            style={{
+              overflow: "hidden",
+              height: "100%",
+            }}
           >
-            <Menu
-              mode="inline"
-              selectedKeys={[selectedChannel || ""]}
-              style={{ height: "100%", borderRight: 0 }}
-              onSelect={({ key }) => setSelectedChannel(key)}
-              className="bg-white dark:bg-gray-800 dark:text-white"
-            >
-              {channels.map((channelId) => (
-                <Menu.Item key={channelId} className="dark:text-white">
-                  {allProgress.find((item) => item.channelId === channelId)
-                    ?.channelName || channelId}
-                </Menu.Item>
+            {/* Background Pattern */}
+            <div className="sider-pattern"></div>
+
+            {/* Floating Elements */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(2)].map((_, i) => (
+                <div
+                  key={i}
+                  className="sider-floating-element"
+                  style={{
+                    width: `${8 + i * 3}px`,
+                    height: `${8 + i * 3}px`,
+                    left: `${20 + i * 50}%`,
+                    top: `${20 + i * 40}%`,
+                    animationDelay: `${i * 1.5}s`,
+                    animationDuration: `${5 + i * 0.5}s`,
+                  }}
+                />
               ))}
-            </Menu>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10" style={{ height: 'calc(100% - 2rem)', padding: '1rem 0' }}>
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedChannel || ""]}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  minHeight: "auto",
+                }}
+                className="bg-transparent"
+                onSelect={({ key }) => setSelectedChannel(key)}
+              >
+                {channels.map((channelId) => (
+                  <Menu.Item key={channelId} className="modern-menu-item-sider no-link">
+                    {allProgress.find((item) => item.channelId === channelId)
+                      ?.channelName || channelId}
+                  </Menu.Item>
+                ))}
+              </Menu>
+            </div>
           </Sider>
           <Content className="overflow-hidden bg-transparent bg-gradient-to-br from-gray-200 via-gray-100 to-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
             <ScrollableContainer className="h-full overflow-y-auto custom-scrollbar">

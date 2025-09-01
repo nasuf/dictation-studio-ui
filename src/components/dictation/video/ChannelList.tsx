@@ -20,28 +20,32 @@ interface ChannelListProps {
   onRefresh?: () => void;
 }
 
-const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefresh }) => {
+const ChannelList: React.FC<ChannelListProps> = ({
+  channels,
+  isLoading,
+  onRefresh,
+}) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState("");
 
   // Filter channels based on search
-  const filteredChannels = channels.filter(channel =>
+  const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   // Language tag color mapping - all blue
   const getLanguageColor = () => {
-    return '#1890ff'; // Blue color for all languages
+    return "#1890ff"; // Blue color for all languages
   };
 
   // Language display name mapping
   const getLanguageDisplay = (language: string) => {
     const displayMap: { [key: string]: string } = {
-      'english': 'EN',
-      'chinese': '中文',
-      'japanese': '日本語',
-      'korean': '한국어',
+      english: "EN",
+      chinese: "中文",
+      japanese: "日本語",
+      korean: "한국어",
     };
     return displayMap[language.toLowerCase()] || language.toUpperCase();
   };
@@ -71,7 +75,11 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefres
       <ScrollableContainer>
         {filteredChannels.length === 0 ? (
           <div className="flex justify-center items-center h-full w-full">
-            <Empty description={searchValue ? t("noSearchResults") : t("noChannelsFound")} />
+            <Empty
+              description={
+                searchValue ? t("noSearchResults") : t("noChannelsFound")
+              }
+            />
           </div>
         ) : (
           <ChannelGrid>
@@ -88,7 +96,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefres
                     contentType="channel"
                     hoverable
                     cover={
-                      <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                      <div
+                        style={{ position: "relative", paddingTop: "56.25%" }}
+                      >
                         <img
                           alt={channel.name}
                           src={channel.image_url}
@@ -106,14 +116,14 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefres
                           }}
                         />
                         {/* Video count badge in top-right corner */}
-                        <div className="absolute top-2 right-2">
+                        {/* <div className="absolute top-2 right-2">
                           <div className="bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-lg">
                             {channel.videos?.length || 0}
                           </div>
-                        </div>
+                        </div> */}
                         {/* Language tag in bottom-left corner */}
                         <div className="absolute bottom-2 left-2">
-                          <Tag 
+                          <Tag
                             color={getLanguageColor()}
                             className="text-xs font-medium border-0 shadow-md"
                           >
@@ -125,7 +135,9 @@ const ChannelList: React.FC<ChannelListProps> = ({ channels, isLoading, onRefres
                     styles={{ body: { padding: 0 } }}
                   >
                     <UniversalContentInfo contentType="channel">
-                      <UniversalContentTitle level={5} contentType="channel">{channel.name}</UniversalContentTitle>
+                      <UniversalContentTitle level={5} contentType="channel">
+                        {channel.name}
+                      </UniversalContentTitle>
                     </UniversalContentInfo>
                   </UniversalCard>
                 </Link>
