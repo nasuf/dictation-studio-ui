@@ -69,10 +69,12 @@ const FloatingParticles = () => {
   );
 };
 
-// Advanced typewriter effect with gradient text
+// Advanced typewriter effect with gradient text and blinking cursor
 const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   useEffect(() => {
     if (currentIndex < text.length) {
@@ -81,14 +83,35 @@ const TypewriterEffect: React.FC<{ text: string }> = ({ text }) => {
         setCurrentIndex(prev => prev + 1);
       }, 150);
       return () => clearTimeout(timeout);
+    } else if (!isTypingComplete) {
+      // Typing completed, start cursor blinking
+      setIsTypingComplete(true);
     }
-  }, [currentIndex, text]);
+  }, [currentIndex, text, isTypingComplete]);
+
+  // Cursor blinking effect after typing is complete
+  useEffect(() => {
+    if (isTypingComplete) {
+      const blinkInterval = setInterval(() => {
+        setShowCursor(prev => !prev);
+      }, 600); // Blink every 600ms
+      return () => clearInterval(blinkInterval);
+    }
+  }, [isTypingComplete]);
 
   return (
     <div className="relative">
       <h1 className="text-7xl md:text-8xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient-x">
         {displayText}
-        <span className="animate-pulse text-purple-400">|</span>
+        <span 
+          className={`text-purple-400 ${
+            isTypingComplete 
+              ? (showCursor ? 'opacity-100' : 'opacity-0') 
+              : 'animate-pulse'
+          } transition-opacity duration-150`}
+        >
+          |
+        </span>
       </h1>
       <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-xl opacity-70 animate-pulse"></div>
     </div>
