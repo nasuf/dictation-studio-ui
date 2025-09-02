@@ -373,6 +373,19 @@ const VideoMain: React.ForwardRefRenderFunction<
     populateMissedWords();
   }, [transcript]);
 
+  // Auto-fill user input when navigating to a sentence with existing input
+  useEffect(() => {
+    if (transcript.length > 0 && currentSentenceIndex < transcript.length) {
+      const currentSentence = transcript[currentSentenceIndex];
+      const existingInput = currentSentence.userInput || "";
+      
+      // Only update userInput if it's different from existing to avoid unnecessary re-renders
+      if (existingInput !== userInput) {
+        setUserInput(existingInput);
+      }
+    }
+  }, [currentSentenceIndex, transcript]);
+
   const restoreUserProgress = (
     progress: ProgressData,
     transcriptData: TranscriptItem[]
