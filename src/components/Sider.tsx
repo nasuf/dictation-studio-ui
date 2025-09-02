@@ -1,11 +1,59 @@
-import { Menu } from "antd";
+import { Menu, Input } from "antd";
 import Sider from "antd/es/layout/Sider";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { MenuItem } from "@/utils/type";
+import { MenuItem, Channel, Video } from "@/utils/type";
+import { api } from "@/api/api";
+import { VISIBILITY_OPTIONS, LANGUAGES } from "@/utils/const";
+import { SearchOutlined } from "@ant-design/icons";
+
+// Scrolling text component for truncated content
+interface ScrollingTextProps {
+  text: string;
+  className?: string;
+  title?: string;
+}
+
+const ScrollingText: React.FC<ScrollingTextProps> = ({ text, className = "", title }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const textRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (textRef.current && containerRef.current) {
+      const isOverflowing = textRef.current.scrollWidth > containerRef.current.clientWidth;
+      setShouldScroll(isOverflowing);
+    }
+  }, [text]);
+
+  return (
+    <div 
+      ref={containerRef}
+      className={`relative overflow-hidden ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      title={title || text}
+    >
+      <div
+        ref={textRef}
+        className={`whitespace-nowrap transition-transform duration-[2000ms] ease-linear ${
+          !isHovered ? 'truncate' : ''
+        }`}
+        style={{
+          transform: isHovered && shouldScroll 
+            ? `translateX(calc(${containerRef.current?.clientWidth || 0}px - 100%))` 
+            : 'translateX(0)'
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
+};
 
 interface AppSiderProps {
   collapsed?: boolean;
@@ -22,6 +70,11 @@ const AppSider: React.FC<AppSiderProps> = ({
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isChannelListMode, setIsChannelListMode] = useState(false);
+  const [isVideoListMode, setIsVideoListMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 检测屏幕尺寸
   useEffect(() => {
@@ -34,6 +87,54 @@ const AppSider: React.FC<AppSiderProps> = ({
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
+
+  // 获取频道数据
+  const fetchChannels = async () => {
+    try {
+      console.log('Fetching channels');
+      const response = await api.getChannels(
+        VISIBILITY_OPTIONS.Public,
+        LANGUAGES.All
+      );
+      console.log('Channel API response:', response);
+      
+      // Ensure we always set an array
+      if (response && response.data && Array.isArray(response.data)) {
+        setChannels(response.data);
+      } else {
+        console.warn('Invalid channel data received:', response);
+        setChannels([]);
+      }
+    } catch (error) {
+      console.error("Error fetching channels:", error);
+      // Set empty array on error
+      setChannels([]);
+    }
+  };
+
+  // 获取视频数据
+  const fetchVideos = async (channelId: string) => {
+    try {
+      console.log('Fetching videos for channel:', channelId);
+      const response = await api.getVideoList(
+        channelId,
+        VISIBILITY_OPTIONS.Public
+      );
+      console.log('Video API response:', response);
+      
+      // Check if response and response.data exist and are valid
+      if (response && response.data && response.data.videos && Array.isArray(response.data.videos)) {
+        setVideos(response.data.videos);
+      } else {
+        console.warn('Invalid video data received:', response);
+        setVideos([]);
+      }
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+      // Set empty array on error
+      setVideos([]);
+    }
+  };
 
   const mainSiderItems: MenuItem[] = [
     {
@@ -135,22 +236,60 @@ const AppSider: React.FC<AppSiderProps> = ({
   ];
 
   useEffect(() => {
-    const getSiderItems = () => {
-      let items: MenuItem[] = [];
-      if (location.pathname.includes("/profile")) {
-        items = profileSiderItems;
-      } else if (location.pathname.includes("/admin")) {
-        items = adminSiderItems;
-      } else {
-        items = mainSiderItems;
-      }
-      setSiderItems(items);
+    const getSiderItems = async () => {
       const pathSegments = location.pathname.split("/");
-      const currentKey =
-        items.find((item) => item.path === location.pathname)?.key ||
-        pathSegments[2] ||
-        "Video Dictation";
-      setSelectedKeys([currentKey]);
+      const isVideoListPage = pathSegments.length === 4 && 
+                              pathSegments[1] === "dictation" && 
+                              pathSegments[2] === "video" && 
+                              pathSegments[3]; // channelId exists
+      const isVideoMainPage = pathSegments.length === 5 && 
+                              pathSegments[1] === "dictation" && 
+                              pathSegments[2] === "video" && 
+                              pathSegments[3] && // channelId exists
+                              pathSegments[4]; // videoId exists
+      
+      if (isVideoMainPage) {
+        // 进入视频列表模式
+        setIsChannelListMode(false);
+        setIsVideoListMode(true);
+        setChannels([]); // Clear channels when switching modes
+        const currentChannelId = pathSegments[3];
+        const currentVideoId = pathSegments[4];
+        await fetchVideos(currentChannelId);
+        
+        // 设置当前选中的视频
+        setSelectedKeys([currentVideoId]);
+      } else if (isVideoListPage) {
+        // 进入频道列表模式
+        setIsChannelListMode(true);
+        setIsVideoListMode(false);
+        setVideos([]); // Clear videos when switching modes
+        await fetchChannels();
+        
+        // 设置当前选中的频道
+        const currentChannelId = pathSegments[3];
+        setSelectedKeys([currentChannelId]);
+      } else {
+        // 正常的侧边栏模式
+        setIsChannelListMode(false);
+        setIsVideoListMode(false);
+        setChannels([]); // Clear data when switching to normal mode
+        setVideos([]);
+        let items: MenuItem[] = [];
+        if (location.pathname.includes("/profile")) {
+          items = profileSiderItems;
+        } else if (location.pathname.includes("/admin")) {
+          items = adminSiderItems;
+        } else {
+          items = mainSiderItems;
+        }
+        setSiderItems(items);
+        const currentKey =
+          items.find((item) => item.path === location.pathname)?.key ||
+          pathSegments[2] ||
+          "Video Dictation";
+        setSelectedKeys([currentKey]);
+      }
     };
     getSiderItems();
   }, [location.pathname, userInfo, t]);
@@ -168,12 +307,95 @@ const AppSider: React.FC<AppSiderProps> = ({
         <Menu.Item
           key={item.key}
           icon={item.icon}
-          className="modern-menu-item-sider"
+          className="modern-menu-item-sider hover:!text-blue-500 [&.ant-menu-item-selected]:!text-blue-500"
         >
-          <Link to={item.path || ""}>{item.label}</Link>
+          <Link to={item.path || ""} className="hover:!text-blue-500 [&.ant-menu-item-selected_&]:!text-blue-500">
+          <ScrollingText text={item.label} />
+        </Link>
         </Menu.Item>
       );
     });
+  };
+
+  // 过滤频道列表
+  const filteredChannels = useMemo(() => {
+    if (!Array.isArray(channels)) return [];
+    if (!searchTerm) return channels;
+    
+    return channels.filter((channel) =>
+      channel.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [channels, searchTerm]);
+
+  const renderChannelItems = () => {
+    return filteredChannels.map((channel) => (
+      <Menu.Item
+        key={channel.id}
+        className="modern-menu-item-sider hover:!text-blue-500 [&.ant-menu-item-selected]:!text-blue-500"
+      >
+        <Link to={`/dictation/video/${channel.id}`} className="hover:!text-blue-500 flex items-center gap-3">
+          <img 
+            src={channel.image_url} 
+            alt={channel.name}
+            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+            onError={(e) => {
+              // Fallback to a default icon if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 hidden">
+            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {channel.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <ScrollingText text={channel.name} className="flex-1" />
+        </Link>
+      </Menu.Item>
+    ));
+  };
+
+  // 过滤视频列表
+  const filteredVideos = useMemo(() => {
+    if (!Array.isArray(videos)) return [];
+    if (!searchTerm) return videos;
+    
+    return videos.filter((video) =>
+      video.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [videos, searchTerm]);
+
+  const renderVideoItems = () => {
+    const pathSegments = location.pathname.split("/");
+    const currentChannelId = pathSegments[3]; // Get channelId from current path
+    
+    return filteredVideos.map((video) => (
+      <Menu.Item
+        key={video.video_id}
+        className="modern-menu-item-sider hover:!text-blue-500 [&.ant-menu-item-selected]:!text-blue-500"
+      >
+        <Link to={`/dictation/video/${currentChannelId}/${video.video_id}`} className="hover:!text-blue-500 flex items-center gap-3">
+          <img 
+            src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
+            alt={video.title}
+            className="w-6 h-6 rounded object-cover flex-shrink-0"
+            onError={(e) => {
+              // Fallback to a default icon if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <div className="w-6 h-6 rounded bg-gray-300 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 hidden">
+            <svg className="w-3 h-3 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8 5v10l8-5z"/>
+            </svg>
+          </div>
+          <ScrollingText text={video.title} className="flex-1" title={video.title} />
+        </Link>
+      </Menu.Item>
+    ));
   };
 
   const defaultOpenKeys = [location.pathname.split("/")[1] || "Dictation"];
@@ -186,7 +408,7 @@ const AppSider: React.FC<AppSiderProps> = ({
           : ""
       }`}
       width={200}
-      collapsedWidth={isMobile ? 0 : 80}
+      collapsedWidth={0}
       collapsed={collapsed}
       onCollapse={onCollapse}
       collapsible={false}
@@ -222,9 +444,28 @@ const AppSider: React.FC<AppSiderProps> = ({
         ))}
       </div>
 
+      {/* Fixed search box at top */}
+      {(isChannelListMode || isVideoListMode) && (
+        <div className="flex-shrink-0 py-3 border-b border-gray-200/50 dark:border-gray-700/50 relative z-10" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
+          <Input
+            placeholder={isChannelListMode ? t("searchChannels") : t("searchVideos")}
+            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-300" />}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="rounded-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 [&_.ant-input]:bg-transparent [&_.ant-input]:text-gray-900 [&_.ant-input]:dark:text-gray-100 [&_.ant-input::placeholder]:text-gray-500 [&_.ant-input::placeholder]:dark:text-gray-400 [&:focus-within]:ring-2 [&:focus-within]:ring-blue-500 [&:focus-within]:ring-opacity-50 [&:focus-within]:border-blue-500 [&:focus-within]:dark:border-blue-400"
+            size="small"
+            autoComplete="off"
+          />
+        </div>
+      )}
+
+      {/* Scrollable content area */}
       <div
         className="flex-1 overflow-y-auto custom-scrollbar relative z-10"
-        style={{ height: "calc(100% - 2rem)", padding: "1rem 0" }}
+        style={{ 
+          height: (isChannelListMode || isVideoListMode) ? "calc(100% - 4rem)" : "calc(100% - 2rem)", 
+          padding: "1rem 0" 
+        }}
       >
         <Menu
           mode="inline"
@@ -235,10 +476,15 @@ const AppSider: React.FC<AppSiderProps> = ({
             border: "none",
             minHeight: "auto",
           }}
-          className="bg-transparent"
+          className="bg-transparent [&_.ant-menu-item:hover]:!text-blue-500 [&_.ant-menu-item-selected]:!text-blue-500 [&_.ant-menu-item:hover>a]:!text-blue-500 [&_.ant-menu-item-selected>a]:!text-blue-500 [&_.ant-menu-item:hover_.ant-menu-title-content]:!text-blue-500 [&_.ant-menu-item-selected_.ant-menu-title-content]:!text-blue-500"
           inlineCollapsed={collapsed}
+          theme="light"
         >
-          {renderMenuItems(siderItems)}
+          {isVideoListMode 
+            ? renderVideoItems() 
+            : isChannelListMode 
+              ? renderChannelItems() 
+              : renderMenuItems(siderItems)}
         </Menu>
       </div>
 

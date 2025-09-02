@@ -599,6 +599,8 @@ const enTranslations = {
   randomVideoHint: "Click 'Try Another' for a different video or 'Start Dictation' to begin",
   noPublicVideosAvailable: "No public videos available for random selection",
   failedToLoadRandomVideo: "Failed to load random video, please try again",
+  searchChannels: "Search channels...",
+  toggleSidebar: "Toggle Sidebar",
 };
 
 const zhTranslations = {
@@ -1167,6 +1169,8 @@ const zhTranslations = {
   randomVideoHint: "点击'换一个'选择其他视频，或点击'开始听写'开始练习",
   noPublicVideosAvailable: "没有可用的公开视频进行随机选择",
   failedToLoadRandomVideo: "加载随机视频失败，请重试",
+  searchChannels: "搜索频道...",
+  toggleSidebar: "切换侧边栏",
 };
 
 const zhTraditionalTranslations = {
@@ -1729,6 +1733,8 @@ const zhTraditionalTranslations = {
   randomVideoHint: "點擊'換一個'選擇其他影片，或點擊'開始聽寫'開始練習",
   noPublicVideosAvailable: "沒有可用的公開影片進行隨機選擇",
   failedToLoadRandomVideo: "載入隨機影片失敗，請重試",
+  searchChannels: "搜索頻道...",
+  toggleSidebar: "切換側邊欄",
 };
 
 const jaTranslations = {
@@ -2182,6 +2188,8 @@ const jaTranslations = {
   randomVideoHint: "'他を試す'をクリックして別の動画を選択するか、'聞き取りを開始'をクリックして始めてください",
   noPublicVideosAvailable: "ランダム選択に使用できる公開動画がありません",
   failedToLoadRandomVideo: "ランダム動画の読み込みに失敗しました。もう一度お試しください",
+  searchChannels: "チャンネルを検索...",
+  toggleSidebar: "サイドバーの切り替え",
 };
 
 const koTranslations = {
@@ -2645,6 +2653,8 @@ const koTranslations = {
   randomVideoHint: "'다른 것 시도'를 클릭하여 다른 비디오를 선택하거나 '받아쓰기 시작'을 클릭하여 시작하세요",
   noPublicVideosAvailable: "무작위 선택에 사용할 수 있는 공개 비디오가 없습니다",
   failedToLoadRandomVideo: "무작위 비디오 로딩에 실패했습니다. 다시 시도해 주세요",
+  searchChannels: "채널 검색...",
+  toggleSidebar: "사이드바 전환",
 };
 
 i18n.use(initReactI18next).init({

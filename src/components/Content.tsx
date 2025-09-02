@@ -103,6 +103,21 @@ const AppContent: React.FC<AppContentProps> = ({
   const setSiderCollapsed = propSetSiderCollapsed || setLocalSiderCollapsed;
   const isMobile = propIsMobile !== undefined ? propIsMobile : localIsMobile;
 
+  // 检测当前是否是VideoMain页面，并设置默认的Sider状态
+  useEffect(() => {
+    const pathSegments = location.pathname.split("/");
+    const isVideoMainPage = pathSegments.length === 5 && 
+                            pathSegments[1] === "dictation" && 
+                            pathSegments[2] === "video" && 
+                            pathSegments[3] && // channelId exists
+                            pathSegments[4]; // videoId exists
+    
+    // 如果是VideoMain页面，默认隐藏Sider；其他页面默认显示
+    if (propSetSiderCollapsed === undefined) {
+      setLocalSiderCollapsed(Boolean(isVideoMainPage));
+    }
+  }, [location.pathname, propSiderCollapsed]);
+
   // 频道列表状态
   const [allChannels, setAllChannels] = useState<Channel[]>([]);
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);

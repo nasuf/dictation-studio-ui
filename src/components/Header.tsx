@@ -208,7 +208,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 Dictation Studio
               </span>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:flex md:items-center md:space-x-3">
+              {/* Desktop Sider Toggle Button */}
+              <button
+                onClick={onSiderToggle}
+                className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title={t("toggleSidebar")}
+              >
+                <MenuOutlined className="text-gray-600 dark:text-gray-300" />
+              </button>
               <GradualSpacing
                 className="modern-logo-desktop cursor-pointer"
                 text="Dictation Studio"
