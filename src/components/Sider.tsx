@@ -1,4 +1,4 @@
-import { Menu, Input } from "antd";
+import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -75,6 +75,8 @@ const AppSider: React.FC<AppSiderProps> = ({
   const [isChannelListMode, setIsChannelListMode] = useState(false);
   const [isVideoListMode, setIsVideoListMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // 检测屏幕尺寸
   useEffect(() => {
@@ -444,18 +446,48 @@ const AppSider: React.FC<AppSiderProps> = ({
         ))}
       </div>
 
-      {/* Fixed search box at top */}
+      {/* Fixed custom search box at top */}
       {(isChannelListMode || isVideoListMode) && (
-        <div className="flex-shrink-0 py-3 border-b border-gray-200/50 dark:border-gray-700/50 relative z-10" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
-          <Input
-            placeholder={isChannelListMode ? t("searchChannels") : t("searchVideos")}
-            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-300" />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="rounded-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 [&_.ant-input]:bg-transparent [&_.ant-input]:text-gray-900 [&_.ant-input]:dark:text-gray-100 [&_.ant-input::placeholder]:text-gray-500 [&_.ant-input::placeholder]:dark:text-gray-400 [&:focus-within]:ring-2 [&:focus-within]:ring-blue-500 [&:focus-within]:ring-opacity-50 [&:focus-within]:border-blue-500 [&:focus-within]:dark:border-blue-400"
-            size="small"
-            autoComplete="off"
-          />
+        <div className="flex-shrink-0 py-4 border-b border-gray-200/50 dark:border-gray-700/50 relative z-10" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
+          <div 
+            className="relative group"
+            onMouseEnter={() => setSearchFocused(true)}
+            onMouseLeave={() => !searchInputRef.current?.matches(':focus') && setSearchFocused(false)}
+          >
+            {/* Search Icon */}
+            <SearchOutlined 
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300 transition-all duration-300 ease-out z-10 ${
+                searchFocused ? 'translate-x-[-8px] text-blue-500 dark:text-blue-400' : 'translate-x-0'
+              }`}
+            />
+            
+            {/* Input Field */}
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder={isChannelListMode ? t("searchChannels") : t("searchVideos")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className={`w-full bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 ease-out ${
+                searchFocused ? 'pl-6' : 'pl-8'
+              }`}
+              autoComplete="off"
+            />
+            
+            {/* Animated Underline */}
+            <div className="relative mt-1 h-px">
+              {/* Base underline */}
+              <div className="absolute inset-0 bg-gray-300 dark:bg-gray-600"></div>
+              {/* Animated focus underline */}
+              <div 
+                className={`absolute inset-0 bg-blue-500 dark:bg-blue-400 transform transition-all duration-300 ease-out origin-left ${
+                  searchFocused ? 'scale-x-100' : 'scale-x-0'
+                }`}
+              ></div>
+            </div>
+          </div>
         </div>
       )}
 

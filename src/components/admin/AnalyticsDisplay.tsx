@@ -36,7 +36,6 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
   isLoading,
   isMobile = false,
 }) => {
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -61,13 +60,24 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
   const summary = data.summary;
 
   return (
-    <div className={`${isMobile ? 'p-4' : 'p-6'} space-y-6`} style={{ maxHeight: isMobile ? 'none' : '70vh', overflowY: 'auto' }}>
+    <div
+      className={`${isMobile ? "p-4" : "p-6"} space-y-6`}
+      style={{ maxHeight: isMobile ? "none" : "70vh", overflowY: "auto" }}
+    >
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+      <div
+        className={`grid gap-4 ${
+          isMobile ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"
+        }`}
+      >
         {/* Total Videos */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
           <div className="text-center">
-            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-blue-600 dark:text-blue-400`}>
+            <div
+              className={`${
+                isMobile ? "text-2xl" : "text-3xl"
+              } font-bold text-blue-600 dark:text-blue-400`}
+            >
               {summary.total_videos || 0}
             </div>
             <div className="text-gray-600 dark:text-gray-300 text-sm mt-1">
@@ -79,7 +89,11 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
         {/* Public Videos */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
           <div className="text-center">
-            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-green-600 dark:text-green-400`}>
+            <div
+              className={`${
+                isMobile ? "text-2xl" : "text-3xl"
+              } font-bold text-green-600 dark:text-green-400`}
+            >
               {summary.public_videos || 0}
             </div>
             <div className="text-gray-600 dark:text-gray-300 text-sm mt-1">
@@ -91,7 +105,11 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
         {/* Private Videos */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
           <div className="text-center">
-            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-red-600 dark:text-red-400`}>
+            <div
+              className={`${
+                isMobile ? "text-2xl" : "text-3xl"
+              } font-bold text-red-600 dark:text-red-400`}
+            >
               {summary.private_videos || 0}
             </div>
             <div className="text-gray-600 dark:text-gray-300 text-sm mt-1">
@@ -103,7 +121,11 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
         {/* Refined Videos */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
           <div className="text-center">
-            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-purple-600 dark:text-purple-400`}>
+            <div
+              className={`${
+                isMobile ? "text-2xl" : "text-3xl"
+              } font-bold text-purple-600 dark:text-purple-400`}
+            >
               {summary.refined_videos || 0}
             </div>
             <div className="text-gray-600 dark:text-gray-300 text-sm mt-1">
@@ -118,14 +140,27 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
         {/* Refined Progress */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Refined Progress</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Refined Progress
+            </span>
             <span className="text-sm text-purple-600 dark:text-purple-400 font-semibold">
-              {summary.refined_videos || 0} / {summary.total_videos || 0} {' '}
-              {summary.total_videos > 0 ? Math.round((summary.refined_videos / summary.total_videos) * 100) : 0}%
+              {summary.refined_videos || 0} / {summary.total_videos || 0}{" "}
+              {summary.total_videos > 0
+                ? Math.round(
+                    (summary.refined_videos / summary.total_videos) * 100
+                  )
+                : 0}
+              %
             </span>
           </div>
           <Progress
-            percent={summary.total_videos > 0 ? Math.round((summary.refined_videos / summary.total_videos) * 100) : 0}
+            percent={
+              summary.total_videos > 0
+                ? Math.round(
+                    (summary.refined_videos / summary.total_videos) * 100
+                  )
+                : 0
+            }
             strokeColor="#8b5cf6"
             showInfo={false}
             className="mb-1"
@@ -135,14 +170,27 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
         {/* Public Visibility */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Public Visibility</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Public Visibility
+            </span>
             <span className="text-sm text-green-600 dark:text-green-400 font-semibold">
-              {summary.public_videos || 0} / {summary.total_videos || 0} {' '}
-              {summary.total_videos > 0 ? Math.round((summary.public_videos / summary.total_videos) * 100) : 0}%
+              {summary.public_videos || 0} / {summary.total_videos || 0}{" "}
+              {summary.total_videos > 0
+                ? Math.round(
+                    (summary.public_videos / summary.total_videos) * 100
+                  )
+                : 0}
+              %
             </span>
           </div>
           <Progress
-            percent={summary.total_videos > 0 ? Math.round((summary.public_videos / summary.total_videos) * 100) : 0}
+            percent={
+              summary.total_videos > 0
+                ? Math.round(
+                    (summary.public_videos / summary.total_videos) * 100
+                  )
+                : 0
+            }
             strokeColor="#10b981"
             showInfo={false}
             className="mb-1"
@@ -202,7 +250,7 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded text-xs font-medium">
+                      <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-red-600 dark:text-red-400 rounded text-xs font-medium">
                         {channel.private_videos}
                       </span>
                     </td>
@@ -216,7 +264,11 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
                         <Progress
                           percent={
                             channel.total_videos > 0
-                              ? Math.round((channel.refined_videos / channel.total_videos) * 100)
+                              ? Math.round(
+                                  (channel.refined_videos /
+                                    channel.total_videos) *
+                                    100
+                                )
                               : 0
                           }
                           size="small"
