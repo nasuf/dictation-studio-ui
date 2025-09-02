@@ -12,6 +12,7 @@ import {
   StepBackwardOutlined,
   StepForwardOutlined,
   RedoOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { useParams, useNavigate } from "react-router-dom";
@@ -138,6 +139,9 @@ const VideoMain: React.ForwardRefRenderFunction<
         prev: "ControlLeft",
         next: "Enter",
       }
+  );
+  const isDictationStarted = useSelector(
+    (state: RootState) => state.user.isDictationStarted || false
   );
   const [lastSavedTotalTime, setLastSavedTotalTime] = useState<number>(0);
   const [isImeComposing, setIsImeComposing] = useState(false);
@@ -1727,8 +1731,10 @@ const VideoMain: React.ForwardRefRenderFunction<
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
-                    ) : (
+                    ) : isDictationStarted ? (
                       <RedoOutlined className="text-base" />
+                    ) : (
+                      <PlayCircleOutlined className="text-base" />
                     )}
                   </button>
                   <button
@@ -2068,8 +2074,10 @@ const VideoMain: React.ForwardRefRenderFunction<
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                  ) : (
+                  ) : isDictationStarted ? (
                     <RedoOutlined className="text-lg" />
+                  ) : (
+                    <PlayCircleOutlined className="text-lg" />
                   )}
                 </button>
                 <button
