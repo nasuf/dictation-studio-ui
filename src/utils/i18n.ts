@@ -592,6 +592,13 @@ const enTranslations = {
   thankTextCopied: "Text has been copied to clipboard",
   rewardThankText:
     "Thank you for your support! You can scan the QR code with WeChat to reward us, every support is our driving force!",
+  randomDictation: "Random Dictation",
+  tryAnother: "Try Another",
+  findingRandomVideo: "Finding random video...",
+  randomVideoStats: "Found {{total}} public videos available",
+  randomVideoHint: "Click 'Try Another' for a different video or 'Start Dictation' to begin",
+  noPublicVideosAvailable: "No public videos available for random selection",
+  failedToLoadRandomVideo: "Failed to load random video, please try again",
 };
 
 const zhTranslations = {
@@ -1153,6 +1160,13 @@ const zhTranslations = {
   thankTextCopied: "文本已复制到剪贴板",
   rewardThankText:
     "感谢您的支持！您可以通过微信扫描二维码进行打赏，每一份支持都是我们前进的动力！",
+  randomDictation: "随机听写",
+  tryAnother: "换一个",
+  findingRandomVideo: "正在寻找随机视频...",
+  randomVideoStats: "找到{{total}}个可用的公开视频",
+  randomVideoHint: "点击'换一个'选择其他视频，或点击'开始听写'开始练习",
+  noPublicVideosAvailable: "没有可用的公开视频进行随机选择",
+  failedToLoadRandomVideo: "加载随机视频失败，请重试",
 };
 
 const zhTraditionalTranslations = {
@@ -1708,6 +1722,13 @@ const zhTraditionalTranslations = {
   thankTextCopied: "文本已複製到剪貼板",
   rewardThankText:
     "感謝您的支持！您可以通過微信掃描二維碼進行打賞，每一份支持都是我們前進的動力！",
+  randomDictation: "隨機聽寫",
+  tryAnother: "換一個",
+  findingRandomVideo: "正在尋找隨機影片...",
+  randomVideoStats: "找到{{total}}個可用的公開影片",
+  randomVideoHint: "點擊'換一個'選擇其他影片，或點擊'開始聽寫'開始練習",
+  noPublicVideosAvailable: "沒有可用的公開影片進行隨機選擇",
+  failedToLoadRandomVideo: "載入隨機影片失敗，請重試",
 };
 
 const jaTranslations = {
@@ -2154,6 +2175,13 @@ const jaTranslations = {
   thankTextCopied: "テキストがクリップボードにコピーされました",
   rewardThankText:
     "ご支援ありがとうございます！WeChatでQRコードをスキャンして報酬を送ることができます。一つ一つのサポートが私たちの原動力です！",
+  randomDictation: "ランダム聞き取り",
+  tryAnother: "他を試す",
+  findingRandomVideo: "ランダム動画を検索中...",
+  randomVideoStats: "{{total}}個の公開動画が見つかりました",
+  randomVideoHint: "'他を試す'をクリックして別の動画を選択するか、'聞き取りを開始'をクリックして始めてください",
+  noPublicVideosAvailable: "ランダム選択に使用できる公開動画がありません",
+  failedToLoadRandomVideo: "ランダム動画の読み込みに失敗しました。もう一度お試しください",
 };
 
 const koTranslations = {
@@ -2610,6 +2638,13 @@ const koTranslations = {
   thankTextCopied: "텍스트가 클립보드에 복사되었습니다",
   rewardThankText:
     "지원해 주셔서 감사합니다! WeChat으로 QR 코드를 스캔하여 후원할 수 있습니다. 모든 지원이 우리의 원동력입니다!",
+  randomDictation: "무작위 받아쓰기",
+  tryAnother: "다른 것 시도",
+  findingRandomVideo: "무작위 비디오를 찾는 중...",
+  randomVideoStats: "{{total}}개의 공개 비디오를 찾았습니다",
+  randomVideoHint: "'다른 것 시도'를 클릭하여 다른 비디오를 선택하거나 '받아쓰기 시작'을 클릭하여 시작하세요",
+  noPublicVideosAvailable: "무작위 선택에 사용할 수 있는 공개 비디오가 없습니다",
+  failedToLoadRandomVideo: "무작위 비디오 로딩에 실패했습니다. 다시 시도해 주세요",
 };
 
 i18n.use(initReactI18next).init({

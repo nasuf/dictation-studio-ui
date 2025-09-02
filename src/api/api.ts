@@ -408,4 +408,7 @@ export const api = {
     );
     return response.data;
   },
+
+  // Random video selection API
+  getRandomVideo: () => axiosInstance.get("/service/random-video"),
 };

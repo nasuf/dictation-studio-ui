@@ -7,6 +7,7 @@ import {
   ArrowLeftOutlined,
   ReloadOutlined,
   ExclamationCircleOutlined,
+  RedoOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -42,6 +43,7 @@ import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import VideoErrorReportManagement from "@/components/admin/VideoErrorReportManagement";
 import UserVideoErrorReports from "@/components/profile/VideoErrorReports";
 import Reward from "@/components/profile/Reward";
+import RandomVideoModal from "@/components/RandomVideoModal";
 
 const { Content } = Layout;
 
@@ -79,6 +81,7 @@ const AppContent: React.FC<AppContentProps> = ({
   const [isVideoErrorReportModalVisible, setIsVideoErrorReportModalVisible] =
     useState(false);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
+  const [isRandomVideoModalVisible, setIsRandomVideoModalVisible] = useState(false);
   const [isWordEditing, setIsWordEditing] = useState(false);
   const [wordsToDelete, setWordsToDelete] = useState<Set<string>>(new Set());
   const [shouldResetWords, setShouldResetWords] = useState(false);
@@ -402,7 +405,7 @@ const AppContent: React.FC<AppContentProps> = ({
               <span>{t("goBack")}</span>
             </button>
 
-            {/* 移动端语言选择器 - 右对齐 */}
+            {/* 移动端语言选择器和随机视频按钮 - 右对齐 */}
             {isMobile && (isChannelListPage || isWordPage) && (
               <div className="flex items-center gap-1 ml-auto">
                 <span className="text-gray-600 dark:text-gray-300 text-xs whitespace-nowrap">
@@ -416,6 +419,14 @@ const AppContent: React.FC<AppContentProps> = ({
                   className="dark:bg-gray-700"
                   size="small"
                 />
+                {/* 移动端随机视频按钮 - 只显示图标 */}
+                <button
+                  onClick={() => setIsRandomVideoModalVisible(true)}
+                  className="flex items-center justify-center p-2 bg-purple-500 text-white shadow-md rounded-md hover:bg-purple-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 dark:bg-purple-700 dark:text-white dark:hover:bg-purple-800"
+                  title={t("randomDictation")}
+                >
+                  <RedoOutlined />
+                </button>
               </div>
             )}
           </div>
@@ -442,7 +453,7 @@ const AppContent: React.FC<AppContentProps> = ({
               </div>
             )}
 
-            {/* 桌面端语言选择器 */}
+            {/* 桌面端语言选择器和随机视频按钮 */}
             {!isMobile && (isChannelListPage || isWordPage) && (
               <div className="flex items-center gap-3 whitespace-nowrap">
                 <span className="text-gray-600 dark:text-gray-300 text-sm lg:text-base flex-shrink-0">
@@ -455,6 +466,15 @@ const AppContent: React.FC<AppContentProps> = ({
                   options={languageOptions}
                   className="dark:bg-gray-700"
                 />
+                {/* 随机视频按钮 */}
+                <button
+                  onClick={() => setIsRandomVideoModalVisible(true)}
+                  className="flex items-center justify-center px-4 py-2 bg-purple-500 text-white shadow-md rounded-md hover:bg-purple-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 dark:bg-purple-700 dark:text-white dark:hover:bg-purple-800"
+                  title={t("randomDictation")}
+                >
+                  <RedoOutlined className="mr-2" />
+                  <span>{t("randomDictation")}</span>
+                </button>
               </div>
             )}
 
@@ -694,6 +714,10 @@ const AppContent: React.FC<AppContentProps> = ({
           }}
         />
       )}
+      <RandomVideoModal
+        visible={isRandomVideoModalVisible}
+        onCancel={() => setIsRandomVideoModalVisible(false)}
+      />
     </div>
   );
 };
