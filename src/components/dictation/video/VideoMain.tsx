@@ -332,8 +332,12 @@ const VideoMain: React.ForwardRefRenderFunction<
             transcriptResponse.data.transcript
           );
         } else {
-          // New video, not yet counted in quota
+          // New video, not yet counted in quota - reset all relevant states
           setCurrentSentenceIndex(0);
+          setRevealedSentences([]);
+          setUserInput("");
+          setOverallCompletion(0);
+          setOverallAccuracy(0);
           dispatch(setIsDictationStarted(false));
         }
       } catch (error) {
@@ -1272,7 +1276,7 @@ const VideoMain: React.ForwardRefRenderFunction<
   // 手动保存函数（有提示框）
   const saveProgress = useCallback(async () => {
     if (!hasUnsavedChanges) {
-      console.log("No unsaved changes, skipping auto-save");
+      message.info(t("progressAlreadySaved"));
       return;
     }
     const userInputJson: { [key: number]: string } = {};

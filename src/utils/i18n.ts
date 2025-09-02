@@ -66,6 +66,7 @@ const enTranslations = {
   emailCheckFailed: "Email check failed",
   progressSaved: "Progress saved",
   progressSaveFailed: "Progress save failed",
+  progressAlreadySaved: "All progress is already saved",
   saveProgressBtnText: "Save Progress",
   profile: "Profile",
   home: "Home",
@@ -666,6 +667,7 @@ const zhTranslations = {
   emailCheckFailed: "邮箱检查失败",
   progressSaved: "进度已保存",
   progressSaveFailed: "进度保存失败",
+  progressAlreadySaved: "所有进度已保存",
   saveProgressBtnText: "保存进度",
   profile: "个人中心",
   home: "首页",
@@ -1236,6 +1238,7 @@ const zhTraditionalTranslations = {
   emailCheckFailed: "電子郵件檢查失敗",
   progressSaved: "進度已保存",
   progressSaveFailed: "進度保存失敗",
+  progressAlreadySaved: "所有進度已保存",
   saveProgressBtnText: "保存進度",
   profile: "個人中心",
   home: "首頁",
@@ -2190,6 +2193,7 @@ const jaTranslations = {
   failedToLoadRandomVideo: "ランダム動画の読み込みに失敗しました。もう一度お試しください",
   searchChannels: "チャンネルを検索...",
   toggleSidebar: "サイドバーの切り替え",
+  progressAlreadySaved: "すべての進捗が既に保存されています",
 };
 
 const koTranslations = {
@@ -2655,6 +2659,7 @@ const koTranslations = {
   failedToLoadRandomVideo: "무작위 비디오 로딩에 실패했습니다. 다시 시도해 주세요",
   searchChannels: "채널 검색...",
   toggleSidebar: "사이드바 전환",
+  progressAlreadySaved: "모든 진행 상황이 이미 저장되었습니다",
 };
 
 i18n.use(initReactI18next).init({
