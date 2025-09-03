@@ -61,8 +61,9 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
 
   return (
     <div
-      className={`${isMobile ? "p-4" : "p-6"} space-y-6`}
-      style={{ maxHeight: isMobile ? "none" : "70vh", overflowY: "auto" }}
+      className={`${isMobile ? "p-4" : "p-6"} space-y-6 ${
+        isMobile ? "" : "max-h-[70vh] overflow-y-auto custom-scrollbar"
+      }`}
     >
       {/* Summary Cards */}
       <div
@@ -206,7 +207,7 @@ const AnalyticsDisplay: React.FC<AnalyticsDisplayProps> = ({
               Channel Breakdown
             </h3>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
