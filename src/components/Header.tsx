@@ -249,7 +249,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   {i18n.language === "en"
                     ? "EN"
                     : i18n.language === "zh"
-                    ? "중"
+                    ? "简"
                     : i18n.language === "zhTraditional"
                     ? "繁"
                     : i18n.language === "ja"
