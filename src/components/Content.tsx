@@ -34,6 +34,7 @@ import VideoErrorReportModal from "@/components/dictation/video/VideoErrorReport
 import SettingsModal from "@/components/dictation/video/SettingsModal";
 import { api } from "@/api/api";
 import { setMissedWords } from "@/redux/userSlice";
+import { setChannels } from "@/redux/videoProgressSlice";
 import { LANGUAGES, VISIBILITY_OPTIONS } from "@/utils/const";
 import { Select } from "antd";
 import { Channel } from "@/utils/type";
@@ -160,6 +161,9 @@ const AppContent: React.FC<AppContentProps> = ({
       );
       setAllChannels(response.data);
       filterChannelsByLanguage(response.data, selectedLanguage);
+      
+      // Store channels in Redux for other components to use
+      dispatch(setChannels(response.data));
     } catch (error) {
       console.error("Error fetching channels:", error);
     } finally {
@@ -177,6 +181,9 @@ const AppContent: React.FC<AppContentProps> = ({
       );
       setAllChannels(response.data);
       filterChannelsByLanguage(response.data, selectedLanguage);
+      
+      // Store channels in Redux for other components to use
+      dispatch(setChannels(response.data));
     } catch (error) {
       console.error("Error refreshing channels:", error);
     } finally {

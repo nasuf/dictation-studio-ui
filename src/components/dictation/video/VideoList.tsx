@@ -10,6 +10,7 @@ import {
 import VideoCard from "./VideoCard";
 import { useDispatch, useSelector } from "react-redux";
 import { setVideoName } from "@/redux/navigationSlice";
+import { setChannelData } from "@/redux/videoProgressSlice";
 import { useTranslation } from "react-i18next";
 import { VISIBILITY_OPTIONS } from "@/utils/const";
 import { RootState } from "@/redux/store";
@@ -51,6 +52,14 @@ const VideoList: React.FC<VideoListProps> = ({ progressFilter = "all" }) => {
       ]);
       setVideos(videoResponse.data.videos);
       setProgress(progressResponse.data.progress);
+      
+      // Store data in Redux for other components to use
+      dispatch(setChannelData({
+        channelId: channelId!,
+        videos: videoResponse.data.videos,
+        progress: progressResponse.data.progress
+      }));
+      
       setLoadedImages(
         videoResponse.data.videos.reduce(
           (acc: { [key: string]: boolean }, video: Video) => {
