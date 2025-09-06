@@ -384,10 +384,9 @@ export const api = {
   // User usage statistics API
   getUserUsageStats: (days: number) =>
     axiosInstance.get(`/user/usage-stats`, { params: { days } }),
-  
-  // Video analytics API  
-  getVideoAnalytics: () =>
-    axiosInstance.get("/service/admin/analytics/videos"),
+
+  // Video analytics API
+  getVideoAnalytics: () => axiosInstance.get("/service/admin/analytics/videos"),
 
   // Video refined status APIs
   markVideoRefined: async (

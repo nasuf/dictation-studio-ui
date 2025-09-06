@@ -3,8 +3,9 @@ import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
+import { setChannelData } from "@/redux/videoProgressSlice";
 import { MenuItem, Channel, Video } from "@/utils/type";
 import { api } from "@/api/api";
 import { VISIBILITY_OPTIONS, LANGUAGES } from "@/utils/const";
@@ -66,6 +67,7 @@ const AppSider: React.FC<AppSiderProps> = ({
 }) => {
   const location = useLocation();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   const videoProgressState = useSelector((state: RootState) => state.videoProgress);
   const [siderItems, setSiderItems] = useState<MenuItem[]>([]);
@@ -234,6 +236,15 @@ const AppSider: React.FC<AppSiderProps> = ({
       // Check if response and response.data exist and are valid
       if (videoResponse && videoResponse.data && videoResponse.data.videos && Array.isArray(videoResponse.data.videos)) {
         setVideos(videoResponse.data.videos);
+        
+        // Store data in Redux for consistent access
+        if (progressResponse && progressResponse.data && progressResponse.data.progress) {
+          dispatch(setChannelData({
+            channelId: channelId,
+            videos: videoResponse.data.videos,
+            progress: progressResponse.data.progress
+          }));
+        }
       } else {
         console.warn('Invalid video data received:', videoResponse);
         setVideos([]);
