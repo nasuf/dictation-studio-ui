@@ -84,8 +84,10 @@ const AppSider: React.FC<AppSiderProps> = ({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const [userIsScrolling, setUserIsScrolling] = useState(false);
+  const [hasAutoScrolledOnce, setHasAutoScrolledOnce] = useState(false);
   const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const autoScrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastPathRef = React.useRef<string>("");
 
   // Loading component for Sider
   const SiderLoading: React.FC = () => (
@@ -95,9 +97,15 @@ const AppSider: React.FC<AppSiderProps> = ({
   );
 
   // 滚动到当前选中的项目
-  const scrollToSelectedItem = useCallback((selectedKey: string) => {
+  const scrollToSelectedItem = useCallback((selectedKey: string, forceScroll: boolean = false) => {
     if (!selectedKey || !menuRef.current || userIsScrolling) {
       console.log('Auto-scroll skipped:', { selectedKey, hasMenuRef: !!menuRef.current, userIsScrolling });
+      return;
+    }
+    
+    // 检查是否已经自动滚动过，除非强制滚动
+    if (!forceScroll && hasAutoScrolledOnce) {
+      console.log('Auto-scroll skipped: already scrolled once for this session');
       return;
     }
     
@@ -149,12 +157,14 @@ const AppSider: React.FC<AppSiderProps> = ({
           inline: 'nearest'
         });
         console.log('Scroll initiated for element:', selectedElement);
+        // 标记已经执行过自动滚动
+        setHasAutoScrolledOnce(true);
       }
     };
     
     // 只执行一次，延迟确保DOM更新完成
     autoScrollTimeoutRef.current = setTimeout(scrollToElement, 800);
-  }, [userIsScrolling]);
+  }, [userIsScrolling, hasAutoScrolledOnce]);
 
   // 检测屏幕尺寸
   useEffect(() => {
@@ -358,7 +368,18 @@ const AppSider: React.FC<AppSiderProps> = ({
 
   useEffect(() => {
     const getSiderItems = async () => {
-      const pathSegments = location.pathname.split("/");
+      const currentPath = location.pathname;
+      const pathSegments = currentPath.split("/");
+      
+      // 检查是否是新的页面路径，如果是则重置自动滚动标记
+      if (lastPathRef.current !== currentPath) {
+        console.log('Path changed, resetting auto-scroll flag:', { 
+          from: lastPathRef.current, 
+          to: currentPath 
+        });
+        setHasAutoScrolledOnce(false);
+        lastPathRef.current = currentPath;
+      }
       const isVideoListPage = pathSegments.length === 4 && 
                               pathSegments[1] === "dictation" && 
                               pathSegments[2] === "video" && 
@@ -465,10 +486,10 @@ const AppSider: React.FC<AppSiderProps> = ({
         clearTimeout(scrollTimeoutRef.current);
       }
       
-      // 2秒后重置用户滚动状态
+      // 10秒后重置用户滚动状态（延长时间避免用户操作被打断）
       scrollTimeoutRef.current = setTimeout(() => {
         setUserIsScrolling(false);
-      }, 2000);
+      }, 10000);
     };
 
     const container = menuRef.current;
