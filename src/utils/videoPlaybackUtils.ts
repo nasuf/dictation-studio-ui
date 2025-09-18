@@ -61,18 +61,20 @@ export const playTranscriptSegment = (
   player: VideoPlayer,
   segment: TranscriptSegment,
   config: PlaybackControlConfig
-): Promise<void> => {
+): { promise: Promise<void>; cancel: () => void } => {
   // Parameter validation
   if (!segment || typeof segment !== "object") {
-    return Promise.reject(
-      new Error(`Invalid segment: ${JSON.stringify(segment)}`)
-    );
+    return {
+      promise: Promise.reject(new Error(`Invalid segment: ${JSON.stringify(segment)}`)),
+      cancel: () => {}
+    };
   }
 
   if (typeof segment.start !== "number" || typeof segment.end !== "number") {
-    return Promise.reject(
-      new Error(`Invalid times: start=${segment.start}, end=${segment.end}`)
-    );
+    return {
+      promise: Promise.reject(new Error(`Invalid times: start=${segment.start}, end=${segment.end}`)),
+      cancel: () => {}
+    };
   }
 
   const {
@@ -88,15 +90,48 @@ export const playTranscriptSegment = (
   // Set playback speed
   player.setPlaybackRate(playbackSpeed);
 
-  return new Promise<void>((resolve, reject) => {
+  let cancelFn: (() => void) | null = null;
+
+  const promise = new Promise<void>((resolve, reject) => {
     let monitoringInterval: NodeJS.Timeout | null = null;
     let hasEnded = false;
+    let isCancelled = false;
+    const activeTimeouts: NodeJS.Timeout[] = [];
 
     const cleanup = () => {
       if (monitoringInterval) {
         clearInterval(monitoringInterval);
         monitoringInterval = null;
       }
+      // Clear all active timeouts
+      activeTimeouts.forEach(timeout => clearTimeout(timeout));
+      activeTimeouts.length = 0;
+    };
+
+    // Add cancellation mechanism
+    const cancel = () => {
+      isCancelled = true;
+      hasEnded = true;
+      cleanup();
+      resolve(); // Resolve immediately when cancelled
+    };
+
+    // Expose cancel function
+    cancelFn = cancel;
+
+    // Helper to create cancellable timeout
+    const setCancellableTimeout = (callback: () => void, delay: number) => {
+      if (isCancelled) return;
+      const timeout = setTimeout(() => {
+        if (!isCancelled) {
+          // Remove from active timeouts array
+          const index = activeTimeouts.indexOf(timeout);
+          if (index > -1) activeTimeouts.splice(index, 1);
+          callback();
+        }
+      }, delay);
+      activeTimeouts.push(timeout);
+      return timeout;
     };
 
     const startMonitoring = () => {
@@ -112,7 +147,7 @@ export const playTranscriptSegment = (
       }
 
       monitoringInterval = setInterval(() => {
-        if (hasEnded) {
+        if (hasEnded || isCancelled) {
           cleanup();
           return;
         }
@@ -139,7 +174,7 @@ export const playTranscriptSegment = (
           }
 
           // Update final state
-          if (onStateChange) {
+          if (onStateChange && !isCancelled) {
             onStateChange({
               isPlaying: false,
               targetEndTime: 0,
@@ -147,9 +182,9 @@ export const playTranscriptSegment = (
             });
           }
 
-          setTimeout(() => {
-            if (onComplete) onComplete();
-            resolve();
+          setCancellableTimeout(() => {
+            if (onComplete && !isCancelled) onComplete();
+            if (!isCancelled) resolve();
           }, 50);
         }
       }, checkInterval);
@@ -159,16 +194,24 @@ export const playTranscriptSegment = (
     const attemptPlayback = (attemptNumber = 1, maxAttempts = 3) => {
       try {
         // Always pause first to ensure clean state
-        player.pauseVideo();
+        if (!isCancelled) {
+          player.pauseVideo();
+        }
 
-        setTimeout(() => {
-          player.seekTo(segment.start, true);
+        setCancellableTimeout(() => {
+          if (!isCancelled) {
+            player.seekTo(segment.start, true);
+          }
 
-          setTimeout(() => {
-            player.playVideo();
+          setCancellableTimeout(() => {
+            if (!isCancelled) {
+              player.playVideo();
+            }
 
             // Check playback status with multiple retries
             const checkPlaybackStatus = (checkAttempt = 1, maxChecks = 10) => {
+              if (isCancelled) return;
+
               const state = player.getPlayerState();
 
               if (
@@ -181,7 +224,7 @@ export const playTranscriptSegment = (
                 checkAttempt < maxChecks
               ) {
                 // Still unstarted, wait and check again
-                setTimeout(() => {
+                setCancellableTimeout(() => {
                   checkPlaybackStatus(checkAttempt + 1, maxChecks);
                 }, 200);
               } else if (
@@ -189,14 +232,18 @@ export const playTranscriptSegment = (
                 checkAttempt < maxChecks
               ) {
                 // Paused, try to play again
-                player.playVideo();
-                setTimeout(() => {
+                if (!isCancelled) {
+                  player.playVideo();
+                }
+                setCancellableTimeout(() => {
                   checkPlaybackStatus(checkAttempt + 1, maxChecks);
                 }, 200);
               } else if (attemptNumber < maxAttempts) {
                 // This attempt failed, try again
-                setTimeout(() => {
-                  attemptPlayback(attemptNumber + 1, maxAttempts);
+                setCancellableTimeout(() => {
+                  if (!isCancelled) {
+                    attemptPlayback(attemptNumber + 1, maxAttempts);
+                  }
                 }, 500);
               } else {
                 // All attempts failed
@@ -218,15 +265,17 @@ export const playTranscriptSegment = (
             };
 
             // Start checking after a short delay
-            setTimeout(() => {
+            setCancellableTimeout(() => {
               checkPlaybackStatus();
             }, 300);
           }, 150);
         }, 100);
       } catch (error) {
         if (attemptNumber < maxAttempts) {
-          setTimeout(() => {
-            attemptPlayback(attemptNumber + 1, maxAttempts);
+          setCancellableTimeout(() => {
+            if (!isCancelled) {
+              attemptPlayback(attemptNumber + 1, maxAttempts);
+            }
           }, 500);
         } else {
           cleanup();
@@ -241,6 +290,15 @@ export const playTranscriptSegment = (
     // Start the playback attempts
     attemptPlayback();
   });
+  
+  return {
+    promise,
+    cancel: () => {
+      if (cancelFn) {
+        cancelFn();
+      }
+    }
+  };
 };
 
 /**
@@ -317,12 +375,17 @@ export const shouldStopPlayback = (
 export class VideoPlaybackController {
   private player: VideoPlayer;
   private currentInterval: NodeJS.Timeout | null = null;
+  private currentPlaybackPromise: Promise<void> | null = null;
+  private currentPlaybackCancelFn: (() => void) | null = null;
+  private currentTranscriptCancelFn: (() => void) | null = null;
+  private currentPlaybackId: number = 0;
   private playbackState: VideoPlaybackState = {
     isPlaying: false,
     targetEndTime: 0,
     actualStartTime: 0,
   };
   private config: PlaybackControlConfig;
+  private isStopRequested: boolean = false;
 
   constructor(
     player: VideoPlayer,
@@ -346,30 +409,86 @@ export class VideoPlaybackController {
     segment: TranscriptSegment,
     onComplete?: () => void
   ): Promise<void> {
-    this.stop(); // Stop any current playback
+    // Stop any current playback immediately (non-blocking)
+    this.stop().catch(console.error);
+
+    // Generate unique playback ID
+    const playbackId = ++this.currentPlaybackId;
+
+    // Reset stop request flag
+    this.isStopRequested = false;
 
     const segmentConfig = {
       ...this.config,
-      onComplete: onComplete,
+      onComplete: () => {
+        // Only execute if this is still the current playback
+        if (playbackId === this.currentPlaybackId) {
+          this.currentPlaybackPromise = null;
+          this.currentTranscriptCancelFn = null;
+          if (onComplete && !this.isStopRequested) {
+            onComplete();
+          }
+        }
+      },
       onStateChange: (state: VideoPlaybackState) => {
-        this.playbackState = state;
-        if (this.config.onStateChange) {
-          this.config.onStateChange(state);
+        // Only update state if this is still the current playback
+        if (playbackId === this.currentPlaybackId) {
+          this.playbackState = state;
+          if (this.config.onStateChange) {
+            this.config.onStateChange(state);
+          }
         }
       },
     };
 
-    return playTranscriptSegment(this.player, segment, segmentConfig);
+    // Start the actual playback with proper cancellation support
+    const playbackResult = playTranscriptSegment(this.player, segment, segmentConfig);
+
+    // Store the promise and cancel function
+    this.currentPlaybackPromise = playbackResult.promise;
+    this.currentTranscriptCancelFn = playbackResult.cancel;
+
+    try {
+      await this.currentPlaybackPromise;
+    } catch (error) {
+      // If playback was stopped, don't propagate the error
+      if (!this.isStopRequested) {
+        throw error;
+      }
+    } finally {
+      // Only clear if this is still the current playback
+      if (playbackId === this.currentPlaybackId) {
+        this.currentPlaybackPromise = null;
+        this.currentTranscriptCancelFn = null;
+      }
+    }
   }
 
   /**
    * Stop current playback
    */
-  stop(): void {
+  async stop(): Promise<void> {
+    this.isStopRequested = true;
+    
+    // Cancel current transcript playback monitoring immediately
+    if (this.currentTranscriptCancelFn) {
+      this.currentTranscriptCancelFn();
+      this.currentTranscriptCancelFn = null;
+    }
+    
+    // Cancel current playback monitoring immediately
+    if (this.currentPlaybackCancelFn) {
+      this.currentPlaybackCancelFn();
+      this.currentPlaybackCancelFn = null;
+    }
+    
     if (this.currentInterval) {
       clearInterval(this.currentInterval);
       this.currentInterval = null;
     }
+
+    // Don't wait for playback promise - just stop immediately
+    this.currentPlaybackPromise = null;
 
     stopVideoPlayback(this.player, (state) => {
       this.playbackState = state;

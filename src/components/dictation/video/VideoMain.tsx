@@ -123,6 +123,8 @@ const VideoMain: React.ForwardRefRenderFunction<
   const [isUserTyping, setIsUserTyping] = useState(false);
   const userTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [settingShortcut, setSettingShortcut] = useState<string | null>(null);
+  const activeRepeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const playbackSessionIdRef = useRef<number>(0);
   const userInfo = useSelector((state: RootState) => state.user.userInfo);
   // settings
   const autoRepeat = useSelector(
@@ -560,13 +562,25 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const stopCurrentSentence = useCallback(() => {
     if (playbackController) {
-      playbackController.stop();
+      playbackController.stop().catch(console.error);
     }
-  }, [playbackController]);
+    // Clear any active repeat timeout
+    if (activeRepeatTimeoutRef.current) {
+      clearTimeout(activeRepeatTimeoutRef.current);
+      activeRepeatTimeoutRef.current = null;
+    }
+    // Invalidate current playback session
+    playbackSessionIdRef.current++;
+    // Reset repeat count when stopping
+    dispatch(resetRepeatCount());
+  }, [playbackController, dispatch]);
 
   const playSentence = useCallback(
     async (sentence: TranscriptItem, onComplete?: () => void) => {
       if (!playbackController) return;
+
+      // Capture current session ID
+      const sessionId = playbackSessionIdRef.current;
 
       const segment: TranscriptSegment = {
         start: sentence.start,
@@ -575,10 +589,15 @@ const VideoMain: React.ForwardRefRenderFunction<
       };
 
       try {
-        await playbackController.playSegment(segment, onComplete);
+        await playbackController.playSegment(segment, () => {
+          // Only call onComplete if this is still the active session
+          if (sessionId === playbackSessionIdRef.current && onComplete) {
+            onComplete();
+          }
+        });
       } catch (error) {
         console.error("Playback failed:", error);
-        if (onComplete) {
+        if (sessionId === playbackSessionIdRef.current && onComplete) {
           setTimeout(onComplete, 100);
         }
       }
@@ -588,6 +607,11 @@ const VideoMain: React.ForwardRefRenderFunction<
 
   const playCurrentSentence = useCallback(() => {
     if (!playbackController || transcript.length === 0) return;
+    
+    // Stop any current playback and clear repeat timers
+    stopCurrentSentence();
+    
+    // Play current sentence immediately
     const currentSentence = transcript[currentSentenceIndex];
     if (autoRepeat > 0) {
       repeatSentence(currentSentence);
@@ -601,15 +625,21 @@ const VideoMain: React.ForwardRefRenderFunction<
     playSentence,
     transcript,
     autoRepeat,
+    stopCurrentSentence,
   ]);
 
   const playNextSentence = useCallback(() => {
     if (!playbackController || transcript.length === 0) return;
+    
+    // Stop any current playback and clear repeat timers
+    stopCurrentSentence();
+    
     const nextIndex = (currentSentenceIndex + 1) % transcript.length;
     if (nextIndex === 0) {
       setIsCompleted(true);
       onComplete();
     } else {
+      // Update state and play immediately
       setCurrentSentenceIndex(nextIndex);
       const nextSentence = transcript[nextIndex];
       if (autoRepeat > 0) {
@@ -626,13 +656,18 @@ const VideoMain: React.ForwardRefRenderFunction<
     playSentence,
     autoRepeat,
     onComplete,
+    stopCurrentSentence,
   ]);
 
   const playPreviousSentence = useCallback(() => {
     if (!playbackController || transcript.length === 0) return;
     if (currentSentenceIndex === 0) return;
 
+    // Stop any current playback and clear repeat timers
+    stopCurrentSentence();
+
     const prevIndex = currentSentenceIndex - 1;
+    // Update state and play immediately
     setCurrentSentenceIndex(prevIndex);
     const prevSentence = transcript[prevIndex];
     if (autoRepeat > 0) {
@@ -647,18 +682,35 @@ const VideoMain: React.ForwardRefRenderFunction<
     playbackController,
     playSentence,
     autoRepeat,
+    stopCurrentSentence,
   ]);
 
   const repeatSentence = useCallback(
     (transcriptItem: TranscriptItem) => {
+      // Clear any existing repeat timeout
+      if (activeRepeatTimeoutRef.current) {
+        clearTimeout(activeRepeatTimeoutRef.current);
+        activeRepeatTimeoutRef.current = null;
+      }
+
+      // Generate new session ID for this repeat sequence
+      const sessionId = ++playbackSessionIdRef.current;
+
       dispatch(resetRepeatCount());
       const repeat = () => {
+        // Only continue if this is still the active session
+        if (sessionId !== playbackSessionIdRef.current) return;
+
         const currentRepeatCount = (store.getState() as RootState).user
           .repeatCount;
         if (currentRepeatCount <= autoRepeat) {
           playSentence(transcriptItem, () => {
+            // Only continue if this is still the active session
+            if (sessionId !== playbackSessionIdRef.current) return;
+
             dispatch(increaseRepeatCount());
-            setTimeout(() => {
+            activeRepeatTimeoutRef.current = setTimeout(() => {
+              activeRepeatTimeoutRef.current = null;
               repeat();
             }, 1000);
           });
@@ -1445,6 +1497,10 @@ const VideoMain: React.ForwardRefRenderFunction<
       stopTimer();
       if (userTypingTimerRef.current) {
         clearTimeout(userTypingTimerRef.current);
+      }
+      // Clear repeat timeout when component unmounts
+      if (activeRepeatTimeoutRef.current) {
+        clearTimeout(activeRepeatTimeoutRef.current);
       }
       // Remove auto-save timer cleanup from here - it's handled in the timer setup useEffect
     };
