@@ -1750,13 +1750,13 @@ const VideoMain: React.ForwardRefRenderFunction<
           {/* Video Player with Controls */}
           <div className="px-4 pt-3">
             <div className="relative pt-[42%] md:pt-[56.25%] bg-black rounded-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full z-10" />
+              <div className="absolute top-0 left-0 w-full h-full z-20" />
               <YouTube
                 videoId={videoId}
                 opts={youtubeOpts}
                 onReady={onVideoReady}
                 onStateChange={onVideoStateChange}
-                className="absolute top-0 left-0 w-full h-full z-20"
+                className="absolute top-0 left-0 w-full h-full z-10"
               />
 
               {/* Video Control Buttons Overlay */}
@@ -2093,13 +2093,13 @@ const VideoMain: React.ForwardRefRenderFunction<
               )}
 
               <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full z-10" />
+                <div className="absolute top-0 left-0 w-full h-full z-20" />
                 <YouTube
                   videoId={videoId}
                   opts={youtubeOpts}
                   onReady={onVideoReady}
                   onStateChange={onVideoStateChange}
-                  className="absolute top-0 left-0 w-full h-full z-20"
+                  className="absolute top-0 left-0 w-full h-full z-10"
                 />
               </div>
             </div>
